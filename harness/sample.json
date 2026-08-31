@@ -1,0 +1,20 @@
+{
+  "name": "pilot-sample",
+  "description": "首个可运行样本：A/E 两条完整链（L1→L4）+ F 线程（L2→L4），进化集与测试集零重叠",
+  "train": ["L0-A-01", "L1-A-01", "L1-E-01", "L1-F-01", "L1-B-01", "L2-A-01"],
+  "test": {
+    "L1": ["L1-A-C1", "L1-E-C1"],
+    "L2": ["L2-A-C1", "L2-E-C1", "L2-F-05"],
+    "L3": ["L3-A-C1", "L3-E-C1", "L3-F-01"],
+    "L4": ["L4-A-C1", "L4-E-C1", "L4-F-01"]
+  },
+  "conditions": {
+    "target-only": "仅目标题",
+    "with-skill": "进化出的洞察库 + 目标题（frozen transfer）",
+    "with-source": "源题及完整解答 + 目标题（迁移能力上限对照，仅 L3/L4）"
+  },
+  "protocol": {
+    "evolve": "对 train 逐题：解题 → 仅返回 对/错 → 自蒸馏一条可复用洞察进库（score-only，ReasoningBank 式）",
+    "test": "库冻结，逐题按条件独立作答（每次全新上下文），机器判分"
+  }
+}
