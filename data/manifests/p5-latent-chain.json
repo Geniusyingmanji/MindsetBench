@@ -1,0 +1,7 @@
+{
+  "name": "p5-latent-affine-transfer-chain",
+  "description": "A complete P5 L0-L4 chain for latent affine-codebook recovery, representation transfer, and relation-edit replanning.",
+  "datasets": [
+    "../v1/formal-p5-latent-chain.yaml"
+  ]
+}

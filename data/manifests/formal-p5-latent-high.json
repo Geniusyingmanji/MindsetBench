@@ -1,0 +1,11 @@
+{
+  "name": "formal-p5-latent-high-prescreen",
+  "description": "The L3 and dual-representation L4 cases from the latent affine operation chain.",
+  "datasets": [
+    "../v1/formal-p5-latent-chain.yaml"
+  ],
+  "case_ids": [
+    "FORMAL-P5-LATENT-L3-01",
+    "FORMAL-P5-LATENT-L4-01"
+  ]
+}

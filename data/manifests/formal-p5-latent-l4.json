@@ -1,0 +1,9 @@
+{
+  "name": "formal-p5-latent-l4-prescreen",
+  "datasets": [
+    "../v1/formal-p5-latent-chain.yaml"
+  ],
+  "case_ids": [
+    "FORMAL-P5-LATENT-L4-01"
+  ]
+}

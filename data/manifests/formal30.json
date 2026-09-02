@@ -1,0 +1,12 @@
+{
+  "name": "formal30-calibration-candidates",
+  "description": "Six fixed-source L0-L4 chains across P2, P3, P4, two complementary P5 schemas, and P6.",
+  "datasets": [
+    "../v1/formal-p2-sensitivity-chain.yaml",
+    "../v1/formal-p3-causal-chain.yaml",
+    "../v1/formal-p4-closure-chain.yaml",
+    "../v1/formal-p5-planning-chain.yaml",
+    "../v1/formal-p5-latent-chain.yaml",
+    "../v1/formal-p6-alignment-chain.yaml"
+  ]
+}

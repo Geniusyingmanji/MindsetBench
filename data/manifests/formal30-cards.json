@@ -1,0 +1,11 @@
+{
+  "name": "formal30-schema-cards",
+  "schema_card_files": [
+    "../schema_cards/formal-p2-sensitivity-v1.yaml",
+    "../schema_cards/formal-p3-causal-v1.yaml",
+    "../schema_cards/formal-p4-closure-v1.yaml",
+    "../schema_cards/formal-p5-planning-v1.yaml",
+    "../schema_cards/formal-p5-latent-v1.yaml",
+    "../schema_cards/formal-p6-alignment-v1.yaml"
+  ]
+}

@@ -1,0 +1,308 @@
+- id: FORMAL-P5-LATENT-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: latent-affine-codebook-planning-v1
+  schema_name: 从局部观测联合恢复匿名仿射操作并在关系编辑后重规划
+  chain: p5-latent-affine-transfer-v1
+  level: 0
+  source: &latent_source
+    domain: 八位基因开关校准
+    problem: >-
+      状态是 b1…b8 的八位串。P(i1,…,i8) 输出原串第 i1,…,i8 位，再与掩码逐位异或；
+      因而 F=P(...)⊕m 是 GF(2) 上的仿射变换。八个匿名程序 S1—S8 分别实现 F1—F8 中不同的一项。
+      候选变换：F1=P(2,3,4,5,6,7,8,1)⊕00000000；F2=P(8,1,2,3,4,5,6,7)⊕00000000；
+      F3=P(8,7,6,5,4,3,2,1)⊕00000000；F4=P(2,1,4,3,6,5,8,7)⊕00000000；
+      F5=P(1,2,3,4,5,6,7,8)⊕10110110；F6=P(1,2,3,4,5,6,7,8)⊕01101001；
+      F7=P(2,4,1,3,6,8,5,7)⊕00000000；F8=P(4,1,6,2,8,3,7,5)⊕11001010。
+      单条日志可能兼容多项候选，但代码本是一一对应。校准日志：
+      S1:00100011→11000100；S2:01111100→00111110；S3:10001000→00010001；
+      S4:00000000→10110110；S5:01000001→10000010；S6:10010000→01100000；
+      S7:01101010→11011101；S8:01001110→00100111。卡成本：
+      S1[2]；S2[1]；S3[2]；S4[2]；S5[2]；S6[4]；S7[5]；S8[6]。
+      Q1:初态=00000001;目标=11100001。每张卡至多使用一次，按输出顺序复合变换。
+      求唯一最低成本序列；最后一行须严格写成 ANSWER: 成本;程序码>程序码>...。
+    solution: >-
+      对每条日志保留全部兼容候选，再施加八个程序与八个变换的一一对应约束；唯一代码本为
+      S1=F3、S2=F2、S3=F1、S4=F5、S5=F4、S6=F7、S7=F8、S8=F6。
+      在“八位状态×已用卡集合”上做一致代价搜索，唯一最优为 S3,S7,S2,S4,S5，
+      代价 12；runner-up 代价 13。迁移时先按日志恢复目标代码本，不应仅按程序重命名复制该序列；
+      若一项隐藏变换变化，需用新代码本重算最短路。
+    answer: 12;S3>S7>S2>S4>S5
+  target:
+    domain: 四程序基因开关校准
+    problem: >-
+      状态仍是 b1…b8 的八位串，P(i1,…,i8) 输出原串第 i1,…,i8 位，再与掩码逐位异或。
+      四个程序 A1—A4 分别实现四项候选中的不同一项。候选变换：
+      F1=P(2,3,4,5,6,7,8,1)⊕00000000；F2=P(8,1,2,3,4,5,6,7)⊕00000000；
+      F3=P(8,7,6,5,4,3,2,1)⊕00000000；F5=P(1,2,3,4,5,6,7,8)⊕10110110。
+      校准日志：A1:00000001→00000010；A2:00000010→00000001；
+      A3:00000000→10110110；A4:00000010→01000000。卡成本：
+      A1[1]；A2[2]；A3[3]；A4[4]。Q1:初态=00000000;目标=11011010。
+      每张卡至多使用一次，按输出顺序复合变换。求唯一最低成本序列；
+      最后一行必须使用“ANSWER: 成本;程序码>程序码>...”格式，成本后只能用分号。
+    answer:
+      parts:
+        - {type: number, value: "8"}
+        - {type: string, value: A3>A4>A1}
+  mapping:
+    objects: {八位基因状态: 八位基因状态, 匿名程序: A1/A2/A3/A4, 候选仿射变换: F1/F2/F3/F5, 路径成本: 卡成本之和}
+    shared_relations: [日志确定程序所实现的候选变换, 变换按输出次序复合, 每张卡至多一次, 在精确到达目标的序列中最小化成本]
+    varied: [缩为四项候选且每条日志可局部唯一识别]
+  lure:
+    problem: 使用相同四项变换、日志、成本、初态和目标，但约定输出 A>B>C 表示实际先执行 C、再 B、最后 A；求该约定下的最低成本输出串。
+    solution: 反向复合约定下，正确执行顺序 A3,A4,A1 应写成 A1>A4>A3，成本仍为 8。
+    answer: {parts: [{type: number, value: "8"}, {type: string, value: A1>A4>A3}]}
+    why_surface_similar: 候选、日志、成本、初态和目标完全相同。
+    why_structurally_different: lure 只翻转输出串与实际复合顺序的关系；在真实题中该串落到 10110110。
+    wrong_schema_id: reverse-affine-composition-order-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "8"}, {type: string, value: A1>A4>A3}]}
+    derivation: 把输出程序码当成从右向左执行，机械反转真实最优序列。
+  hints:
+    schema_name: 从局部观测联合恢复匿名仿射操作并在关系编辑后重规划
+    oracle_mindset: {insight: 先由每条日志直接确定程序语义，再在状态与已用卡的乘积空间比较完整序列。, when_to_use: 操作语义可由局部输入输出唯一识别时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_formal_p5_latent_l0_01
+    method: injective-codebook-enumeration-and-uniform-cost-affine-planning
+  provenance: original synthetic latent-operation transfer chain
+  verified: 四条日志均局部唯一；唯一最优 A3>A4>A1 成本 8，runner-up 成本 9。
+
+- id: FORMAL-P5-LATENT-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: latent-affine-codebook-planning-v1
+  schema_name: 从局部观测联合恢复匿名仿射操作并在关系编辑后重规划
+  chain: p5-latent-affine-transfer-v1
+  level: 1
+  source: *latent_source
+  target:
+    domain: 四程序基因开关盲校准
+    problem: >-
+      状态是 b1…b8 的八位串，P(i1,…,i8) 输出原串第 i1,…,i8 位，再与掩码逐位异或。
+      四个匿名程序 B1—B4 分别实现 F1—F4 中不同的一项；单条日志可能兼容多项，代码本必须一一对应。
+      候选变换：F1=P(2,3,4,5,6,7,8,1)⊕00000000；F2=P(8,1,2,3,4,5,6,7)⊕00000000；
+      F3=P(8,7,6,5,4,3,2,1)⊕00000000；F4=P(2,1,4,3,6,5,8,7)⊕00000000。
+      校准日志：B1:00000001→10000000；B2:00000010→00000001；
+      B3:00000001→00000010；B4:00000010→01000000。卡成本：
+      B1[2]；B2[3]；B3[1]；B4[4]。Q1:初态=00000001;目标=00100000。
+      每张卡至多使用一次，按输出顺序复合变换。求唯一最低成本序列；
+      最后一行必须使用“ANSWER: 成本;程序码>程序码>...”格式，成本后只能用分号。
+    answer:
+      parts:
+        - {type: number, value: "7"}
+        - {type: string, value: B3>B4>B1}
+  mapping:
+    objects: {八位状态: 八位状态, 匿名程序: B1/B2/B3/B4, 局部候选集: 日志兼容的 Fi, 全局代码本: 程序到变换的一一匹配}
+    shared_relations: [单条日志只产生候选集合, 所有程序必须映到互不重复的变换, 恢复码本后才可复合操作, 计划成本按实际使用卡累计]
+    varied: [三条日志各自有两个兼容候选，必须利用全局互异约束消歧]
+  lure:
+    problem: 使用同一实例，但约定输出 B>B>B 从右向左执行；求该约定下的最低成本输出串。
+    solution: 真实执行顺序 B3,B4,B1 在反向约定中写成 B1>B4>B3，总成本 7。
+    answer: {parts: [{type: number, value: "7"}, {type: string, value: B1>B4>B3}]}
+    why_surface_similar: 保留全部候选、歧义日志、成本和查询。
+    why_structurally_different: lure 颠倒程序串的复合方向，真实规则下该串只到达 00000010。
+    wrong_schema_id: reverse-affine-composition-order-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "7"}, {type: string, value: B1>B4>B3}]}
+    derivation: 正确恢复码本后仍错误地把输出序列从右向左执行。
+  hints:
+    schema_name: 从局部观测联合恢复匿名仿射操作并在关系编辑后重规划
+    oracle_mindset: {insight: 不要逐条贪心定码；先列兼容集合，再求唯一的全局一一匹配。, when_to_use: 多个匿名操作共享互异约束且局部观测有歧义时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_formal_p5_latent_l1_01
+    method: injective-codebook-enumeration-and-uniform-cost-affine-planning
+  provenance: original synthetic latent-operation transfer chain
+  verified: 局部候选规模为 1/2/2/2，但全局代码本唯一；唯一最优 B3>B4>B1 成本 7。
+
+- id: FORMAL-P5-LATENT-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: latent-affine-codebook-planning-v1
+  schema_name: 从局部观测联合恢复匿名仿射操作并在关系编辑后重规划
+  chain: p5-latent-affine-transfer-v1
+  level: 2
+  source: *latent_source
+  target:
+    domain: 八格继电存储器完整换码
+    problem: >-
+      状态是 b1…b8 的八位串。P(i1,…,i8) 输出原串第 i1,…,i8 位，再与掩码逐位异或。
+      八张匿名继电卡 K1—K8 分别实现 F1—F8 中不同的一项；单条日志可能兼容多项，代码本必须一一对应。
+      候选变换：F1=P(2,3,4,5,6,7,8,1)⊕00000000；F2=P(8,1,2,3,4,5,6,7)⊕00000000；
+      F3=P(8,7,6,5,4,3,2,1)⊕00000000；F4=P(2,1,4,3,6,5,8,7)⊕00000000；
+      F5=P(1,2,3,4,5,6,7,8)⊕10110110；F6=P(1,2,3,4,5,6,7,8)⊕01101001；
+      F7=P(2,4,1,3,6,8,5,7)⊕00000000；F8=P(4,1,6,2,8,3,7,5)⊕11001010。
+      校准日志：K2:01101010→11011101；K7:01000001→10000010；K3:01111100→00111110；
+      K5:01001110→00100111；K8:10001000→00010001；K1:00000000→10110110；
+      K6:00100011→11000100；K4:10010000→01100000。卡成本：
+      K6[2]；K3[1]；K8[2]；K1[2]；K7[2]；K4[4]；K2[5]；K5[6]。
+      Q1:初态=00000001;目标=11100001。每张卡至多使用一次，按输出顺序复合变换。
+      求唯一最低成本序列；无需展开全部码本排列或 256 个状态，只需简述候选集合、唯一代码本和最优性结论；
+      最后一行必须使用“ANSWER: 成本;程序码>程序码>...”格式，成本后只能用分号。
+    answer:
+      parts:
+        - {type: number, value: "12"}
+        - {type: string, value: K8>K2>K3>K1>K7}
+  mapping:
+    objects: {基因八位状态: 继电八格状态, S1/S2/S3/S4: K6/K3/K8/K1, S5/S6/S7/S8: K7/K4/K2/K5, 源程序码本: 目标继电卡码本}
+    shared_relations: [八项候选仿射变换完整保持, 八张卡的成本逐项保持, 校准日志在重命名下保持同一隐藏代码本, 初态与目标保持, 最优程序序列可在完整同构下逐码重命名]
+    varied: [跨到继电域并打乱日志与卡名顺序，但不改变任何隐藏变换]
+  lure:
+    problem: 使用同一继电实例，但把输出卡串约定为从右向左实际执行；求该约定下的最低成本输出串。
+    solution: 完整同构下真实执行序列 K8,K2,K3,K1,K7 在反向约定中写成 K7>K1>K3>K2>K8，成本 12。
+    answer: {parts: [{type: number, value: "12"}, {type: string, value: K7>K1>K3>K2>K8}]}
+    why_surface_similar: 继电卡、日志、成本与目标实例全部相同。
+    why_structurally_different: lure 反转复合关系；真实规则下该串落到 10110010。
+    wrong_schema_id: reverse-affine-composition-order-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "12"}, {type: string, value: K7>K1>K3>K2>K8}]}
+    derivation: 把正确的映射序列误按右到左输出。
+  hints:
+    schema_name: 从局部观测联合恢复匿名仿射操作并在关系编辑后重规划
+    oracle_mindset: {insight: 先验证八项码本是 source 的完整重命名，再逐码迁移最优序列并保持执行方向。, when_to_use: 目标与来源完整同构但对象名和记录顺序全部变化时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_formal_p5_latent_l2_01
+    method: injective-codebook-enumeration-and-uniform-cost-affine-planning
+  provenance: original synthetic latent-operation transfer chain
+  verified: 八项全局代码本唯一且与 source 完整同构；唯一最优成本 12，runner-up 成本 13。
+
+- id: FORMAL-P5-LATENT-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: latent-affine-codebook-planning-v1
+  schema_name: 从局部观测联合恢复匿名仿射操作并在关系编辑后重规划
+  chain: p5-latent-affine-transfer-v1
+  level: 3
+  source: *latent_source
+  target:
+    domain: 八格继电存储器单码改版
+    problem: >-
+      状态是 b1…b8 的八位串。P(i1,…,i8) 输出原串第 i1,…,i8 位，再与掩码逐位异或。
+      八张匿名继电卡 K1—K8 实现下列九项候选中的八项，且互不重复；哪一项未被使用须由全部日志联合确定。
+      候选变换：F1=P(2,3,4,5,6,7,8,1)⊕00000000；F2=P(8,1,2,3,4,5,6,7)⊕00000000；
+      F3=P(8,7,6,5,4,3,2,1)⊕00000000；F4=P(2,1,4,3,6,5,8,7)⊕00000000；
+      F5=P(1,2,3,4,5,6,7,8)⊕10110110；F6=P(1,2,3,4,5,6,7,8)⊕01101001；
+      F7=P(2,4,1,3,6,8,5,7)⊕00000000；F8=P(4,1,6,2,8,3,7,5)⊕11001010；
+      F9=P(2,1,4,3,6,5,8,7)⊕00110101。单条日志可能兼容多项候选。校准日志：
+      K2:00100011→11000100；K7:10010111→01011110；K3:01101100→00110110；
+      K5:00110100→01011101；K8:11001001→10010011；K1:11111110→01001000；
+      K6:00010111→11101000；K4:11000101→10101100。卡成本：
+      K6[2]；K3[1]；K8[2]；K1[2]；K7[2]；K4[4]；K2[5]；K5[6]。
+      Q1:初态=00000001;目标=11100001。每张卡至多使用一次，按输出顺序复合变换。
+      求唯一最低成本序列；无需展开全部码本排列或 256 个状态，只需简述候选集合、唯一代码本和最优性结论；
+      最后一行必须使用“ANSWER: 成本;程序码>程序码>...”格式，成本后只能用分号。
+    answer:
+      parts:
+        - {type: number, value: "7"}
+        - {type: string, value: K6>K7>K1>K3}
+  mapping:
+    objects: {基因八位状态: 继电八格状态, S1/S2/S3/S4: K6/K3/K8/K1, S5/S6/S7/S8: K7/K4/K2/K5, 程序校准日志: 继电卡校准日志, 卡成本: 卡成本}
+    shared_relations: [状态变换由位排列与异或复合, 单条日志只约束候选集合而全部代码联合一一匹配, 每张卡至多一次且变换按序复合, 路径成本为实际卡成本之和, 七张卡保持 source 重命名关系]
+    removed_relations: [K7 对应 source S5 的无掩码邻位交换 F4]
+    added_relations: [K7 改为邻位交换后再异或 00110101 的 F9]
+    adaptation_required: [由全部日志恢复 F4 未使用且 K7=F9, 重放 source 映射计划发现终态变成 11010100, 用新代码本重算唯一最低成本计划]
+    varied: [候选从八项扩到九项并隐藏地替换一张卡的仿射关系]
+  lure:
+    problem: 使用相同查询、成本和卡名，但忽略 K7 日志造成的码本变化，假定各 K 卡仍实现映射 source 卡的旧变换；求最低成本序列。
+    solution: 旧代码本下最优序列按重命名为 K8>K2>K3>K1>K7，成本 12。
+    answer: {parts: [{type: number, value: "12"}, {type: string, value: K8>K2>K3>K1>K7}]}
+    why_surface_similar: 状态、目标、全部卡名、成本及七张未改变卡都与目标一致。
+    why_structurally_different: lure 强制复制旧码本，违反目标日志唯一恢复出的 K7=F9。
+    wrong_schema_id: copied-affine-codebook-without-recalibration-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "12"}, {type: string, value: K8>K2>K3>K1>K7}]}
+    derivation: 把 source 最优卡序列逐码重命名，未由目标日志重校准 K7。
+  hints:
+    schema_name: 从局部观测联合恢复匿名仿射操作并在关系编辑后重规划
+    oracle_mindset: {insight: 先恢复目标码本并定位未使用候选；确认 K7=F9 后重放旧计划，再重新搜索。, when_to_use: 匿名操作集合只改变一个隐藏关系时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_formal_p5_latent_l3_01
+    method: injective-codebook-enumeration-and-uniform-cost-affine-planning
+  provenance: original synthetic latent-operation transfer chain
+  verified: F4 唯一未使用且仅 K7 关系变化；唯一最优成本 7，旧计划落到 11010100。
+
+- id: FORMAL-P5-LATENT-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: latent-affine-codebook-planning-v1
+  schema_name: 从局部观测联合恢复匿名仿射操作并在关系编辑后重规划
+  chain: p5-latent-affine-transfer-v1
+  level: 4
+  source: *latent_source
+  target:
+    domain: 八站信号编织机的路由卡改版
+    problem: >-
+      状态是站位 a—h 中当前点亮者的集合。路由 G=取(x1,…,x8)△M 的含义是：
+      新站位 a—h 依次复制旧站位 x1—x8 是否点亮，再把集合 M 中站位逐个翻转；△表示对称差。
+      八张匿名路由卡 T1—T8 实现九项候选中的八项且互不重复，未使用项须由全部观测联合确定。
+      候选路由：G1=取(b,c,d,e,f,g,h,a)△∅；G2=取(h,a,b,c,d,e,f,g)△∅；
+      G3=取(h,g,f,e,d,c,b,a)△∅；G4=取(b,a,d,c,f,e,h,g)△∅；
+      G5=取(a,b,c,d,e,f,g,h)△{a,c,d,f,g}；G6=取(a,b,c,d,e,f,g,h)△{b,c,e,h}；
+      G7=取(b,d,a,c,f,h,e,g)△∅；G8=取(d,a,f,b,h,c,g,e)△{a,b,e,g}；
+      G9=取(b,a,d,c,f,e,h,g)△{c,d,f,h}。单条观测可能兼容多项候选。观测记录：
+      T7:{c,g,h}→{a,b,f}；T3:{a,d,f,g,h}→{b,d,e,f,g}；T2:{b,c,e,f}→{c,d,f,g}；
+      T1:{c,d,f}→{b,d,e,f,h}；T6:{a,b,e,h}→{a,d,g,h}；T4:{a,b,c,d,e,f,g}→{b,e}；
+      T5:{d,f,g,h}→{a,b,c,e}；T8:{a,b,f,h}→{a,c,e,f}。卡成本：
+      T5[2]；T2[1]；T6[2]；T4[2]；T3[2]；T8[4]；T7[5]；T1[6]。
+      对同一码本独立回答三问，每问从空的已用卡集合开始，每张卡至多一次，按输出顺序作用：
+      Q1:初集={h};目标集={a,b,c,h}；Q2:初集={b,c,g,h};目标集={a,c,d,f,g,h}；
+      Q3:初集={b,c,f,h};目标集={b,c,e,g}。求各问唯一最低成本序列；最后一行严格输出
+      Q1成本;Q1卡码>...;Q2成本;Q2卡码>...;Q3成本;Q3卡码>...。
+      无需展开全部码本排列或 256 个状态，只需简述各卡候选集合、唯一代码本和三问最优性结论；
+      最后一行必须严格写成 ANSWER: <Q1成本>;<Q1卡串>;<Q2成本>;<Q2卡串>;<Q3成本>;<Q3卡串>，六段之间都用分号。
+    answer:
+      parts:
+        - {type: number, value: "7"}
+        - {type: string, value: T5>T3>T4>T2}
+        - {type: number, value: "11"}
+        - {type: string, value: T5>T3>T2>T8>T6}
+        - {type: number, value: "11"}
+        - {type: string, value: T8>T3>T2>T5>T6}
+  mapping:
+    objects: {源八位向量: 目标点亮站位集合, 位位置 b1…b8: 站位 a…h, 位排列 P: 新站位从旧站位取值, 异或掩码: 翻转集合的对称差, S1…S8: T5/T2/T6/T4/T3/T8/T7/T1}
+    shared_relations: [位值 1 等价于相应站位属于集合, 输出位排列等价于新站位从指定旧站位复制成员关系, 逐位异或等价于与翻转集合取对称差, 单条观测只给候选集合而全部卡联合一一匹配, 每问独立限制每张卡至多一次并最小化成本]
+    removed_relations: [T3 对应旧码本的无翻转邻站成对交换 G4]
+    added_relations: [T3 改为成对交换后再对 c/d/f/h 取对称差的 G9]
+    adaptation_required: [先跨越位串与集合两种表示恢复同一仿射结构, 由全部集合观测恢复 G4 未使用且 T3=G9, 重放三条旧码本计划并在新关系下分别重规划]
+    varied: [领域改为信号编织机, 位向量改写为集合成员关系与对称差, 全部卡与候选重命名, 同时保留一项隐藏关系编辑和三个独立查询]
+  lure:
+    problem: 使用相同集合查询、成本和卡名，但假定每张 T 卡仍实现其映射 source 卡的旧路由，不采用 T3 观测所要求的新翻转集合；求三个最低成本序列。
+    solution: 旧码本下三问最优依次为 12;T6>T7>T2>T4>T3、14;T3>T8>T7>T5>T2、10;T2>T3>T7>T5。
+    answer:
+      parts:
+        - {type: number, value: "12"}
+        - {type: string, value: T6>T7>T2>T4>T3}
+        - {type: number, value: "14"}
+        - {type: string, value: T3>T8>T7>T5>T2}
+        - {type: number, value: "10"}
+        - {type: string, value: T2>T3>T7>T5}
+    why_surface_similar: 使用同一集合表示、卡名、成本、观测格式和三个查询。
+    why_structurally_different: lure 跨表征复制旧码本并忽略 T3 的翻转关系，三条计划在真实目标中全部错失目标集。
+    wrong_schema_id: copied-set-affine-codebook-without-recalibration-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: number, value: "12"}
+        - {type: string, value: T6>T7>T2>T4>T3}
+        - {type: number, value: "14"}
+        - {type: string, value: T3>T8>T7>T5>T2}
+        - {type: number, value: "10"}
+        - {type: string, value: T2>T3>T7>T5}
+    derivation: 把 source 的位串码本和计划直接翻译为集合路由卡，未采用 T3 的新对称差关系。
+  hints:
+    schema_name: 从局部观测联合恢复匿名仿射操作并在关系编辑后重规划
+    oracle_mindset: {insight: 把集合成员指示量编码为八位向量，识别“取位+对称差”与“排列+异或”同构，再联合定码并搜索。, when_to_use: 来源与目标分别使用向量和集合表述同一隐藏转换机制时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_formal_p5_latent_l4_01
+    method: dual-representation-codebook-enumeration-and-uniform-cost-planning
+  provenance: original synthetic latent-operation transfer chain
+  verified: 集合解析与位向量独立真值一致；T3=G9 且 G4 未使用，三问唯一最优成本为 7/11/11。
