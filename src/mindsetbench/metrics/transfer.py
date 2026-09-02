@@ -37,6 +37,18 @@ def summarize_transfer(records: Sequence[TrialRecord]) -> dict[str, object]:
         "completed_transfer_gain": paired_completed_condition_difference(
             records, Condition.WITH_SOURCE, Condition.TARGET_ONLY
         ),
+        "part_transfer_gain": paired_part_condition_difference(
+            records, Condition.WITH_SOURCE, Condition.TARGET_ONLY
+        ),
+        "oracle_mindset_gain": paired_condition_difference(
+            records, Condition.H3_ORACLE_MINDSET, Condition.TARGET_ONLY
+        ),
+        "completed_oracle_mindset_gain": paired_completed_condition_difference(
+            records, Condition.H3_ORACLE_MINDSET, Condition.TARGET_ONLY
+        ),
+        "oracle_mindset_part_gain": paired_part_condition_difference(
+            records, Condition.H3_ORACLE_MINDSET, Condition.TARGET_ONLY
+        ),
         "context_adjusted_gain": paired_condition_difference(
             records, Condition.WITH_SOURCE, Condition.RANDOM_SOURCE
         ),
@@ -44,6 +56,9 @@ def summarize_transfer(records: Sequence[TrialRecord]) -> dict[str, object]:
             records, Condition.WITH_SOURCE, Condition.WITH_LURE
         ),
         "completed_structural_selectivity": paired_completed_condition_difference(
+            records, Condition.WITH_SOURCE, Condition.WITH_LURE
+        ),
+        "part_structural_selectivity": paired_part_condition_difference(
             records, Condition.WITH_SOURCE, Condition.WITH_LURE
         ),
         "completed_efficiency": completed_efficiency_by_condition(records),
@@ -59,6 +74,9 @@ def summarize_transfer(records: Sequence[TrialRecord]) -> dict[str, object]:
         ),
         "source_vs_lure_pairs": paired_outcome_counts(
             records, Condition.WITH_SOURCE, Condition.WITH_LURE
+        ),
+        "oracle_mindset_vs_target_pairs": paired_outcome_counts(
+            records, Condition.H3_ORACLE_MINDSET, Condition.TARGET_ONLY
         ),
     }
 
@@ -349,6 +367,30 @@ def paired_condition_difference(
     if not common:
         return None
     differences = [int(indexed[left][key]) - int(indexed[right][key]) for key in common]
+    return sum(differences) / len(differences)
+
+
+def paired_part_condition_difference(
+    records: Sequence[TrialRecord],
+    left: Condition,
+    right: Condition,
+) -> float | None:
+    """Mean paired difference in per-trial answer-part accuracy."""
+
+    indexed: dict[Condition, dict[tuple[str, int], float]] = defaultdict(dict)
+    for record in records:
+        expected = getattr(record.grade, "expected_part_count", None)
+        if expected is None and record.grade.part_results:
+            expected = max(part.index for part in record.grade.part_results) + 1
+        if not expected:
+            continue
+        by_index = {part.index: part for part in record.grade.part_results}
+        correct = sum(by_index[index].correct for index in range(expected) if index in by_index)
+        indexed[record.condition][(record.case_id, record.sample_index)] = correct / expected
+    common = set(indexed[left]) & set(indexed[right])
+    if not common:
+        return None
+    differences = [indexed[left][key] - indexed[right][key] for key in common]
     return sum(differences) / len(differences)
 
 

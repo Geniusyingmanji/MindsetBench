@@ -71,6 +71,8 @@ L3 的两次 target-only 结果（一条语义正确但格式失败、一条删�
 
 后续 source 重构加入了三道六段最优性证书题和三道 source-only 消融题。GPT-5.6-sol 在三条件单样本中均为 0/3；with-source 将 coverage 提升到 100% 并降低 tokens/延迟，但没有 accuracy 增益。把 source 查询与目标 Q2 路径解耦后，精确 copy 从 1/3 降为 0/3，正确 parts 仍为 4/18。完整构造、重放诊断与决策见 `docs/p5-latent-certificate-report.md`。
 
+进一步的 procedure-only 配对移除了所有源路径和数值：exact gain 仍为 0，但逐段增益为 +33.3pp、coverage 达到 100%。模型分别找到成本 19 的可达层和成本 12 runner-up，却仍漏掉成本 11 真最优。因此下一轮改为构造搜索宽度递增的 L0—L4 证书链，L4 保持 challenge 定位。
+
 ## 复现
 
 ```bash

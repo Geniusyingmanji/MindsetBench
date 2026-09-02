@@ -6,6 +6,7 @@ from mindsetbench.metrics import (
     paired_completed_condition_difference,
     paired_condition_difference,
     paired_outcome_counts,
+    paired_part_condition_difference,
     part_accuracy_by_condition,
     part_scores_by_case_condition,
     summarize_slices,
@@ -128,6 +129,72 @@ def test_completed_pairing_censors_either_truncated_side() -> None:
     assert (
         paired_completed_condition_difference(records, Condition.WITH_SOURCE, Condition.TARGET_ONLY)
         == 1.0
+    )
+
+
+def test_transfer_summary_reports_paired_oracle_mindset_gain() -> None:
+    def part(index: int, correct: bool):
+        return SimpleNamespace(index=index, correct=correct, predicted="x")
+
+    records = [
+        _record(
+            "a",
+            Condition.TARGET_ONLY,
+            False,
+            expected_part_count=2,
+            part_results=[part(0, False), part(1, False)],
+        ),
+        _record(
+            "a",
+            Condition.H3_ORACLE_MINDSET,
+            True,
+            expected_part_count=2,
+            part_results=[part(0, True), part(1, True)],
+        ),
+        _record(
+            "b",
+            Condition.TARGET_ONLY,
+            True,
+            expected_part_count=2,
+            part_results=[part(0, True), part(1, True)],
+        ),
+        _record(
+            "b",
+            Condition.H3_ORACLE_MINDSET,
+            True,
+            expected_part_count=2,
+            part_results=[part(0, True), part(1, False)],
+        ),
+    ]
+    summary = summarize_transfer(records)
+    assert summary["oracle_mindset_gain"] == 0.5
+    assert summary["completed_oracle_mindset_gain"] == 0.5
+    assert summary["oracle_mindset_part_gain"] == 0.25
+    assert summary["oracle_mindset_vs_target_pairs"] == {
+        "paired_n": 2,
+        "both": 1,
+        "left_only": 1,
+        "right_only": 0,
+        "neither": 0,
+    }
+
+
+def test_paired_part_difference_ignores_unpaired_and_legacy_unscored_rows() -> None:
+    part = SimpleNamespace(index=0, correct=True, predicted="x")
+    records = [
+        _record("a", Condition.TARGET_ONLY, False, expected_part_count=2),
+        _record(
+            "a",
+            Condition.WITH_SOURCE,
+            False,
+            expected_part_count=2,
+            part_results=[part],
+        ),
+        _record("b", Condition.WITH_SOURCE, True),
+    ]
+    assert (
+        paired_part_condition_difference(records, Condition.WITH_SOURCE, Condition.TARGET_ONLY)
+        == 0.5
     )
 
 

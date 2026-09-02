@@ -152,6 +152,8 @@ L4 已进一步拆成码本辨识、显式码本三问规划、三个单查询�
 
 Q2 又扩展为三道六段最优性证书题，以及三道 target 完全相同、只替换 solved source 查询的消融题。每题验证最优路径、低成本零命中、最优层唯一性和次优层计数；`mb report` 新增 `by_schema` 切片。GPT-5.6-sol 单样本显示结构化 source 提升 coverage/效率但不提升正确率，路径解耦能消除精确 copy 但仍会复制源证书的数值形状。详见 `docs/p5-latent-certificate-report.md`。
 
+不含任何源答案数值的 `h3-oracle-mindset` 配对也已加入自动分析：`mb report` 同时给出 exact `oracle_mindset_gain` 与 `oracle_mindset_part_gain`。本轮 exact gain 为 0，part gain 为 +33.3pp；提示促使模型输出完整证书并找到真实可达的高成本层/runner-up，但仍漏掉全局最优。
+
 ```bash
 .venv/bin/mb validate data/manifests/p5-latent-certificates.json --strict-v1
 .venv/bin/mb validate data/manifests/p5-latent-certificates-decoupled.json --strict-v1

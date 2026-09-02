@@ -100,6 +100,8 @@ GPT-5.5 的 V2 source 路径经 verifier 使用真实新码本重放，确实无
 
 该 source 改造已进一步实现为六段最优性证书任务和路径对齐/路径解耦 source 消融。GPT-5.6-sol 的结果显示 source 能提升输出覆盖率和效率，但没有提升路径或证书正确率；路径解耦消除了精确 copy，却诱发数值证书形状复制。构造和完整结果见 `docs/p5-latent-certificate-report.md`。
 
+不含任何源答案的 procedure-only 配对同样没有 exact 增益，但把 part accuracy 从 0/18 提高到 6/18、coverage 从 2/18 提高到 18/18；真实重放显示模型找到成本 19 可达层和成本 12 runner-up，仍漏掉成本 11 真最优。后续不再继续拉长 L4 提示，而是构造计算宽度递增的 L0—L4 证书链。
+
 ## 复现
 
 ```bash

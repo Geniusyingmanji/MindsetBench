@@ -69,11 +69,31 @@ with-source 的实例级错误进一步说明原因：
 
 同一组路径对齐 source 在两次 temperature-0 单样本运行中产生了不同错误类型，也再次说明不能用一次成功或失败估计稳定 transfer gain。
 
+## Procedure-only oracle 配对
+
+为进一步排除源答案的路径和数值形状，使用同一组三个 CERT target，在同一个 experiment 内配对 `target-only` 与 `h3-oracle-mindset`。oracle 只提供以下通用原则，不含任何源实例、卡名、成本或路径计数：正成本一致代价枚举完整有序路径，处理完最优层与首个次优目标层。
+
+六个 trial 全部完成且无删失：
+
+| 条件 | exact | 正确 parts | coverage | 平均输出 tokens | 平均延迟 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| target-only | 0/3 | 0/18 | 2/18 | 9,236 | 155.5s |
+| procedure-only | 0/3 | 6/18 | 18/18 | 14,103 | 246.0s |
+
+自动指标为 `oracle_mindset_gain=0`、`oracle_mindset_part_gain=+0.333`。procedure-only 让三题都输出完整六段，累计正确 6/18 个字段；代价是平均输出增加约 53%、延迟增加约 58%。逐路径重放显示：
+
+- base 找到两条成本 19 的真实可达路径，且该成本层确有两条，但漏掉所有更低目标层；
+- V1 报告成本 9，路径在真实码本下不可达；
+- V2 找到真实可达的成本 12 runner-up，却漏掉唯一成本 11 计划。
+
+这说明不含答案的过程提示能提高执行意愿、格式覆盖和部分成本层统计，却仍不能让 GPT-5.6-sol 完成八卡状态空间的低成本搜索；它属于部分过程迁移，不是最终任务成功。
+
 ## 结论与下一步
 
 - 六段证书是有价值的诊断任务：它把路径、最优层唯一性和次优层边界拆成可评分 parts，并由穷举 verifier 给出真值。
 - Q2 参数族对 GPT-5.6-sol 仍处于 challenge 难度；当前不满足正式校准所需的 target window，也没有 source gain。
 - 路径解耦是必要但不充分的 source 设计。下一版应进一步消除可复制的成本/计数形状，例如使用不同卡数、不同成本谱和不同 runner-up 多重性的教学实例，或仅提供通用伪代码/不变量而不展示可映射的数值证书。
+- procedure-only 已证明可以提升 part coverage，但计算宽度仍过高。下一步优先构造由小到大的 L0—L4 证书链，使较低等级落入可校准区间，同时保留 L4 八卡题作为 challenge，而不是继续给 L4 堆更长提示。
 - 在新的 source family screen 至少两个变体出现真实可重放的最优路径前，不投入 `3 samples × 2 models × 3 conditions` 的正式预算。
 
 ## 复现
@@ -92,6 +112,11 @@ with-source 的实例级错误进一步说明原因：
 .venv/bin/mb report \
   --database artifacts/runs/p5-latent-certificate-source-ablation-gpt56sol.sqlite \
   --experiment-id p5-latent-certificate-source-ablation-gpt56sol-16k-v1
+
+.venv/bin/mb report \
+  --database artifacts/runs/p5-latent-certificates-gpt56sol-oracle.sqlite \
+  --experiment-id p5-latent-certificates-gpt56sol-oracle-16k-v1 \
+  --part-details
 ```
 
 结果库位于 ignored 的 `artifacts/runs/`；API key 不进入命令参数、数据文件或 Git。
