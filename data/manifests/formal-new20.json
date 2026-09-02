@@ -1,0 +1,10 @@
+{
+  "name": "formal-new20-calibration-candidates",
+  "description": "The P3, P4, P5, and P6 L0-L4 chains added after the calibrated P2 seed.",
+  "datasets": [
+    "../v1/formal-p3-causal-chain.yaml",
+    "../v1/formal-p4-closure-chain.yaml",
+    "../v1/formal-p5-planning-chain.yaml",
+    "../v1/formal-p6-alignment-chain.yaml"
+  ]
+}

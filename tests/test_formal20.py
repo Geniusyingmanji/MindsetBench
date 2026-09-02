@@ -55,14 +55,17 @@ def test_formal20_bundles_support_full_runs_and_high_level_prescreen() -> None:
     full = load_cases(PROJECT_ROOT / "data" / "manifests" / "formal20.json")
     new = load_cases(PROJECT_ROOT / "data" / "manifests" / "formal-new15.json")
     high = load_cases(PROJECT_ROOT / "data" / "manifests" / "formal-new-high.json")
-    cards = load_schema_cards(
-        PROJECT_ROOT / "data" / "manifests" / "formal20-cards.json"
-    )
+    cards = load_schema_cards(PROJECT_ROOT / "data" / "manifests" / "formal20-cards.json")
     assert len(full) == 20
     assert len(new) == 15
-    assert len(high) == 6
+    assert len(high) == 8
     assert {case.level for case in high} == {3, 4}
-    assert {case.paradigm for case in high} == {Paradigm.P3, Paradigm.P4, Paradigm.P6}
+    assert {case.paradigm for case in high} == {
+        Paradigm.P3,
+        Paradigm.P4,
+        Paradigm.P5,
+        Paradigm.P6,
+    }
     assert validate_dataset(full, strict_v1=True).ok
     assert validate_schema_cards(cards, full).ok
     assert validate_transfer_design(full, require_complete_chains=True).ok
@@ -99,15 +102,12 @@ def test_advanced_verifiers_reject_target_text_table_drift(
     mutated: str,
 ) -> None:
     case = next(
-        case
-        for case in load_cases(PROJECT_ROOT / "data" / "v1" / dataset)
-        if case.level == level
+        case for case in load_cases(PROJECT_ROOT / "data" / "v1" / dataset) if case.level == level
     ).model_copy(deep=True)
     assert original in case.target.problem
     case.target.problem = case.target.problem.replace(original, mutated, 1)
     result = verify_case(case)
     assert not result.passed
     assert any(
-        not check.passed and check.name.startswith("target-text-")
-        for check in result.checks
+        not check.passed and check.name.startswith("target-text-") for check in result.checks
     )

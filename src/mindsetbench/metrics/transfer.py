@@ -143,9 +143,7 @@ def _assess_group(
         if coverage[(case_id, condition)] < min_samples_per_case_condition
     ]
     target_accuracy = accuracy_by_condition(records).get(Condition.TARGET_ONLY.value)
-    source_gain = paired_condition_difference(
-        records, Condition.WITH_SOURCE, Condition.TARGET_ONLY
-    )
+    source_gain = paired_condition_difference(records, Condition.WITH_SOURCE, Condition.TARGET_ONLY)
     selectivity = paired_condition_difference(records, Condition.WITH_SOURCE, Condition.WITH_LURE)
     completion = _completion_rate_by_condition(records)
     reasons: list[str] = []

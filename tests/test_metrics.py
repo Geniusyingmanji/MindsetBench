@@ -140,9 +140,13 @@ def test_paired_outcome_counts_exposes_direction_of_disagreement() -> None:
         _record("b", Condition.WITH_SOURCE, False),
         _record("b", Condition.TARGET_ONLY, True),
     ]
-    assert paired_outcome_counts(
-        records, Condition.WITH_SOURCE, Condition.TARGET_ONLY
-    ) == {"paired_n": 2, "both": 0, "left_only": 1, "right_only": 1, "neither": 0}
+    assert paired_outcome_counts(records, Condition.WITH_SOURCE, Condition.TARGET_ONLY) == {
+        "paired_n": 2,
+        "both": 0,
+        "left_only": 1,
+        "right_only": 1,
+        "neither": 0,
+    }
 
 
 def test_calibration_gate_requires_coverage_window_gain_and_selectivity() -> None:

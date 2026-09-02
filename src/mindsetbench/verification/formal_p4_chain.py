@@ -162,9 +162,7 @@ def _source_records() -> Records:
         "S5": frozenset({"route", "mercy"}),
         "S6": frozenset({"volatile", "kiln", "sealed", "antidote"}),
         "S7": frozenset({"volatile", "kiln", "sealed"}),
-        "S8": frozenset(
-            {"route", "volatile", "kiln", "sealed", "beacon", "antidote"}
-        ),
+        "S8": frozenset({"route", "volatile", "kiln", "sealed", "beacon", "antidote"}),
         "S9": frozenset({"route", "volatile", "silver", "beacon"}),
         "S10": frozenset({"volatile", "kiln", "sealed", "antidote"}),
         "S11": frozenset({"route", "kiln", "sealed", "beacon", "mercy"}),
@@ -248,9 +246,7 @@ def _parse_target_records(problem: str) -> tuple[Records, dict[str, int]]:
     weights: dict[str, int] = {}
     for number, weight, raw_facts in re.findall(r"Q(\d+)\((\d+)\):([a-z,]+)", problem):
         record_id = f"Q{number}"
-        records[record_id] = frozenset(
-            TARGET_TO_INTERNAL[fact] for fact in raw_facts.split(",")
-        )
+        records[record_id] = frozenset(TARGET_TO_INTERNAL[fact] for fact in raw_facts.split(","))
         weights[record_id] = int(weight)
     return records, weights
 
@@ -258,14 +254,11 @@ def _parse_target_records(problem: str) -> tuple[Records, dict[str, int]]:
 def _parse_target_rules(problem: str) -> set[Rule]:
     active_text = problem.split("一般条款", 1)[0].split("注意旧规则", 1)[0]
     parsed: set[Rule] = set()
-    for raw_antecedents, consequent in re.findall(
-        r"([a-z]+(?:∧[a-z]+)?)→([a-z]+)", active_text
-    ):
+    for raw_antecedents, consequent in re.findall(r"([a-z]+(?:∧[a-z]+)?)→([a-z]+)", active_text):
         parsed.add(
             (
                 frozenset(
-                    TARGET_TO_INTERNAL[antecedent]
-                    for antecedent in raw_antecedents.split("∧")
+                    TARGET_TO_INTERNAL[antecedent] for antecedent in raw_antecedents.split("∧")
                 ),
                 TARGET_TO_INTERNAL[consequent],
             )
@@ -321,9 +314,7 @@ def verify_formal_p4_closure_l3_01(case: Case) -> VerificationResult:
 def verify_formal_p4_closure_l4_01(case: Case) -> VerificationResult:
     result = _verify_full_case(case, include_stable_to_cleared=False, expected=99)
     baseline = set(_violations(_source_records(), _rules()))
-    ablated = set(
-        _violations(_source_records(), _rules(include_stable_to_cleared=False))
-    )
+    ablated = set(_violations(_source_records(), _rules(include_stable_to_cleared=False)))
     added = sorted(ablated - baseline, key=lambda value: int(value[1:]))
     mapped_added = [PROFILE_TO_TARGET[record_id] for record_id in added]
     updated_weight = (604 + sum(TARGET_WEIGHTS[item] for item in mapped_added)) % 1000

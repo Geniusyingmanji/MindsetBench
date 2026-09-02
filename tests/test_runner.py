@@ -117,9 +117,7 @@ def test_retryable_provider_error_uses_configured_retries(tmp_path) -> None:
 
 
 def test_report_command_reloads_saved_trials_and_applies_gates(tmp_path, capsys) -> None:
-    case = load_cases(
-        PROJECT_ROOT / "data" / "v1" / "formal-p3-causal-chain.yaml"
-    )[3]
+    case = load_cases(PROJECT_ROOT / "data" / "v1" / "formal-p3-causal-chain.yaml")[3]
     database = tmp_path / "report.sqlite"
     provider = MockProvider({case.id: f"ANSWER: {case.target.answer.legacy_value()}"})
     config = ExperimentConfig(
@@ -207,6 +205,52 @@ def test_run_command_surfaces_provider_error_without_traceback(
     assert provider.call_count == 1
 
 
+def test_run_command_surfaces_resume_config_drift_without_traceback(
+    tmp_path,
+    capsys,
+    monkeypatch,
+) -> None:
+    database = tmp_path / "config-drift.sqlite"
+    existing = ExperimentConfig(
+        experiment_id="same-run",
+        model="mock",
+        conditions=[Condition.TARGET_ONLY],
+        concurrency=2,
+    )
+    with ResultStore(database) as store:
+        store.register_experiment(existing)
+
+    monkeypatch.setenv("TEST_MINDSETBENCH_KEY", "placeholder")
+    with pytest.raises(SystemExit) as exit_info:
+        main(
+            [
+                "run",
+                "--dataset",
+                str(PROJECT_ROOT / "data" / "manifests" / "formal-p5-high.json"),
+                "--database",
+                str(database),
+                "--experiment-id",
+                "same-run",
+                "--model",
+                "mock",
+                "--endpoint",
+                "https://example.test/v1/chat/completions",
+                "--api-key-env",
+                "TEST_MINDSETBENCH_KEY",
+                "--conditions",
+                "target-only",
+                "--concurrency",
+                "1",
+            ]
+        )
+    assert exit_info.value.code == 2
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "run configuration error:" in captured.err
+    assert "different config" in captured.err
+    assert "Traceback" not in captured.err
+
+
 def test_plan_run_reports_high_level_paired_matrix_without_api(capsys) -> None:
     with pytest.raises(SystemExit) as exit_info:
         main(
@@ -222,13 +266,18 @@ def test_plan_run_reports_high_level_paired_matrix_without_api(capsys) -> None:
         )
     assert exit_info.value.code == 0
     plan = json.loads(capsys.readouterr().out)
-    assert plan["cases"] == 6
-    assert plan["total_trials"] == 54
+    assert plan["cases"] == 8
+    assert plan["total_trials"] == 72
     assert plan["trials_by_condition"] == {
-        "target-only": 18,
-        "with-lure": 18,
-        "with-source": 18,
+        "target-only": 24,
+        "with-lure": 24,
+        "with-source": 24,
     }
-    assert plan["trials_by_paradigm"] == {"P3": 18, "P4": 18, "P6": 18}
-    assert plan["trials_by_level"] == {"3": 27, "4": 27}
-    assert plan["maximum_completion_token_budget"] == 54 * 8192
+    assert plan["trials_by_paradigm"] == {
+        "P3": 18,
+        "P4": 18,
+        "P5": 18,
+        "P6": 18,
+    }
+    assert plan["trials_by_level"] == {"3": 36, "4": 36}
+    assert plan["maximum_completion_token_budget"] == 72 * 8192

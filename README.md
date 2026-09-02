@@ -77,9 +77,9 @@ python3 -m venv .venv
 
 对应 schema cards 位于 `data/schema_cards/pilot-v1.yaml`，初测结果与难度分诊见 `docs/expansion20-report.md`。这批题已通过结构与答案验证，但强模型初测存在明显天花板效应，当前只作为 calibration/sanity 候选。
 
-## AR-hard 迭代与正式扩展候选 20 题
+## AR-hard 迭代与正式扩展候选 25 题
 
-基于类比推理“结构抽取—跨域映射—broken relation 适配”方法的 dev seeds 位于 `data/v1/hard-seeds.yaml`。经过多轮 GPT-5.5/GPT-5.4 配对校准，P2 机制首先通过；当前又完成了 P3 因果路径灵敏度、P4 规则闭包消融和 P6 联合图对齐编辑三条链。四个范式各含 L0—L4 五题，共 20 个正式扩展候选：
+基于类比推理“结构抽取—跨域映射—broken relation 适配”方法的 dev seeds 位于 `data/v1/hard-seeds.yaml`。经过多轮迭代，当前包含 P2 谱灵敏度、P3 因果路径、P4 规则闭包、P5 有状态操作规划和 P6 联合图对齐五条链；每个范式含 L0—L4 五题，共 25 个扩展候选：
 
 ```bash
 .venv/bin/mb validate data/v1/hard-seeds.yaml --strict-v1
@@ -100,16 +100,19 @@ python3 -m venv .venv
 .venv/bin/mb validate data/v1/formal-p6-alignment-chain.yaml --strict-v1
 .venv/bin/mb verify all --dataset data/v1/formal-p6-alignment-chain.yaml
 
-# 无复制聚合：四条链 20 题、四张 schema card、构造硬门槛
-.venv/bin/mb validate data/manifests/formal20.json --strict-v1
+.venv/bin/mb validate data/v1/formal-p5-planning-chain.yaml --strict-v1
+.venv/bin/mb verify all --dataset data/v1/formal-p5-planning-chain.yaml
+
+# 无复制聚合：五条链 25 题、五张 schema card、构造硬门槛
+.venv/bin/mb validate data/manifests/formal25.json --strict-v1
 .venv/bin/mb validate-cards \
-  data/manifests/formal20-cards.json \
-  data/manifests/formal20.json
-.venv/bin/mb audit data/manifests/formal20.json --require-complete-chains
-.venv/bin/mb verify all --dataset data/manifests/formal20.json
+  data/manifests/formal25-cards.json \
+  data/manifests/formal25.json
+.venv/bin/mb audit data/manifests/formal25.json --require-complete-chains
+.venv/bin/mb verify all --dataset data/manifests/formal25.json
 ```
 
-构造协议见 `docs/AR_HARD_CONSTRUCTION.md`，P2 的每轮失败模式和多样本结果见 `docs/hard-seed-eval.md`，20 题的构造与校准状态见 `docs/formal20-report.md`。四条链仍置于 `calibration` split；P3/P4/P6 尚需在可用端点上完成多样本、多模型校准，不应提前混入隐藏 test split。
+构造协议见 `docs/AR_HARD_CONSTRUCTION.md`，P2 的每轮失败模式和多样本结果见 `docs/hard-seed-eval.md`，25 题的构造与最新校准状态见 `docs/formal25-report.md`。五条链仍置于 `calibration` split；GPT-5.5 单样本预筛对新增范式的 L3/L4 为 8/8，仍有天花板效应，不应提前混入隐藏 test split。
 
 真实模型实验通过环境变量传入密钥，不把凭据写进命令参数、配置或结果库：
 

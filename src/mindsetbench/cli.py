@@ -297,6 +297,9 @@ def _cmd_run(args: argparse.Namespace) -> int:
             print(f"provider error: {exc}", file=sys.stderr)
             print(f"partial_trials_saved={partial_count}", file=sys.stderr)
             return 3
+        except ValueError as exc:
+            print(f"run configuration error: {exc}", file=sys.stderr)
+            return 2
         records = store.load_trials(config.experiment_id)
     print(
         json.dumps(

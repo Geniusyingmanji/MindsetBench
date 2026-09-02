@@ -1,0 +1,11 @@
+{
+  "name": "formal-p5-high-prescreen",
+  "description": "Only L3-L4 from the P5 stateful operation-planning chain.",
+  "datasets": [
+    "../v1/formal-p5-planning-chain.yaml"
+  ],
+  "case_ids": [
+    "FORMAL-P5-PLAN-L3-01",
+    "FORMAL-P5-PLAN-L4-01"
+  ]
+}

@@ -50,8 +50,10 @@ def _load_case_bundle(path: Path, *, seen: frozenset[Path]) -> list[Case]:
         raise DatasetError(f"cyclic dataset bundle: {chain}")
     payload = _load_json_object(path, "dataset bundle")
     members = payload.get("datasets")
-    if not isinstance(members, list) or not members or not all(
-        isinstance(member, str) and member.strip() for member in members
+    if (
+        not isinstance(members, list)
+        or not members
+        or not all(isinstance(member, str) and member.strip() for member in members)
     ):
         raise DatasetError(
             f"dataset bundle {path} must contain a non-empty string list named datasets"
@@ -67,8 +69,10 @@ def _load_case_bundle(path: Path, *, seen: frozenset[Path]) -> list[Case]:
     selected_ids = payload.get("case_ids")
     if selected_ids is None:
         return cases
-    if not isinstance(selected_ids, list) or not selected_ids or not all(
-        isinstance(case_id, str) and case_id for case_id in selected_ids
+    if (
+        not isinstance(selected_ids, list)
+        or not selected_ids
+        or not all(isinstance(case_id, str) and case_id for case_id in selected_ids)
     ):
         raise DatasetError(f"dataset bundle {path} case_ids must be a non-empty string list")
     if len(selected_ids) != len(set(selected_ids)):
@@ -113,8 +117,10 @@ def _load_schema_card_bundle(path: Path, *, seen: frozenset[Path]) -> list[Schem
         raise DatasetError(f"cyclic schema-card bundle: {resolved_path}")
     payload = _load_json_object(path, "schema-card bundle")
     members = payload.get("schema_card_files")
-    if not isinstance(members, list) or not members or not all(
-        isinstance(member, str) and member.strip() for member in members
+    if (
+        not isinstance(members, list)
+        or not members
+        or not all(isinstance(member, str) and member.strip() for member in members)
     ):
         raise DatasetError(
             f"schema-card bundle {path} must contain a non-empty string list named "

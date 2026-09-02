@@ -64,9 +64,7 @@ def _rank_alignments(
     for node_assignment in permutations(target_free, len(source_free)):
         node_mapping = {**anchors, **dict(zip(source_free, node_assignment, strict=True))}
         for predicate_assignment in permutations(target_predicates, len(source_predicates)):
-            predicate_mapping = dict(
-                zip(source_predicates, predicate_assignment, strict=True)
-            )
+            predicate_mapping = dict(zip(source_predicates, predicate_assignment, strict=True))
             score = _alignment_score(
                 source_relations,
                 target_relations,
@@ -336,19 +334,13 @@ def _parse_full_target_relations(problem: str) -> tuple[set[Relation], set[Relat
 
 
 def _verify_full(case: Case, *, edited: bool) -> VerificationResult:
-    left = _rename_relations(
-        _full_source_relations(), LEFT_NODE_RENAME, LEFT_PREDICATE_RENAME
-    )
+    left = _rename_relations(_full_source_relations(), LEFT_NODE_RENAME, LEFT_PREDICATE_RENAME)
     right = _rename_relations(
         _full_target_relations(edited=edited),
         RIGHT_NODE_RENAME,
         RIGHT_PREDICATE_RENAME,
     )
-    expected_nodes = (
-        ("D3", "D7", "D5", "D6", "D1")
-        if edited
-        else ("D3", "D6", "D5", "D7", "D1")
-    )
+    expected_nodes = ("D3", "D7", "D5", "D6", "D1") if edited else ("D3", "D6", "D5", "D7", "D1")
     parsed_left, parsed_right = _parse_full_target_relations(case.target.problem)
     result = _verify_alignment_case(
         case,

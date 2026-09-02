@@ -1,0 +1,296 @@
+- id: FORMAL-P5-PLAN-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-操作规划
+  schema_id: stateful-operation-planning-edit-v1
+  schema_name: 带前置条件与清除副作用的操作组合及单效果编辑适配
+  chain: p5-stateful-planning-edit-v1
+  level: 0
+  source: &p5_planning_source
+    domain: 十标记多分支工艺基准
+    problem: >-
+      一个状态是当前为真的标记集合。每项操作至多执行一次；仅当“需”中的标记全为真且“禁”中的标记全为假时才可执行。
+      执行时先删除“清”中的标记，再加入“置”中的标记，各效果同时生效。“-”表示空集。
+      初态=A,B,C;终态必须含=B,I,J;不得含=A,D,E。操作表：
+      S1[2]:需=B;禁=-;置=D;清=C；S2[2]:需=A;禁=-;置=E;清=B；
+      S3[3]:需=D,E;禁=-;置=F;清=A；S4[2]:需=F;禁=-;置=G;清=D；
+      S5[2]:需=G;禁=D;置=H;清=E；S6[2]:需=H;禁=-;置=I;清=G；
+      S7[1]:需=I;禁=-;置=J;清=-；S8[1]:需=J;禁=-;置=B;清=-；
+      S9[7]:需=A;禁=-;置=D,E;清=C；S10[7]:需=F;禁=-;置=G,I;清=B,D,E；
+      S11[6]:需=G;禁=D;置=I,J;清=B,E；S12[4]:需=I;禁=-;置=B;清=J；
+      S13[4]:需=J;禁=-;置=B,I;清=-；S14[5]:需=F;禁=-;置=H;清=A,B,D,E；
+      S15[8]:需=A;禁=-;置=F,D;清=B,C；S16[5]:需=H;禁=-;置=B,J;清=G,I。
+      求最低总代价及对应的实际执行顺序；若有并列，取操作编号整数序列按数值字典序最小者。
+    solution: >-
+      S1 必须在会清除 B 的 S2 之前执行，主链依次消去 C、B、A、D、E、G，再恢复 B。
+      序列 S1,S2,S3,S4,S5,S6,S7,S8 可执行且总代价 15。对“状态×已用操作集合”作一致代价搜索，
+      该解唯一；S10、S11、S14 三条替代分支的最低代价均为 16，只形成一分 runner-up。
+      后续重命名实例可逐项迁移状态、操作、前置条件和副作用；
+      若某一操作效果改变，必须先重放旧序列确认终态，再在完整状态空间重新比较旁路。
+    answer: 15;S1;S2;S3;S4;S5;S6;S7;S8
+  target:
+    domain: 三标记封装流程
+    problem: >-
+      状态规则与源题相同，每项操作至多一次，“-”为空集。初态=x;终态必须含=z;不得含=-。操作表：
+      A1[1]:需=x;禁=-;置=y;清=-；A2[1]:需=y;禁=-;置=z;清=-；A3[3]:需=x;禁=-;置=z;清=-。
+      求最低总代价和实际执行顺序，依次用分号输出。
+    answer:
+      parts:
+        - {type: number, value: "2"}
+        - {type: label, value: A1}
+        - {type: label, value: A2}
+  mapping:
+    objects: {状态标记: x/y/z, 操作: A1/A2/A3, 前置条件: 需/禁, 状态效果: 置/清}
+    shared_relations: [操作只能在前置条件成立时执行, 执行后更新状态, 每项至多一次, 目标是在终态约束下最小化总代价]
+    varied: [缩为无清除副作用的两步链]
+  lure:
+    problem: 使用同一初态、目标和操作表，但把各操作当作可独立购买的置位效果，忽略“需”“禁”“清”和不得含目标；按编号递增输出最低成本操作集合。
+    solution: A2 单独置 z，错误模型认为代价 1 即可。
+    answer: {parts: [{type: number, value: "1"}, {type: label, value: A2}]}
+    why_surface_similar: 初态、目标、操作编号、成本和置位效果完全相同。
+    why_structurally_different: lure 删除执行次序与前置条件，目标必须先由 A1 产生 y 才能执行 A2。
+    wrong_schema_id: independent-monotone-operation-cover-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "1"}, {type: label, value: A2}]}
+    derivation: 忽略 A2 的前置条件，直接购买其置位效果。
+  hints:
+    schema_name: 带前置条件与清除副作用的操作组合及单效果编辑适配
+    oracle_mindset: {insight: 从初态逐步重放可执行操作，并累计成本比较两步链与直接操作。, when_to_use: 操作效果依赖前序状态时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_chain:verify_formal_p5_plan_l0_01
+    method: exhaustive-uniform-cost-state-space-search
+  provenance: original formal planning chain with independently solved monotone negative control
+  verified: 状态空间搜索得唯一最优 2;A1;A2；单调错误模型唯一最优 1;A2。
+
+- id: FORMAL-P5-PLAN-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-操作规划
+  schema_id: stateful-operation-planning-edit-v1
+  schema_name: 带前置条件与清除副作用的操作组合及单效果编辑适配
+  chain: p5-stateful-planning-edit-v1
+  level: 1
+  source: *p5_planning_source
+  target:
+    domain: 封签恢复流程
+    problem: >-
+      每项操作至多一次；“需”全真且“禁”全假才可执行，执行时先清除再置位。初态=a,b;终态必须含=b,e;不得含=-。操作表：
+      B3[2]:需=e;禁=-;置=b;清=-；B1[1]:需=a;禁=-;置=c;清=b；
+      B4[5]:需=a;禁=-;置=e;清=-；B2[1]:需=c;禁=-;置=e;清=-。
+      求最低总代价和实际执行顺序，依次用分号输出。
+    answer:
+      parts:
+        - {type: number, value: "4"}
+        - {type: label, value: B1}
+        - {type: label, value: B2}
+        - {type: label, value: B3}
+  mapping:
+    objects: {初始资源: a/b, 中间标记: c, 目标标记: b/e, 操作链: B1/B2/B3}
+    shared_relations: [前置条件决定可执行顺序, B1 的推进效果同时清除仍属终态要求的 b, B2 产生 e 后 B3 才能恢复 b, 比较完整可执行计划的累计成本]
+    varied: [加入一个必须修复的清除副作用和一条昂贵直达分支]
+  lure:
+    problem: 使用同一实例，但把操作当作独立置位效果，忽略前置条件、清除效果和不得含目标；按编号递增输出最低成本集合。
+    solution: 初态已有 b，B2 单独置 e，错误模型给出 1;B2。
+    answer: {parts: [{type: number, value: "1"}, {type: label, value: B2}]}
+    why_surface_similar: 保留同一初态、目标、操作与成本表。
+    why_structurally_different: lure 既允许无 c 时执行 B2，又忽略 B1 对 b 的清除。
+    wrong_schema_id: independent-monotone-operation-cover-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "1"}, {type: label, value: B2}]}
+    derivation: 把 B2 看成无需前序的独立置位，并假定初态 b 永不丢失。
+  hints:
+    schema_name: 带前置条件与清除副作用的操作组合及单效果编辑适配
+    oracle_mindset: {insight: B1→B2 虽便宜但会清掉 b，所以还必须在 e 出现后执行 B3 恢复。, when_to_use: 某个推进操作会破坏终态仍要求的资源时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_chain:verify_formal_p5_plan_l1_01
+    method: exhaustive-uniform-cost-state-space-search
+  provenance: original formal planning chain with independently solved monotone negative control
+  verified: 唯一最优序列 B1,B2,B3 代价 4；昂贵直达 B4 代价 5。
+
+- id: FORMAL-P5-PLAN-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-操作规划
+  schema_id: stateful-operation-planning-edit-v1
+  schema_name: 带前置条件与清除副作用的操作组合及单效果编辑适配
+  chain: p5-stateful-planning-edit-v1
+  level: 2
+  source: *p5_planning_source
+  target:
+    domain: 九操作状态修复
+    problem: >-
+      每项操作至多一次；“需”全真且“禁”全假才可执行，执行时先清除再置位。初态=a,b;终态必须含=b,g,h;不得含=a,d。操作表：
+      C8[4]:需=g;禁=-;置=b;清=-；C2[2]:需=b;禁=-;置=d;清=-；
+      C5[2]:需=f;禁=d;置=g;清=-；C1[2]:需=a;禁=-;置=c;清=b；
+      C7[1]:需=h;禁=-;置=b;清=-；C4[1]:需=e;禁=-;置=f;清=d；
+      C9[7]:需=a;禁=-;置=c,d;清=-；C6[1]:需=g;禁=-;置=h;清=-；
+      C3[2]:需=c,d;禁=-;置=e;清=a。
+      求最低总代价和实际执行顺序，依次用分号输出。
+    answer:
+      parts:
+        - {type: number, value: "11"}
+        - {type: label, value: C2}
+        - {type: label, value: C1}
+        - {type: label, value: C3}
+        - {type: label, value: C4}
+        - {type: label, value: C5}
+        - {type: label, value: C6}
+        - {type: label, value: C7}
+  mapping:
+    objects: {持久目标: b/g/h, 临时门控: c/d/e/f, 推进链: C2/C1/C3/C4/C5/C6, 修复操作: C7/C8}
+    shared_relations: [C2 必须在 C1 清除 b 前执行, C3 同时需要 c 与 d 并清除终态禁有的 a, C4 清除 d 后 C5 的否定前置才成立, C6 依赖 C5 且 C7 依赖 C6, 完整终态还需恢复 b]
+    varied: [九操作、正负前置条件、正负终态和两条成本不同的修复分支]
+  lure:
+    problem: 使用同一实例，但把操作当作独立置位效果，忽略前置条件、清除效果和不得含目标；按编号递增输出最低成本集合。
+    solution: 初态已有 b，C5 和 C6 分别置 g、h，总成本 3。
+    answer: {parts: [{type: number, value: "3"}, {type: label, value: C5}, {type: label, value: C6}]}
+    why_surface_similar: 九项操作、成本、初态和正目标均完全相同。
+    why_structurally_different: lure 不生成 f、不先清除 d，也不处理终态禁有的 a/d。
+    wrong_schema_id: independent-monotone-operation-cover-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "3"}, {type: label, value: C5}, {type: label, value: C6}]}
+    derivation: 将有状态计划误化为只覆盖正目标的加法集合覆盖。
+  hints:
+    schema_name: 带前置条件与清除副作用的操作组合及单效果编辑适配
+    oracle_mindset: {insight: 先确定 c/d 的生成顺序，再用 C4 同时解除 d 门控，最后生成 g/h 并恢复 b。, when_to_use: 计划同时含正前置、否定前置和终态禁项时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_chain:verify_formal_p5_plan_l2_01
+    method: exhaustive-uniform-cost-state-space-search
+  provenance: original formal planning chain with independently solved monotone negative control
+  verified: 状态×已用操作集合搜索得到唯一最优 C2,C1,C3,C4,C5,C6,C7，成本 11。
+
+- id: FORMAL-P5-PLAN-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-操作规划
+  schema_id: stateful-operation-planning-edit-v1
+  schema_name: 带前置条件与清除副作用的操作组合及单效果编辑适配
+  chain: p5-stateful-planning-edit-v1
+  level: 3
+  source: *p5_planning_source
+  target:
+    domain: 重编号的状态操作网
+    problem: &p5_full_target >-
+      当前登记项构成系统状态，每张操作卡最多使用一次。卡上要求登记的项必须都已登记，阻断项必须都未登记；
+      使用时先注销再登记，“无”表示空集。初始登记=q,v,p;验收须有=v,x,y;须无=q,t,w。操作卡：
+      K13（费用4）只有 y 都已登记且 无 均未登记时可用；用后登记 v,x，并注销 无。
+      K5（费用7）只有 r 都已登记且 无 均未登记时可用；用后登记 u,x，并注销 v,t,w。
+      K2（费用2）只有 q 都已登记且 无 均未登记时可用；用后登记 w，并注销 v。
+      K16（费用5）只有 s 都已登记且 无 均未登记时可用；用后登记 v,y，并注销 u,x。
+      K9（费用2）只有 u 都已登记且 t 均未登记时可用；用后登记 s，并注销 w。
+      K7（费用2）只有 v 都已登记且 无 均未登记时可用；用后登记 t，并注销 p。
+      K12（费用4）只有 x 都已登记且 无 均未登记时可用；用后登记 v，并注销 y。
+      K3（费用1）只有 y 都已登记且 无 均未登记时可用；用后登记 v，并注销 无。
+      K11（费用6）只有 u 都已登记且 t 均未登记时可用；用后登记 x,y，并注销 v,w。
+      K1（费用2）只有 s 都已登记且 无 均未登记时可用；用后登记 x，并注销 u。
+      K15（费用8）只有 q 都已登记且 无 均未登记时可用；用后登记 r,t，并注销 v,p。
+      K6（费用1）只有 x 都已登记且 无 均未登记时可用；用后登记 y，并注销 无。
+      K8（费用7）只有 q 都已登记且 无 均未登记时可用；用后登记 t,w，并注销 p。
+      K4（费用2）只有 r 都已登记且 无 均未登记时可用；用后登记 u，并注销 t。
+      K14（费用5）只有 r 都已登记且 无 均未登记时可用；用后登记 s，并注销 q,v,t,w。
+      K10（费用3）只有 t,w 都已登记且 无 均未登记时可用；用后登记 r，并注销 q。
+      求最低总代价和实际执行顺序，依次用分号输出。
+    answer:
+      parts:
+        - {type: number, value: "15"}
+        - {type: label, value: K7}
+        - {type: label, value: K2}
+        - {type: label, value: K10}
+        - {type: label, value: K4}
+        - {type: label, value: K9}
+        - {type: label, value: K1}
+        - {type: label, value: K6}
+        - {type: label, value: K3}
+  mapping:
+    objects: {A/B/C/D/E: q/v/p/t/w, F/G/H/I/J: r/u/s/x/y, S1/S2/S3/S4: K7/K2/K10/K4, S5/S6/S7/S8: K9/K1/K6/K3, S9/S10/S11/S12: K8/K5/K11/K12, S13/S14/S15/S16: K13/K14/K15/K16}
+    shared_relations: [全部十个状态标记是一一重命名, 十六项操作的成本逐项保持, 每项操作的正负前置条件在重命名下保持, 置位与清除副作用逐项保持, 初态与正负终态约束保持, 三条一分 runner-up 分支保持, 操作表顺序不承载语义]
+    varied: [状态名、操作编号和顺序同时置换, 目标题由紧凑状态表改写为操作卡叙述]
+  lure:
+    problem: 使用目标完全相同的初态、目标和操作表，但把各操作当作独立置位效果，忽略“需”“禁”“清”和不得含目标；按编号整数递增输出最低成本集合。
+    solution: 初态已有 v，K1 置 x、K6 置 y；按编号排序为 K1,K6，总成本 3。
+    answer: {parts: [{type: number, value: "3"}, {type: label, value: K1}, {type: label, value: K6}]}
+    why_surface_similar: 使用同一重编号实例和全部十六项操作。
+    why_structurally_different: lure 将有顺序、有删除副作用的状态转换错误压缩成无前置的正目标覆盖。
+    wrong_schema_id: independent-monotone-operation-cover-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "3"}, {type: label, value: K1}, {type: label, value: K6}]}
+    derivation: 只选覆盖 x/y 的最低成本置位操作并按编号排序。
+  hints:
+    schema_name: 带前置条件与清除副作用的操作组合及单效果编辑适配
+    oracle_mindset: {insight: 先用每项操作的成本、正负前置和置/清效果恢复双层重命名，再迁移源题唯一最优序列。, when_to_use: 状态和操作都匿名重编号而转换结构完整保持时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_chain:verify_formal_p5_plan_l3_01
+    method: exhaustive-search-and-complete-operation-isomorphism
+  provenance: original formal planning chain with independently solved monotone negative control
+  verified: 十六操作逐项同构；唯一最优成本 15，三条 runner-up 成本 16，错误单调覆盖成本 3。
+
+- id: FORMAL-P5-PLAN-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-操作规划
+  schema_id: stateful-operation-planning-edit-v1
+  schema_name: 带前置条件与清除副作用的操作组合及单效果编辑适配
+  chain: p5-stateful-planning-edit-v1
+  level: 4
+  source: *p5_planning_source
+  target:
+    domain: 重编号操作网的单效果改版
+    problem: >-
+      当前登记项构成系统状态，每张操作卡最多使用一次。卡上要求登记的项必须都已登记，阻断项必须都未登记；
+      使用时先注销再登记，“无”表示空集。初始登记=q,v,p;验收须有=v,x,y;须无=q,t,w。操作卡：
+      K13（费用4）只有 y 都已登记且 无 均未登记时可用；用后登记 v,x，并注销 无。
+      K5（费用7）只有 r 都已登记且 无 均未登记时可用；用后登记 u,x，并注销 v,t,w。
+      K2（费用2）只有 q 都已登记且 无 均未登记时可用；用后登记 w，并注销 v。
+      K16（费用5）只有 s 都已登记且 无 均未登记时可用；用后登记 v,y，并注销 u,x。
+      K9（费用2）只有 u 都已登记且 t 均未登记时可用；用后登记 s，并注销 w。
+      K7（费用2）只有 v 都已登记且 无 均未登记时可用；用后登记 t，并注销 p。
+      K12（费用4）只有 x 都已登记且 无 均未登记时可用；用后登记 v，并注销 y。
+      K3（费用1）只有 y 都已登记且 无 均未登记时可用；用后登记 p，并注销 无。
+      K11（费用6）只有 u 都已登记且 t 均未登记时可用；用后登记 x,y，并注销 v,w。
+      K1（费用2）只有 s 都已登记且 无 均未登记时可用；用后登记 x，并注销 u。
+      K15（费用8）只有 q 都已登记且 无 均未登记时可用；用后登记 r,t，并注销 v,p。
+      K6（费用1）只有 x 都已登记且 无 均未登记时可用；用后登记 y，并注销 无。
+      K8（费用7）只有 q 都已登记且 无 均未登记时可用；用后登记 t,w，并注销 p。
+      K4（费用2）只有 r 都已登记且 无 均未登记时可用；用后登记 u，并注销 t。
+      K14（费用5）只有 r 都已登记且 无 均未登记时可用；用后登记 s，并注销 q,v,t,w。
+      K10（费用3）只有 t,w 都已登记且 无 均未登记时可用；用后登记 r，并注销 q。
+      求最低总代价和实际执行顺序，依次用分号输出。
+    answer:
+      parts:
+        - {type: number, value: "17"}
+        - {type: label, value: K8}
+        - {type: label, value: K10}
+        - {type: label, value: K4}
+        - {type: label, value: K9}
+        - {type: label, value: K1}
+        - {type: label, value: K6}
+  mapping:
+    objects: {A/B/C/D/E: q/v/p/t/w, F/G/H/I/J: r/u/s/x/y, S1/S2/S3/S4: K7/K2/K10/K4, S5/S6/S7/S8: K9/K1/K6/K3, S9/S10/S11/S12: K8/K5/K11/K12, S13/S14/S15/S16: K13/K14/K15/K16}
+    shared_relations: [十个状态标记的一一重命名保持, 十六项操作的成本保持, K3 以外的前置与效果逐项保持, 初态与正负终态约束保持, 主链及三条一分 runner-up 分支保持, K8 旁路同时生成 t/w 且不清除初始 v]
+    removed_relations: [K3 在 y 成立后恢复终态所需的 v]
+    added_relations: [K3 在 y 成立后重复置位 p]
+    adaptation_required: [重放旧最优序列发现最终缺 v, 比较多条近优恢复分支与保留初始 v 的 K8 旁路, 证明旁路在编辑后以一分优势成为新唯一最优]
+    varied: [改用操作卡叙述, 完整重命名后仅替换一个操作的登记效果且题面不标出差异位置]
+  lure:
+    problem: 使用目标完全相同的初态、目标和新版操作表，但把操作当作独立置位效果，忽略前置条件、清除效果和不得含目标；按编号整数递增输出最低成本集合。
+    solution: 初态已有 v，仍只需 K1 置 x、K6 置 y；按编号为 K1,K6，总成本 3。
+    answer: {parts: [{type: number, value: "3"}, {type: label, value: K1}, {type: label, value: K6}]}
+    why_surface_similar: 新版十六项操作、成本、初态与正目标完全相同。
+    why_structurally_different: lure 看不见主链清除 v 后 K3 已无法恢复 v，也不检查近优分支的破坏性副作用。
+    wrong_schema_id: independent-monotone-operation-cover-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "3"}, {type: label, value: K1}, {type: label, value: K6}]}
+    derivation: 在错误的加法覆盖模型中，K3 的局部编辑与选取 x/y 的操作无关。
+  hints:
+    schema_name: 带前置条件与清除副作用的操作组合及单效果编辑适配
+    oracle_mindset: {insight: 对齐后只比较 K3 效果；旧链无法恢复 v，再对三条近优分支和不清除初始 v 的 K8 旁路做全局成本比较。, when_to_use: 已解多分支操作系统发生单个效果关系编辑时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_chain:verify_formal_p5_plan_l4_01
+    method: exhaustive-search-operation-isomorphism-and-single-effect-diff
+  provenance: original formal planning chain with independently solved monotone negative control
+  verified: 仅 K3 的 adds 从 v 改为 p；旧序列终态不合格，新唯一最优 K8,K10,K4,K9,K1,K6，代价 17，runner-up 代价 18。
