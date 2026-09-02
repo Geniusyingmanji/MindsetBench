@@ -6,6 +6,8 @@ from mindsetbench.metrics.transfer import (
     paired_completed_condition_difference,
     paired_condition_difference,
     paired_outcome_counts,
+    part_accuracy_by_condition,
+    part_scores_by_case_condition,
     summarize_slices,
     summarize_transfer,
 )
@@ -18,6 +20,8 @@ __all__ = [
     "paired_completed_condition_difference",
     "paired_condition_difference",
     "paired_outcome_counts",
+    "part_accuracy_by_condition",
+    "part_scores_by_case_condition",
     "summarize_slices",
     "summarize_transfer",
 ]

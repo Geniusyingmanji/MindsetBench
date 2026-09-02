@@ -1,0 +1,11 @@
+{
+  "name": "p5-latent-l4-single-query-planning-diagnostics",
+  "datasets": [
+    "../v1/p5-latent-staged.yaml"
+  ],
+  "case_ids": [
+    "DIAG-P5-LATENT-L4-PLAN-Q1-01",
+    "DIAG-P5-LATENT-L4-PLAN-Q2-01",
+    "DIAG-P5-LATENT-L4-PLAN-Q3-01"
+  ]
+}

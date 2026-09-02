@@ -1,0 +1,9 @@
+{
+  "name": "p5-latent-l4-identification-diagnostic",
+  "datasets": [
+    "../v1/p5-latent-staged.yaml"
+  ],
+  "case_ids": [
+    "DIAG-P5-LATENT-L4-ID-01"
+  ]
+}

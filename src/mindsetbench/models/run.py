@@ -25,6 +25,8 @@ class GradeResult(BaseModel):
     extracted: str | None
     normalized_parts: list[str] = Field(default_factory=list)
     part_results: list[PartGrade] = Field(default_factory=list)
+    expected_part_count: int | None = Field(default=None, ge=0)
+    parsed_part_count: int | None = Field(default=None, ge=0)
     parse_error: str | None = None
     matched_copy_probe: bool = False
     matched_lure_answer: bool = False

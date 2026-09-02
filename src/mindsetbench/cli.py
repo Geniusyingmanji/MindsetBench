@@ -20,7 +20,12 @@ from mindsetbench.data import (
 )
 from mindsetbench.data.loader import DEFAULT_DATASET, index_cases
 from mindsetbench.grading import grade_response
-from mindsetbench.metrics import assess_calibration, summarize_slices, summarize_transfer
+from mindsetbench.metrics import (
+    assess_calibration,
+    part_scores_by_case_condition,
+    summarize_slices,
+    summarize_transfer,
+)
 from mindsetbench.models.case import Case
 from mindsetbench.models.prompt import Condition, PromptContext
 from mindsetbench.prompting import build_prompt, condition_is_applicable
@@ -107,6 +112,11 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("--experiment-id", required=True)
     report.add_argument("--calibration-gates", action="store_true")
     report.add_argument("--min-samples", type=int, default=3)
+    report.add_argument(
+        "--part-details",
+        action="store_true",
+        help="include answer-part scores grouped by case and condition",
+    )
 
     plan_run = subcommands.add_parser(
         "plan-run", help="inspect an evaluation matrix without calling a provider"
@@ -340,6 +350,8 @@ def _cmd_report(args: argparse.Namespace) -> int:
             records,
             min_samples_per_case_condition=args.min_samples,
         )
+    if args.part_details:
+        output["part_details"] = part_scores_by_case_condition(records)
     print(json.dumps(output, ensure_ascii=False, indent=2))
     return 0
 

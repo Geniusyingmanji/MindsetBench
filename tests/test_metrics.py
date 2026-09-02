@@ -6,6 +6,8 @@ from mindsetbench.metrics import (
     paired_completed_condition_difference,
     paired_condition_difference,
     paired_outcome_counts,
+    part_accuracy_by_condition,
+    part_scores_by_case_condition,
     summarize_slices,
     summarize_transfer,
 )
@@ -25,6 +27,8 @@ def _record(
     matched_copy_probe: bool = False,
     has_copy_probe: bool = False,
     sample_index: int = 0,
+    part_results=None,
+    expected_part_count: int | None = None,
 ):
     return SimpleNamespace(
         case_id=case_id,
@@ -38,7 +42,12 @@ def _record(
             output_tokens=output_tokens,
             latency_ms=latency_ms,
         ),
-        grade=SimpleNamespace(correct=correct, matched_copy_probe=matched_copy_probe),
+        grade=SimpleNamespace(
+            correct=correct,
+            matched_copy_probe=matched_copy_probe,
+            part_results=part_results or [],
+            expected_part_count=expected_part_count,
+        ),
     )
 
 
@@ -131,6 +140,67 @@ def test_copy_probe_rate_is_reported_by_condition() -> None:
         "with-lure": 1.0,
         "with-source": 0.0,
     }
+
+
+def test_part_accuracy_reports_correctness_and_parse_coverage() -> None:
+    def part(index: int, correct: bool, predicted: str | None = "x"):
+        return SimpleNamespace(index=index, correct=correct, predicted=predicted)
+
+    records = [
+        _record(
+            "multi",
+            Condition.TARGET_ONLY,
+            False,
+            expected_part_count=3,
+            part_results=[part(0, True), part(1, False), part(2, True)],
+        ),
+        _record(
+            "multi",
+            Condition.TARGET_ONLY,
+            False,
+            expected_part_count=3,
+            part_results=[part(0, True), part(1, False, None), part(2, False, None)],
+            sample_index=1,
+        ),
+    ]
+    assert part_accuracy_by_condition(records)["target-only"] == {
+        "trials": 2,
+        "scored_trials": 2,
+        "unscored_trials": 0,
+        "correct_parts": 3,
+        "observed_parts": 4,
+        "expected_parts": 6,
+        "accuracy": 0.5,
+        "coverage": 2 / 3,
+    }
+    details = part_scores_by_case_condition(records)["multi"]["target-only"]
+    assert details["0"]["accuracy"] == 1.0
+    assert details["1"]["coverage"] == 0.5
+    assert details["2"]["accuracy"] == 0.5
+
+
+def test_completed_part_accuracy_excludes_censored_trials() -> None:
+    part = SimpleNamespace(index=0, correct=True, predicted="x")
+    records = [
+        _record(
+            "a",
+            Condition.TARGET_ONLY,
+            False,
+            finish_reason="length",
+            expected_part_count=2,
+        ),
+        _record(
+            "a",
+            Condition.TARGET_ONLY,
+            False,
+            expected_part_count=2,
+            part_results=[part],
+            sample_index=1,
+        ),
+    ]
+    summary = summarize_transfer(records)
+    assert summary["part_accuracy"]["target-only"]["accuracy"] == 0.25
+    assert summary["completed_part_accuracy"]["target-only"]["accuracy"] == 0.5
 
 
 def test_paired_outcome_counts_exposes_direction_of_disagreement() -> None:

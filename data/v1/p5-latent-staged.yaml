@@ -1,0 +1,317 @@
+- id: DIAG-P5-LATENT-L4-ID-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: latent-set-affine-identification-probe-v1
+  schema_name: 跨表示匿名仿射操作码本辨识诊断
+  level: 4
+  source:
+    domain: 八位基因开关盲校准
+    problem: >-
+      状态是 b1…b8 的八位串。P(i1,…,i8) 输出原串第 i1,…,i8 位，再与掩码逐位异或。
+      八个匿名程序 S1—S8 分别实现 F1—F8 中不同的一项。候选变换：
+      F1=P(2,3,4,5,6,7,8,1)⊕00000000；F2=P(8,1,2,3,4,5,6,7)⊕00000000；
+      F3=P(8,7,6,5,4,3,2,1)⊕00000000；F4=P(2,1,4,3,6,5,8,7)⊕00000000；
+      F5=P(1,2,3,4,5,6,7,8)⊕10110110；F6=P(1,2,3,4,5,6,7,8)⊕01101001；
+      F7=P(2,4,1,3,6,8,5,7)⊕00000000；F8=P(4,1,6,2,8,3,7,5)⊕11001010。
+      单条日志可能兼容多项候选，但代码本是一一对应。校准日志：
+      S1:00100011→11000100；S2:01111100→00111110；S3:10001000→00010001；
+      S4:00000000→10110110；S5:01000001→10000010；S6:10010000→01100000；
+      S7:01101010→11011101；S8:01001110→00100111。
+      求唯一代码本，并按 S1—S8 顺序输出八个等式，最后输出 UNUSED=NONE。
+    solution: >-
+      每条日志先保留全部兼容候选，再施加八个程序必须使用互不相同变换的约束。
+      唯一全局匹配为 S1=F3、S2=F2、S3=F1、S4=F5、S5=F4、S6=F7、S7=F8、S8=F6；八项全部使用。
+    answer: S1=F3;S2=F2;S3=F1;S4=F5;S5=F4;S6=F7;S7=F8;S8=F6;UNUSED=NONE
+  target:
+    domain: 八站信号编织机盲校准
+    problem: >-
+      状态是站位 a—h 中当前点亮者的集合。路由 G=取(x1,…,x8)△M 表示新站位 a—h 依次复制旧站位
+      x1—x8 是否点亮，再把 M 中站位翻转。八张匿名路由卡 T1—T8 实现九项候选中的八项且互不重复。
+      候选路由：G1=取(b,c,d,e,f,g,h,a)△∅；G2=取(h,a,b,c,d,e,f,g)△∅；
+      G3=取(h,g,f,e,d,c,b,a)△∅；G4=取(b,a,d,c,f,e,h,g)△∅；
+      G5=取(a,b,c,d,e,f,g,h)△{a,c,d,f,g}；G6=取(a,b,c,d,e,f,g,h)△{b,c,e,h}；
+      G7=取(b,d,a,c,f,h,e,g)△∅；G8=取(d,a,f,b,h,c,g,e)△{a,b,e,g}；
+      G9=取(b,a,d,c,f,e,h,g)△{c,d,f,h}。单条观测可能兼容多项候选。观测记录：
+      T7:{c,g,h}→{a,b,f}；T3:{a,d,f,g,h}→{b,d,e,f,g}；T2:{b,c,e,f}→{c,d,f,g}；
+      T1:{c,d,f}→{b,d,e,f,h}；T6:{a,b,e,h}→{a,d,g,h}；T4:{a,b,c,d,e,f,g}→{b,e}；
+      T5:{d,f,g,h}→{a,b,c,e}；T8:{a,b,f,h}→{a,c,e,f}。
+      求唯一代码本，并严格按 T1—T8 顺序输出八个“卡=候选”段，最后输出 UNUSED=未使用候选；共九段，以分号分隔。
+    answer:
+      parts:
+        - {type: string, value: T1=G6}
+        - {type: string, value: T2=G2}
+        - {type: string, value: T3=G9}
+        - {type: string, value: T4=G5}
+        - {type: string, value: T5=G3}
+        - {type: string, value: T6=G1}
+        - {type: string, value: T7=G8}
+        - {type: string, value: T8=G7}
+        - {type: string, value: UNUSED=G4}
+  mapping:
+    objects: {源八位向量: 目标点亮站位集合, 位位置 b1…b8: 站位 a…h, 位排列 P: 新站位取旧站位成员关系, 异或掩码: 集合对称差, S1…S8: T5/T2/T6/T4/T3/T8/T7/T1}
+    shared_relations: [位值 1 等价于站位属于集合, 排列后异或等价于成员复制后取对称差, 单条记录只定义兼容候选集合, 全部匿名代码必须联合满足注入约束, 未使用候选由全局匹配而非单条观测确定]
+    removed_relations: [T3 沿用 source S5 的无翻转成对交换 G4]
+    added_relations: [T3 改为成对交换后再翻转 c/d/f/h 的 G9]
+    adaptation_required: [跨越位串与集合表示建立 F/G 对应, 联合全部观测恢复 T3=G9, 判定 G4 而非 G9 未使用]
+    varied: [只测码本辨识而不混入最短路, 目标从位串改成集合表示, 候选从八项扩为九项并编辑一项关系]
+  lure:
+    problem: 使用相同卡名和九项候选，但冻结 source 映射得到的旧码本，不采用 T3 观测要求的新翻转关系；输出八个旧等式和未使用项。
+    solution: 旧码本与真实目标只在 T3/未使用项处不同：T3=G4，G9 未使用。
+    answer:
+      parts:
+        - {type: string, value: T1=G6}
+        - {type: string, value: T2=G2}
+        - {type: string, value: T3=G4}
+        - {type: string, value: T4=G5}
+        - {type: string, value: T5=G3}
+        - {type: string, value: T6=G1}
+        - {type: string, value: T7=G8}
+        - {type: string, value: T8=G7}
+        - {type: string, value: UNUSED=G9}
+    why_surface_similar: 保留全部卡名、候选与七项未变化的映射。
+    why_structurally_different: lure 冻结旧码本，违反 T3 观测并交换真实使用项与未使用项。
+    wrong_schema_id: stale-set-affine-codebook-identification-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: string, value: T1=G6}
+        - {type: string, value: T2=G2}
+        - {type: string, value: T3=G4}
+        - {type: string, value: T4=G5}
+        - {type: string, value: T5=G3}
+        - {type: string, value: T6=G1}
+        - {type: string, value: T7=G8}
+        - {type: string, value: T8=G7}
+        - {type: string, value: UNUSED=G9}
+    derivation: 跨表征逐码复制 source 码本，不用目标观测重新辨识 T3。
+  hints:
+    schema_name: 跨表示匿名仿射操作码本辨识诊断
+    oracle_mindset: {insight: 把集合成员编码为位向量，为每条观测列候选集合，再求唯一注入匹配和未使用候选。, when_to_use: 匿名操作语义由有歧义的局部输入输出联合确定时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_diag_p5_latent_l4_id_01
+    method: dual-representation-injective-codebook-enumeration
+  provenance: staged diagnostic derived from FORMAL-P5-LATENT-L4-01
+  verified: 九项候选中唯一注入码本为 T3=G9 且 G4 未使用；其余七项与旧码本相同。
+
+- id: DIAG-P5-LATENT-L4-PLAN-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: explicit-set-affine-planning-probe-v1
+  schema_name: 已知仿射码本下的多查询完备最低成本规划诊断
+  level: 4
+  source: &explicit_plan_source
+    domain: 八位基因开关显式码本规划
+    problem: >-
+      状态是 b1…b8 的八位串，F=P(...)⊕m。候选变换：
+      F1=P(2,3,4,5,6,7,8,1)⊕00000000；F2=P(8,1,2,3,4,5,6,7)⊕00000000；
+      F3=P(8,7,6,5,4,3,2,1)⊕00000000；F4=P(2,1,4,3,6,5,8,7)⊕00000000；
+      F5=P(1,2,3,4,5,6,7,8)⊕10110110；F6=P(1,2,3,4,5,6,7,8)⊕01101001；
+      F7=P(2,4,1,3,6,8,5,7)⊕00000000；F8=P(4,1,6,2,8,3,7,5)⊕11001010。
+      代码本：S1=F3；S2=F2；S3=F1；S4=F5；S5=F4；S6=F7；S7=F8；S8=F6。卡成本：
+      S1[2]；S2[1]；S3[2]；S4[2]；S5[2]；S6[4]；S7[5]；S8[6]。
+      每问独立、每张卡至多一次且按输出顺序作用：Q1:初态=00000001;目标=11100001；
+      Q2:初态=01100011;目标=10110111；Q3:初态=01100101;目标=01101010。求三问唯一最低成本计划。
+    solution: >-
+      在每问的“八位状态×已用卡集合”上运行一致代价搜索，直到队列中不存在同成本竞争目标。
+      三问唯一最优依次为 12;S3>S7>S2>S4>S5、14;S5>S6>S7>S1>S2、10;S2>S5>S7>S1。
+    answer: 12;S3>S7>S2>S4>S5;14;S5>S6>S7>S1>S2;10;S2>S5>S7>S1
+  target:
+    domain: 八站信号编织机显式码本规划
+    problem: >-
+      状态是点亮站位集合。G=取(x1,…,x8)△M 表示新 a—h 依次复制旧 x1—x8 的成员关系，再翻转 M。
+      候选路由：G1=取(b,c,d,e,f,g,h,a)△∅；G2=取(h,a,b,c,d,e,f,g)△∅；
+      G3=取(h,g,f,e,d,c,b,a)△∅；G4=取(b,a,d,c,f,e,h,g)△∅；
+      G5=取(a,b,c,d,e,f,g,h)△{a,c,d,f,g}；G6=取(a,b,c,d,e,f,g,h)△{b,c,e,h}；
+      G7=取(b,d,a,c,f,h,e,g)△∅；G8=取(d,a,f,b,h,c,g,e)△{a,b,e,g}；
+      G9=取(b,a,d,c,f,e,h,g)△{c,d,f,h}。本题已给出正确代码本，无需再从观测恢复：
+      代码本：T1=G6；T2=G2；T3=G9；T4=G5；T5=G3；T6=G1；T7=G8；T8=G7。卡成本：
+      T5[2]；T2[1]；T6[2]；T4[2]；T3[2]；T8[4]；T7[5]；T1[6]。
+      每问独立、每张卡至多一次且按输出顺序作用：Q1:初集={h};目标集={a,b,c,h}；
+      Q2:初集={b,c,g,h};目标集={a,c,d,f,g,h}；Q3:初集={b,c,f,h};目标集={b,c,e,g}。
+      求三问唯一最低成本计划。最后一行严格输出六段：Q1成本;Q1卡串;Q2成本;Q2卡串;Q3成本;Q3卡串。
+    answer:
+      parts:
+        - {type: number, value: "7"}
+        - {type: string, value: T5>T3>T4>T2}
+        - {type: number, value: "11"}
+        - {type: string, value: T5>T3>T2>T8>T6}
+        - {type: number, value: "11"}
+        - {type: string, value: T8>T3>T2>T5>T6}
+  mapping:
+    objects: {八位状态: 点亮站位集合, F1…F9: G1…G9, S1…S8: T5/T2/T6/T4/T3/T8/T7/T1, 路径代价: 路由卡成本之和, 每问已用卡集合: 每问独立重置}
+    shared_relations: [位排列异或与集合取位对称差等价, 显式码本决定每张卡的状态转移, 每张卡在每问至多使用一次, 三个查询的已用集合相互独立, 目标是在精确到达集合的计划中全局最小化成本]
+    removed_relations: [T3 使用旧的无翻转 G4]
+    added_relations: [T3 显式指定为带 c/d/f/h 翻转的 G9]
+    adaptation_required: [接受题面给出的新码本而非复制旧 T3, 对每问分别搜索完整状态×已用卡空间, 证明成本 11 的 Q2/Q3 五卡计划优于更早发现的高成本路径]
+    varied: [隔离规划阶段并显式提供正确码本, 保留三问和集合表示, 不再要求模型同时做码本辨识]
+  lure:
+    problem: 对同一三个集合查询使用编辑前的旧代码本，其中 T3=G4、G9 未使用；其他卡、成本和顺序规则不变。
+    solution: 旧码本下三问唯一最低成本计划依次为 12;T6>T7>T2>T4>T3、14;T3>T8>T7>T5>T2、10;T2>T3>T7>T5。
+    answer:
+      parts:
+        - {type: number, value: "12"}
+        - {type: string, value: T6>T7>T2>T4>T3}
+        - {type: number, value: "14"}
+        - {type: string, value: T3>T8>T7>T5>T2}
+        - {type: number, value: "10"}
+        - {type: string, value: T2>T3>T7>T5}
+    why_surface_similar: 三个查询、卡名、成本和七项转移完全相同。
+    why_structurally_different: lure 只把 T3 冻结为编辑前 G4，三条旧最优计划在真实 G9 下全部错失目标。
+    wrong_schema_id: stale-explicit-codebook-planning-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: number, value: "12"}
+        - {type: string, value: T6>T7>T2>T4>T3}
+        - {type: number, value: "14"}
+        - {type: string, value: T3>T8>T7>T5>T2}
+        - {type: number, value: "10"}
+        - {type: string, value: T2>T3>T7>T5}
+    derivation: 忽略显式新码本中的 T3=G9，继续使用 source 的旧 T3=G4 后重算三问。
+  hints:
+    schema_name: 已知仿射码本下的多查询完备最低成本规划诊断
+    oracle_mindset: {insight: 码本已知后直接在状态×已用卡集合上做一致代价搜索，并让三个查询各自重置已用集合。, when_to_use: 需要把结构辨识误差与后续组合搜索误差分开测量时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_diag_p5_latent_l4_plan_01
+    method: explicit-codebook-multiquery-uniform-cost-search
+  provenance: staged diagnostic derived from FORMAL-P5-LATENT-L4-01
+  verified: 显式目标码本固定为 T3=G9；三问唯一最优成本 7/11/11，runner-up 分别为 9/12/12。
+
+- id: DIAG-P5-LATENT-L4-PLAN-Q1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: explicit-set-affine-singlequery-planning-probe-v1
+  schema_name: 已知仿射码本下的单查询完备最低成本规划诊断
+  level: 4
+  source: *explicit_plan_source
+  target:
+    domain: 八站信号编织机单查询规划 Q1
+    problem: >-
+      状态是点亮站位集合。G=取(x1,…,x8)△M 表示新 a—h 依次复制旧 x1—x8 的成员关系，再翻转 M。
+      候选路由：G1=取(b,c,d,e,f,g,h,a)△∅；G2=取(h,a,b,c,d,e,f,g)△∅；
+      G3=取(h,g,f,e,d,c,b,a)△∅；G4=取(b,a,d,c,f,e,h,g)△∅；
+      G5=取(a,b,c,d,e,f,g,h)△{a,c,d,f,g}；G6=取(a,b,c,d,e,f,g,h)△{b,c,e,h}；
+      G7=取(b,d,a,c,f,h,e,g)△∅；G8=取(d,a,f,b,h,c,g,e)△{a,b,e,g}；
+      G9=取(b,a,d,c,f,e,h,g)△{c,d,f,h}。正确代码本已给出：
+      代码本：T1=G6；T2=G2；T3=G9；T4=G5；T5=G3；T6=G1；T7=G8；T8=G7。卡成本：
+      T5[2]；T2[1]；T6[2]；T4[2]；T3[2]；T8[4]；T7[5]；T1[6]。
+      每张卡至多一次并按输出顺序作用。Q1:初集={h};目标集={a,b,c,h}。求唯一最低成本计划。
+      最后一行必须严格写成 ANSWER: 成本;卡1>卡2>...，卡串内部只能用 >，不能用逗号。
+    answer: {parts: [{type: number, value: "7"}, {type: string, value: T5>T3>T4>T2}]}
+  mapping: &single_plan_mapping
+    objects: {八位状态: 点亮站位集合, F1…F9: G1…G9, S1…S8: T5/T2/T6/T4/T3/T8/T7/T1, 路径代价: 路由卡成本之和, 已用卡集合: 单查询内禁止重复}
+    shared_relations: [位排列异或与集合取位对称差等价, 显式码本决定每张卡转移, 每张卡至多使用一次, 转移按输出顺序复合, 在精确到达目标的路径中全局最小化成本]
+    removed_relations: [T3 使用旧的无翻转 G4]
+    added_relations: [T3 显式指定为带 c/d/f/h 翻转的 G9]
+    adaptation_required: [采用显式 T3=G9, 在状态×已用卡空间完整搜索, 证明最低成本计划唯一]
+    varied: [从三问 challenge 中隔离一个查询以测量完成率和逐问难度]
+  lure:
+    problem: 对同一 Q1 使用编辑前旧码本 T3=G4，其他卡、成本和规则不变。
+    solution: 旧码本下唯一最低成本计划为 T6>T7>T2>T4>T3，成本 12。
+    answer: {parts: [{type: number, value: "12"}, {type: string, value: T6>T7>T2>T4>T3}]}
+    why_surface_similar: 初集、目标集、卡名、成本与七项转移相同。
+    why_structurally_different: lure 冻结 T3=G4；该旧计划在真实 G9 下落到错误集合。
+    wrong_schema_id: stale-singlequery-codebook-planning-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "12"}, {type: string, value: T6>T7>T2>T4>T3}]}
+    derivation: 忽略显式 T3=G9，按旧码本重算 Q1。
+  hints:
+    schema_name: 已知仿射码本下的单查询完备最低成本规划诊断
+    oracle_mindset: {insight: 在集合状态与已用卡位掩码上做一致代价搜索，首次弹出的最低目标成本还需检查同成本竞争计划。, when_to_use: 操作可重复约束与顺序共同影响最优性时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_diag_p5_latent_l4_plan_q1_01
+    method: explicit-codebook-singlequery-uniform-cost-search
+  provenance: single-query diagnostic split from DIAG-P5-LATENT-L4-PLAN-01
+  verified: Q1 唯一最优成本 7，runner-up 成本 9；旧计划真实终态为 11010100。
+
+- id: DIAG-P5-LATENT-L4-PLAN-Q2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: explicit-set-affine-singlequery-planning-probe-v1
+  schema_name: 已知仿射码本下的单查询完备最低成本规划诊断
+  level: 4
+  source: *explicit_plan_source
+  target:
+    domain: 八站信号编织机单查询规划 Q2
+    problem: >-
+      状态是点亮站位集合。G=取(x1,…,x8)△M 表示新 a—h 依次复制旧 x1—x8 的成员关系，再翻转 M。
+      候选路由：G1=取(b,c,d,e,f,g,h,a)△∅；G2=取(h,a,b,c,d,e,f,g)△∅；
+      G3=取(h,g,f,e,d,c,b,a)△∅；G4=取(b,a,d,c,f,e,h,g)△∅；
+      G5=取(a,b,c,d,e,f,g,h)△{a,c,d,f,g}；G6=取(a,b,c,d,e,f,g,h)△{b,c,e,h}；
+      G7=取(b,d,a,c,f,h,e,g)△∅；G8=取(d,a,f,b,h,c,g,e)△{a,b,e,g}；
+      G9=取(b,a,d,c,f,e,h,g)△{c,d,f,h}。正确代码本已给出：
+      代码本：T1=G6；T2=G2；T3=G9；T4=G5；T5=G3；T6=G1；T7=G8；T8=G7。卡成本：
+      T5[2]；T2[1]；T6[2]；T4[2]；T3[2]；T8[4]；T7[5]；T1[6]。
+      每张卡至多一次并按输出顺序作用。Q1:初集={b,c,g,h};目标集={a,c,d,f,g,h}。求唯一最低成本计划。
+      最后一行必须严格写成 ANSWER: 成本;卡1>卡2>...，卡串内部只能用 >，不能用逗号。
+    answer: {parts: [{type: number, value: "11"}, {type: string, value: T5>T3>T2>T8>T6}]}
+  mapping: *single_plan_mapping
+  lure:
+    problem: 对同一查询使用编辑前旧码本 T3=G4，其他卡、成本和规则不变。
+    solution: 旧码本下唯一最低成本计划为 T3>T8>T7>T5>T2，成本 14。
+    answer: {parts: [{type: number, value: "14"}, {type: string, value: T3>T8>T7>T5>T2}]}
+    why_surface_similar: 初集、目标集、卡名、成本与七项转移相同。
+    why_structurally_different: lure 冻结 T3=G4；该旧计划在真实 G9 下落到错误集合。
+    wrong_schema_id: stale-singlequery-codebook-planning-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "14"}, {type: string, value: T3>T8>T7>T5>T2}]}
+    derivation: 忽略显式 T3=G9，按旧码本重算该查询。
+  hints:
+    schema_name: 已知仿射码本下的单查询完备最低成本规划诊断
+    oracle_mindset: {insight: 不要停在先发现的高成本可达路径；按累计成本在状态×已用卡空间搜索到成本 11 的五卡计划。, when_to_use: 低成本最优路径可能比高成本旁路使用更多操作时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_diag_p5_latent_l4_plan_q2_01
+    method: explicit-codebook-singlequery-uniform-cost-search
+  provenance: single-query diagnostic split from DIAG-P5-LATENT-L4-PLAN-01
+  verified: 该查询唯一最优成本 11，runner-up 成本 12；旧计划真实终态为 01110001。
+
+- id: DIAG-P5-LATENT-L4-PLAN-Q3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: explicit-set-affine-singlequery-planning-probe-v1
+  schema_name: 已知仿射码本下的单查询完备最低成本规划诊断
+  level: 4
+  source: *explicit_plan_source
+  target:
+    domain: 八站信号编织机单查询规划 Q3
+    problem: >-
+      状态是点亮站位集合。G=取(x1,…,x8)△M 表示新 a—h 依次复制旧 x1—x8 的成员关系，再翻转 M。
+      候选路由：G1=取(b,c,d,e,f,g,h,a)△∅；G2=取(h,a,b,c,d,e,f,g)△∅；
+      G3=取(h,g,f,e,d,c,b,a)△∅；G4=取(b,a,d,c,f,e,h,g)△∅；
+      G5=取(a,b,c,d,e,f,g,h)△{a,c,d,f,g}；G6=取(a,b,c,d,e,f,g,h)△{b,c,e,h}；
+      G7=取(b,d,a,c,f,h,e,g)△∅；G8=取(d,a,f,b,h,c,g,e)△{a,b,e,g}；
+      G9=取(b,a,d,c,f,e,h,g)△{c,d,f,h}。正确代码本已给出：
+      代码本：T1=G6；T2=G2；T3=G9；T4=G5；T5=G3；T6=G1；T7=G8；T8=G7。卡成本：
+      T5[2]；T2[1]；T6[2]；T4[2]；T3[2]；T8[4]；T7[5]；T1[6]。
+      每张卡至多一次并按输出顺序作用。Q1:初集={b,c,f,h};目标集={b,c,e,g}。求唯一最低成本计划。
+      最后一行必须严格写成 ANSWER: 成本;卡1>卡2>...，卡串内部只能用 >，不能用逗号。
+    answer: {parts: [{type: number, value: "11"}, {type: string, value: T8>T3>T2>T5>T6}]}
+  mapping: *single_plan_mapping
+  lure:
+    problem: 对同一查询使用编辑前旧码本 T3=G4，其他卡、成本和规则不变。
+    solution: 旧码本下唯一最低成本计划为 T2>T3>T7>T5，成本 10。
+    answer: {parts: [{type: number, value: "10"}, {type: string, value: T2>T3>T7>T5}]}
+    why_surface_similar: 初集、目标集、卡名、成本与七项转移相同。
+    why_structurally_different: lure 冻结 T3=G4；该旧计划在真实 G9 下落到错误集合。
+    wrong_schema_id: stale-singlequery-codebook-planning-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "10"}, {type: string, value: T2>T3>T7>T5}]}
+    derivation: 忽略显式 T3=G9，按旧码本重算该查询。
+  hints:
+    schema_name: 已知仿射码本下的单查询完备最低成本规划诊断
+    oracle_mindset: {insight: 对所有不重复卡序列按累计成本搜索，避免把卡数较少或旧码本路径误当作最低成本。, when_to_use: 关系编辑会改变短路径终态且最优方案需重新组合时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_diag_p5_latent_l4_plan_q3_01
+    method: explicit-codebook-singlequery-uniform-cost-search
+  provenance: single-query diagnostic split from DIAG-P5-LATENT-L4-PLAN-01
+  verified: 该查询唯一最优成本 11，runner-up 成本 12；旧计划真实终态为 01011111。

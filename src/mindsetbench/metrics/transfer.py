@@ -28,6 +28,8 @@ def summarize_transfer(records: Sequence[TrialRecord]) -> dict[str, object]:
         "truncated_trials": len(records) - len(completed),
         "accuracy": accuracies,
         "completed_accuracy": accuracy_by_condition(completed),
+        "part_accuracy": part_accuracy_by_condition(records),
+        "completed_part_accuracy": part_accuracy_by_condition(completed),
         "completion_rate": _completion_rate_by_condition(records),
         "transfer_gain": paired_condition_difference(
             records, Condition.WITH_SOURCE, Condition.TARGET_ONLY
@@ -59,6 +61,98 @@ def summarize_transfer(records: Sequence[TrialRecord]) -> dict[str, object]:
             records, Condition.WITH_SOURCE, Condition.WITH_LURE
         ),
     }
+
+
+def part_accuracy_by_condition(
+    records: Sequence[TrialRecord],
+) -> dict[str, dict[str, float | int | None]]:
+    """Micro-average answer-part accuracy while exposing parse coverage.
+
+    Old result rows may predate explicit part counts. Such rows are scored when
+    their saved ``part_results`` reveal a count and otherwise reported as
+    unscored rather than silently treated as single-part answers.
+    """
+
+    grouped: dict[str, list[TrialRecord]] = defaultdict(list)
+    for record in records:
+        grouped[record.condition.value].append(record)
+    summaries: dict[str, dict[str, float | int | None]] = {}
+    for condition, condition_records in sorted(grouped.items()):
+        expected_parts = 0
+        observed_parts = 0
+        correct_parts = 0
+        scored_trials = 0
+        for record in condition_records:
+            part_results = record.grade.part_results
+            expected = getattr(record.grade, "expected_part_count", None)
+            if expected is None and part_results:
+                expected = max(part.index for part in part_results) + 1
+            if expected is None:
+                continue
+            scored_trials += 1
+            expected_parts += expected
+            by_index = {part.index: part for part in part_results}
+            for index in range(expected):
+                result = by_index.get(index)
+                if result is not None and result.predicted is not None:
+                    observed_parts += 1
+                if result is not None and result.correct:
+                    correct_parts += 1
+        summaries[condition] = {
+            "trials": len(condition_records),
+            "scored_trials": scored_trials,
+            "unscored_trials": len(condition_records) - scored_trials,
+            "correct_parts": correct_parts,
+            "observed_parts": observed_parts,
+            "expected_parts": expected_parts,
+            "accuracy": correct_parts / expected_parts if expected_parts else None,
+            "coverage": observed_parts / expected_parts if expected_parts else None,
+        }
+    return summaries
+
+
+def part_scores_by_case_condition(
+    records: Sequence[TrialRecord],
+) -> dict[str, dict[str, dict[str, dict[str, float | int | None]]]]:
+    """Detailed part metrics for diagnostic reports, grouped without mixing cases."""
+
+    grouped: dict[tuple[str, str], list[TrialRecord]] = defaultdict(list)
+    for record in records:
+        grouped[(record.case_id, record.condition.value)].append(record)
+    output: dict[str, dict[str, dict[str, dict[str, float | int | None]]]] = {}
+    for (case_id, condition), condition_records in sorted(grouped.items()):
+        expected_counts = [
+            count
+            for record in condition_records
+            if (count := getattr(record.grade, "expected_part_count", None)) is not None
+        ]
+        if expected_counts:
+            expected_count = max(expected_counts)
+        else:
+            indexes = [
+                part.index for record in condition_records for part in record.grade.part_results
+            ]
+            expected_count = max(indexes, default=-1) + 1
+        part_output: dict[str, dict[str, float | int | None]] = {}
+        for index in range(expected_count):
+            results = [
+                next((part for part in record.grade.part_results if part.index == index), None)
+                for record in condition_records
+            ]
+            observed = sum(
+                result is not None and result.predicted is not None for result in results
+            )
+            correct = sum(result is not None and result.correct for result in results)
+            total = len(condition_records)
+            part_output[str(index)] = {
+                "trials": total,
+                "observed": observed,
+                "correct": correct,
+                "accuracy": correct / total if total else None,
+                "coverage": observed / total if total else None,
+            }
+        output.setdefault(case_id, {})[condition] = part_output
+    return output
 
 
 def copy_probe_rate_by_condition(records: Sequence[TrialRecord]) -> dict[str, float]:

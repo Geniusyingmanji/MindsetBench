@@ -9,7 +9,6 @@ from mindsetbench.models.case import CaseGoldView
 from mindsetbench.models.run import GradeResult, PartGrade
 
 _ANSWER_RE = re.compile(r"^\s*ANSWER\s*[:：]\s*(.*?)\s*$", re.IGNORECASE | re.MULTILINE)
-_SEPARATOR_RE = re.compile(r"[;；,，]")
 
 
 def extract_answer(text: str, *, require_marker: bool = True) -> tuple[str | None, str | None]:
@@ -29,9 +28,16 @@ def grade_response(
     *,
     require_marker: bool = True,
 ) -> GradeResult:
+    expected_part_count = len(gold.target_answer.parts)
     extracted, parse_error = extract_answer(model_output, require_marker=require_marker)
     if extracted is None:
-        return GradeResult(correct=False, extracted=None, parse_error=parse_error)
+        return GradeResult(
+            correct=False,
+            extracted=None,
+            expected_part_count=expected_part_count,
+            parsed_part_count=0,
+            parse_error=parse_error,
+        )
 
     correct, part_results, normalized = _match_answer(extracted, gold.target_answer)
     copy_match = bool(
@@ -43,6 +49,8 @@ def grade_response(
         extracted=extracted,
         normalized_parts=normalized,
         part_results=part_results,
+        expected_part_count=expected_part_count,
+        parsed_part_count=len(normalized),
         parse_error=parse_error,
         matched_copy_probe=copy_match,
         matched_lure_answer=lure_match,
@@ -50,25 +58,22 @@ def grade_response(
 
 
 def _match_answer(raw: str, spec: AnswerSpec) -> tuple[bool, list[PartGrade], list[str]]:
-    chunks = [part.strip() for part in _SEPARATOR_RE.split(raw) if part.strip()]
+    chunks = [part.strip() for part in _split_parts(raw, spec.separator) if part.strip()]
     expected = spec.parts
     results: list[PartGrade] = []
-    if len(chunks) != len(expected):
-        return (
-            False,
-            [
+    for index, answer_part in enumerate(expected):
+        if index >= len(chunks):
+            results.append(
                 PartGrade(
-                    index=0,
+                    index=index,
                     correct=False,
-                    predicted=raw,
-                    expected=spec.legacy_value(),
-                    reason=f"part-count:{len(chunks)}!={len(expected)}",
+                    predicted=None,
+                    expected=answer_part.value,
+                    reason="missing-part",
                 )
-            ],
-            chunks,
-        )
-
-    for index, (predicted, answer_part) in enumerate(zip(chunks, expected, strict=True)):
+            )
+            continue
+        predicted = chunks[index]
         ok, reason = _match_part(predicted, answer_part)
         results.append(
             PartGrade(
@@ -79,7 +84,20 @@ def _match_answer(raw: str, spec: AnswerSpec) -> tuple[bool, list[PartGrade], li
                 reason=reason,
             )
         )
-    return all(result.correct for result in results), results, chunks
+    count_matches = len(chunks) == len(expected)
+    if len(chunks) > len(expected) and results:
+        results[-1].reason = f"extra-parts:{len(chunks) - len(expected)}"
+    return count_matches and all(result.correct for result in results), results, chunks
+
+
+def _split_parts(raw: str, separator: str) -> list[str]:
+    if separator == ";":
+        pattern = r"[;；]"
+    elif separator == ",":
+        pattern = r"[,，]"
+    else:
+        pattern = re.escape(separator)
+    return re.split(pattern, raw)
 
 
 def _match_part(predicted: str, expected: AnswerPart) -> tuple[bool, str | None]:

@@ -188,6 +188,8 @@ L4_COSTS = tuple((SET_CODE_RENAME[code], cost) for code, cost in TARGET_COSTS)
 L4_LOGS = tuple(
     CalibrationLog(SET_CODE_RENAME[log.code], log.before, log.after) for log in TARGET_LOGS
 )
+L4_CODEBOOK_BY_CARD = tuple(sorted(L4_CODEBOOK, key=lambda item: int(item[0][1:])))
+L4_OLD_CODEBOOK_BY_CARD = tuple(sorted(L4_OLD_CODEBOOK, key=lambda item: int(item[0][1:])))
 
 
 def _source_problem() -> AffineProblem:
@@ -259,6 +261,19 @@ def _target_l4_problem() -> AffineProblem:
     )
 
 
+def _source_three_query_problem() -> AffineProblem:
+    return AffineProblem(
+        catalogue=CATALOGUE[:8],
+        logs=(),
+        costs=SOURCE_COSTS,
+        queries=(
+            (0b00000001, 0b11100001),
+            (0b01100011, 0b10110111),
+            (0b01100101, 0b01101010),
+        ),
+    )
+
+
 _TRANSFORM_PATTERN = re.compile(r"(F\d+)=P\(([1-8](?:,[1-8]){7})\)⊕([01]{8})")
 _LOG_PATTERN = re.compile(r"([A-Z]\d+):([01]{8})→([01]{8})")
 _COST_PATTERN = re.compile(r"([A-Z]\d+)\[(\d+)\]")
@@ -320,6 +335,107 @@ def _parse_set_problem(problem: str) -> AffineProblem:
         queries=tuple(
             (_set_to_int(initial), _set_to_int(goal)) for _, initial, goal in raw_queries
         ),
+    )
+
+
+_CODEBOOK_PATTERN = re.compile(r"([A-Z]\d+)=(F\d+|G\d+)")
+
+
+def _parse_observation_problem(problem: str) -> AffineProblem:
+    """Parse catalogue and logs for a codebook-only diagnostic task."""
+
+    if "观测记录：" in problem:
+        catalogue = tuple(
+            (
+                name,
+                AffineTransform(
+                    order=tuple(ord(label) - ord("a") + 1 for label in order.split(",")),
+                    xor_mask=_set_to_int(toggle),
+                ),
+            )
+            for name, order, toggle in _SET_TRANSFORM_PATTERN.findall(problem)
+        )
+        log_section = problem.split("观测记录：", 1)[1].split("求唯一", 1)[0]
+        logs = tuple(
+            CalibrationLog(code, _set_to_int(before), _set_to_int(after))
+            for code, before, after in _SET_LOG_PATTERN.findall(log_section)
+        )
+    else:
+        catalogue = tuple(
+            (name, _transform(order, xor_mask))
+            for name, order, xor_mask in _TRANSFORM_PATTERN.findall(problem)
+        )
+        try:
+            log_section = problem.split("校准日志：", 1)[1].split("求唯一", 1)[0]
+        except IndexError as exc:
+            raise ValueError("observation problem is missing its calibration logs") from exc
+        logs = tuple(
+            CalibrationLog(code, int(before, 2), int(after, 2))
+            for code, before, after in _LOG_PATTERN.findall(log_section)
+        )
+    if not catalogue or not logs:
+        raise ValueError("observation problem contains an empty catalogue or log section")
+    if len({name for name, _ in catalogue}) != len(catalogue):
+        raise ValueError("observation problem contains duplicate transformation names")
+    if len({log.code for log in logs}) != len(logs):
+        raise ValueError("observation problem contains duplicate observation codes")
+    return AffineProblem(catalogue=catalogue, logs=logs, costs=(), queries=())
+
+
+def _parse_explicit_planning_problem(
+    problem: str,
+) -> tuple[AffineProblem, tuple[tuple[str, str], ...]]:
+    """Parse a planning probe whose latent codebook is supplied explicitly."""
+
+    if "初集=" in problem:
+        catalogue = tuple(
+            (
+                name,
+                AffineTransform(
+                    order=tuple(ord(label) - ord("a") + 1 for label in order.split(",")),
+                    xor_mask=_set_to_int(toggle),
+                ),
+            )
+            for name, order, toggle in _SET_TRANSFORM_PATTERN.findall(problem)
+        )
+        raw_queries = re.findall(
+            rf"Q(\d+):初集=({_SET_PATTERN});目标集=({_SET_PATTERN})",
+            problem,
+        )
+        queries = tuple(
+            (_set_to_int(initial), _set_to_int(goal)) for _, initial, goal in raw_queries
+        )
+    else:
+        catalogue = tuple(
+            (name, _transform(order, xor_mask))
+            for name, order, xor_mask in _TRANSFORM_PATTERN.findall(problem)
+        )
+        raw_queries = re.findall(
+            r"Q(\d+):初态=([01]{8});目标=([01]{8})",
+            problem,
+        )
+        queries = tuple((int(initial, 2), int(goal, 2)) for _, initial, goal in raw_queries)
+    try:
+        codebook_section = problem.split("代码本：", 1)[1].split("卡成本：", 1)[0]
+        cost_section = problem.split("卡成本：", 1)[1].split("Q1:", 1)[0]
+    except IndexError as exc:
+        raise ValueError("explicit planning problem is missing codebook or costs") from exc
+    codebook = tuple(_CODEBOOK_PATTERN.findall(codebook_section))
+    costs = tuple((code, int(cost)) for code, cost in _COST_PATTERN.findall(cost_section))
+    if not catalogue or not codebook or not costs or not queries:
+        raise ValueError("explicit planning problem contains an empty required section")
+    if len({name for name, _ in catalogue}) != len(catalogue):
+        raise ValueError("explicit planning problem contains duplicate transformation names")
+    if len({code for code, _ in codebook}) != len(codebook):
+        raise ValueError("explicit planning problem contains duplicate codebook entries")
+    if len({code for code, _ in costs}) != len(costs):
+        raise ValueError("explicit planning problem contains duplicate cost codes")
+    query_indexes = [int(index) for index, _, _ in raw_queries]
+    if query_indexes != list(range(1, len(raw_queries) + 1)):
+        raise ValueError("explicit planning query indexes must be contiguous and ordered")
+    return (
+        AffineProblem(catalogue=catalogue, logs=(), costs=costs, queries=queries),
+        codebook,
     )
 
 
@@ -790,3 +906,196 @@ def verify_formal_p5_latent_l3_01(case: Case) -> VerificationResult:
 @register("FORMAL-P5-LATENT-L4-01")
 def verify_formal_p5_latent_l4_01(case: Case) -> VerificationResult:
     return _verify_chain_level(case, 4)
+
+
+def _format_codebook(codebook: tuple[tuple[str, str], ...], unused: str) -> str:
+    ordered = sorted(codebook, key=lambda item: int(item[0][1:]))
+    return ";".join([*(f"{code}={name}" for code, name in ordered), f"UNUSED={unused}"])
+
+
+@register("DIAG-P5-LATENT-L4-ID-01")
+def verify_diag_p5_latent_l4_id_01(case: Case) -> VerificationResult:
+    source = AffineProblem(CATALOGUE[:8], SOURCE_LOGS, (), ())
+    target = AffineProblem(L4_CATALOGUE, L4_LOGS, (), ())
+    parsed_source = _parse_observation_problem(case.source.problem)
+    parsed_target = _parse_observation_problem(case.target.problem)
+    source_assignments = _candidate_codebook(source)
+    target_assignments = _candidate_codebook(target)
+    target_used = {name for _, name in L4_CODEBOOK}
+    unused = tuple(name for name, _ in L4_CATALOGUE if name not in target_used)
+    old = dict(L4_OLD_CODEBOOK_BY_CARD)
+    current = dict(L4_CODEBOOK_BY_CARD)
+    broken = {code: (old[code], current[code]) for code in old if old[code] != current[code]}
+    checks = [
+        _check("source-observation-text", parsed_source, source),
+        _check("target-observation-text", parsed_target, target),
+        _check(
+            "source-candidate-sizes",
+            tuple(_candidate_set_sizes(source)),
+            (1, 1, 2, 2, 2, 2, 2, 3),
+        ),
+        _check(
+            "target-candidate-sizes",
+            tuple(_candidate_set_sizes(target)),
+            (1, 1, 1, 1, 2, 2, 2, 3),
+        ),
+        _check("source-unique-codebook", source_assignments, (SOURCE_CODEBOOK,)),
+        _check("target-unique-codebook", target_assignments, (L4_CODEBOOK,)),
+        _check("target-unused-transform", unused, ("G4",)),
+        _check("single-codebook-edit", broken, {"T3": ("G4", "G9")}),
+        _check(
+            "stored-source-answer",
+            case.source.answer,
+            _format_codebook(SOURCE_CODEBOOK, "NONE"),
+        ),
+        _check("stored-target", _gold(case), _format_codebook(L4_CODEBOOK, "G4")),
+        _check("stored-lure", _lure(case), _format_codebook(L4_OLD_CODEBOOK, "G9")),
+        _check("copy-equals-lure", _copy(case), _lure(case)),
+        _check("copy-differs-from-target", _copy(case) != _gold(case), True),
+    ]
+    return VerificationResult(case_id=case.id, checks=checks, verifier=__name__)
+
+
+@register("DIAG-P5-LATENT-L4-PLAN-01")
+def verify_diag_p5_latent_l4_plan_01(case: Case) -> VerificationResult:
+    source = _source_three_query_problem()
+    target_base = _target_l4_problem()
+    target = AffineProblem(L4_CATALOGUE, (), L4_COSTS, target_base.queries)
+    parsed_source, parsed_source_codebook = _parse_explicit_planning_problem(case.source.problem)
+    parsed_target, parsed_target_codebook = _parse_explicit_planning_problem(case.target.problem)
+    expected_source = (
+        Plan(12, ("S3", "S7", "S2", "S4", "S5"), 0b11100001),
+        Plan(14, ("S5", "S6", "S7", "S1", "S2"), 0b10110111),
+        Plan(10, ("S2", "S5", "S7", "S1"), 0b01101010),
+    )
+    expected_target = CHAIN_LEVEL_SPECS[4].expected_plans
+    expected_lure = CHAIN_LEVEL_SPECS[4].lure_plans
+    source_best = tuple(
+        _plans(source, SOURCE_CODEBOOK, query_index) for query_index in range(len(source.queries))
+    )
+    target_best = tuple(
+        _plans(target, L4_CODEBOOK, query_index) for query_index in range(len(target.queries))
+    )
+    lure_best = tuple(
+        _plans(target, L4_OLD_CODEBOOK, query_index) for query_index in range(len(target.queries))
+    )
+    target_near = tuple(
+        _plans(target, L4_CODEBOOK, query_index, max_extra_cost=2)
+        for query_index in range(len(target.queries))
+    )
+    lure_actual = tuple(
+        _replay(target, L4_CODEBOOK, plan.codes, query_index)
+        for query_index, plan in enumerate(expected_lure)
+    )
+    checks = [
+        _check("source-explicit-text", parsed_source, source),
+        _check("target-explicit-text", parsed_target, target),
+        _check("source-explicit-codebook", parsed_source_codebook, SOURCE_CODEBOOK),
+        _check("target-explicit-codebook", parsed_target_codebook, L4_CODEBOOK_BY_CARD),
+        _check(
+            "source-unique-optima",
+            source_best,
+            tuple((plan,) for plan in expected_source),
+        ),
+        _check(
+            "target-unique-optima",
+            target_best,
+            tuple((plan,) for plan in expected_target),
+        ),
+        _check(
+            "target-runner-up-costs",
+            tuple(tuple(sorted({plan.cost for plan in plans})) for plans in target_near),
+            ((7, 9), (11, 12, 13), (11, 12, 13)),
+        ),
+        _check(
+            "stale-codebook-optima",
+            lure_best,
+            tuple((plan,) for plan in expected_lure),
+        ),
+        _check(
+            "stale-plans-actual-states",
+            lure_actual,
+            (0b11010100, 0b01110001, 0b01011111),
+        ),
+        _check(
+            "stale-plans-miss-goals",
+            tuple(state != target.queries[index][1] for index, state in enumerate(lure_actual)),
+            (True, True, True),
+        ),
+        _check("stored-source-answer", case.source.answer, _format_plans(expected_source)),
+        _check("stored-target", _gold(case), _format_plans(expected_target)),
+        _check("stored-lure", _lure(case), _format_plans(expected_lure)),
+        _check("copy-equals-lure", _copy(case), _lure(case)),
+        _check("copy-differs-from-target", _copy(case) != _gold(case), True),
+    ]
+    return VerificationResult(case_id=case.id, checks=checks, verifier=__name__)
+
+
+def _verify_single_query_planning_probe(case: Case, query_index: int) -> VerificationResult:
+    source = _source_three_query_problem()
+    target_base = _target_l4_problem()
+    target = AffineProblem(
+        L4_CATALOGUE,
+        (),
+        L4_COSTS,
+        (target_base.queries[query_index],),
+    )
+    parsed_source, parsed_source_codebook = _parse_explicit_planning_problem(case.source.problem)
+    parsed_target, parsed_target_codebook = _parse_explicit_planning_problem(case.target.problem)
+    source_plans = (
+        Plan(12, ("S3", "S7", "S2", "S4", "S5"), 0b11100001),
+        Plan(14, ("S5", "S6", "S7", "S1", "S2"), 0b10110111),
+        Plan(10, ("S2", "S5", "S7", "S1"), 0b01101010),
+    )
+    expected = CHAIN_LEVEL_SPECS[4].expected_plans[query_index]
+    expected_lure = CHAIN_LEVEL_SPECS[4].lure_plans[query_index]
+    source_best = _plans(source, SOURCE_CODEBOOK, query_index)
+    target_best = _plans(target, L4_CODEBOOK, 0)
+    target_near = _plans(target, L4_CODEBOOK, 0, max_extra_cost=2)
+    lure_best = _plans(target, L4_OLD_CODEBOOK, 0)
+    lure_actual = _replay(target, L4_CODEBOOK, expected_lure.codes, 0)
+    checks = [
+        _check("source-explicit-text", parsed_source, source),
+        _check("target-explicit-text", parsed_target, target),
+        _check("source-explicit-codebook", parsed_source_codebook, SOURCE_CODEBOOK),
+        _check("target-explicit-codebook", parsed_target_codebook, L4_CODEBOOK_BY_CARD),
+        _check("source-query-optimum", source_best, (source_plans[query_index],)),
+        _check("target-query-optimum", target_best, (expected,)),
+        _check(
+            "target-runner-up-costs",
+            tuple(sorted({plan.cost for plan in target_near})),
+            ((7, 9), (11, 12, 13), (11, 12, 13))[query_index],
+        ),
+        _check("stale-codebook-optimum", lure_best, (expected_lure,)),
+        _check(
+            "stale-plan-actual-state",
+            f"{lure_actual:08b}",
+            ("11010100", "01110001", "01011111")[query_index],
+        ),
+        _check("stale-plan-misses-goal", lure_actual != target.queries[0][1], True),
+        _check(
+            "stored-source-answer",
+            case.source.answer,
+            _format_plans(source_plans),
+        ),
+        _check("stored-target", _gold(case), _format_plans((expected,))),
+        _check("stored-lure", _lure(case), _format_plans((expected_lure,))),
+        _check("copy-equals-lure", _copy(case), _lure(case)),
+        _check("copy-differs-from-target", _copy(case) != _gold(case), True),
+    ]
+    return VerificationResult(case_id=case.id, checks=checks, verifier=__name__)
+
+
+@register("DIAG-P5-LATENT-L4-PLAN-Q1-01")
+def verify_diag_p5_latent_l4_plan_q1_01(case: Case) -> VerificationResult:
+    return _verify_single_query_planning_probe(case, 0)
+
+
+@register("DIAG-P5-LATENT-L4-PLAN-Q2-01")
+def verify_diag_p5_latent_l4_plan_q2_01(case: Case) -> VerificationResult:
+    return _verify_single_query_planning_probe(case, 1)
+
+
+@register("DIAG-P5-LATENT-L4-PLAN-Q3-01")
+def verify_diag_p5_latent_l4_plan_q3_01(case: Case) -> VerificationResult:
+    return _verify_single_query_planning_probe(case, 2)

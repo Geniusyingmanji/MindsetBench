@@ -1,0 +1,7 @@
+{
+  "name": "p5-latent-l4-staged-diagnostics",
+  "description": "Separate codebook-identification and explicit-codebook planning probes derived from the three-query P5 L4 challenge.",
+  "datasets": [
+    "../v1/p5-latent-staged.yaml"
+  ]
+}
