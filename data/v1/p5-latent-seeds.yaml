@@ -1,0 +1,102 @@
+- id: HARD-P5-LATENT-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: latent-affine-codebook-planning-v1
+  schema_name: 从歧义校准日志联合恢复匿名仿射操作并适配单码变换
+  chain: p5-latent-affine-seed-v1
+  level: 4
+  source:
+    domain: 八位基因开关校准
+    problem: >-
+      状态是 b1…b8 的八位串。P(i1,…,i8) 输出原串第 i1,…,i8 位，再与掩码逐位异或；
+      因而 F=P(...)⊕m 是 GF(2) 上的仿射变换。八个匿名程序 S1—S8 分别实现 F1—F8 中不同的一项。
+      候选变换：F1=P(2,3,4,5,6,7,8,1)⊕00000000；F2=P(8,1,2,3,4,5,6,7)⊕00000000；
+      F3=P(8,7,6,5,4,3,2,1)⊕00000000；F4=P(2,1,4,3,6,5,8,7)⊕00000000；
+      F5=P(1,2,3,4,5,6,7,8)⊕10110110；F6=P(1,2,3,4,5,6,7,8)⊕01101001；
+      F7=P(2,4,1,3,6,8,5,7)⊕00000000；F8=P(4,1,6,2,8,3,7,5)⊕11001010。
+      单条日志可能兼容多项候选，但代码本是一一对应。校准日志：
+      S1:00100011→11000100；S2:01111100→00111110；S3:10001000→00010001；
+      S4:00000000→10110110；S5:01000001→10000010；S6:10010000→01100000；
+      S7:01101010→11011101；S8:01001110→00100111。卡成本：
+      S1[2]；S2[1]；S3[2]；S4[2]；S5[2]；S6[4]；S7[5]；S8[6]。
+      Q1:初态=00000001;目标=11100001。每张卡至多使用一次，按输出顺序复合变换。
+      求唯一最低成本序列；最后一行须严格写成 ANSWER: 成本;程序码>程序码>...。
+    solution: >-
+      对每条日志保留全部兼容候选，再施加八个程序与八个变换的一一对应约束；唯一代码本为
+      S1=F3、S2=F2、S3=F1、S4=F5、S5=F4、S6=F7、S7=F8、S8=F6。
+      在“八位状态×已用卡集合”上做一致代价搜索，唯一最优为 S3,S7,S2,S4,S5，
+      代价 12；runner-up 代价 13。迁移时先按日志恢复目标代码本，不应仅按程序重命名复制该序列；
+      若一项隐藏变换变化，需用新代码本重算最短路。
+    answer: 12;S3>S7>S2>S4>S5
+  target:
+    domain: 八格继电存储器
+    problem: >-
+      状态是 b1…b8 的八位串。P(i1,…,i8) 输出原串第 i1,…,i8 位，再与掩码逐位异或；
+      因而 F=P(...)⊕m 是 GF(2) 上的仿射变换。八个匿名继电卡 K1—K8 实现下列九项候选中的八项，且互不重复；
+      哪一项未被使用也须由全部日志联合确定。候选变换：
+      F1=P(2,3,4,5,6,7,8,1)⊕00000000；F2=P(8,1,2,3,4,5,6,7)⊕00000000；
+      F3=P(8,7,6,5,4,3,2,1)⊕00000000；F4=P(2,1,4,3,6,5,8,7)⊕00000000；
+      F5=P(1,2,3,4,5,6,7,8)⊕10110110；F6=P(1,2,3,4,5,6,7,8)⊕01101001；
+      F7=P(2,4,1,3,6,8,5,7)⊕00000000；F8=P(4,1,6,2,8,3,7,5)⊕11001010；
+      F9=P(2,1,4,3,6,5,8,7)⊕00110101。单条日志可能兼容多项候选。校准日志：
+      K2:00100011→11000100；K7:10010111→01011110；K3:01101100→00110110；
+      K5:00110100→01011101；K8:11001001→10010011；K1:11111110→01001000；
+      K6:00010111→11101000；K4:11000101→10101100。卡成本：
+      K6[2]；K3[1]；K8[2]；K1[2]；K7[2]；K4[4]；K2[5]；K5[6]。
+      对同一代码本独立回答三问，每问都从空的“已用卡集合”开始，每张卡在该问至多使用一次，按输出顺序复合变换：
+      Q1:初态=00000001;目标=11100001；Q2:初态=01100011;目标=10110111；
+      Q3:初态=01100101;目标=01101010。求各问唯一最低成本序列；最后一行须严格写成
+      ANSWER: Q1成本;Q1程序码>程序码>...;Q2成本;Q2程序码>...;Q3成本;Q3程序码>...。
+    answer:
+      parts:
+        - {type: number, value: "7"}
+        - {type: string, value: K6>K7>K1>K3}
+        - {type: number, value: "11"}
+        - {type: string, value: K6>K7>K3>K4>K8}
+        - {type: number, value: "11"}
+        - {type: string, value: K4>K7>K3>K6>K8}
+  mapping:
+    objects: {基因八位状态: 继电八格状态, S1/S2/S3/S4: K6/K3/K8/K1, S5/S6/S7/S8: K7/K4/K2/K5, 程序校准日志: 继电卡校准日志, 卡成本: 卡成本}
+    shared_relations: [状态变换均由位排列与异或掩码复合, 单条日志只约束候选集合而全部代码必须联合一一匹配, 每张卡在每个独立查询中至多一次且变换按序复合, 路径成本为实际卡成本之和, 三个查询都要求精确到达各自八位目标, source 代码与 target 代码保持给定重命名]
+    removed_relations: [K7 对应 source S5 的无掩码邻位交换 F4]
+    added_relations: [K7 改为邻位交换后再异或 00110101 的 F9]
+    adaptation_required: [由全部目标日志恢复 F4 未使用且 K7=F9, 重放三条 source 映射计划分别得到错误终态 11010100/01110001/01011111, 用新代码本重算三个唯一最低成本序列]
+    varied: [跨到继电域并重命名全部卡, 候选集合从八项扩到九项, 一项隐藏仿射变换发生非表面可见的改变]
+  lure:
+    problem: >-
+      使用相同三个查询、成本和卡名，但忽略 K7 的校准日志与一一匹配产生的代码本变化，
+      假定每张 K 卡仍实现其映射 source 卡的旧变换；求三个最低成本序列。
+    solution: >-
+      旧代码本下，三条 source 最优序列按重命名依次为 K8>K2>K3>K1>K7（12）、
+      K7>K4>K2>K6>K3（14）、K3>K7>K2>K6（10）。
+    answer:
+      parts:
+        - {type: number, value: "12"}
+        - {type: string, value: K8>K2>K3>K1>K7}
+        - {type: number, value: "14"}
+        - {type: string, value: K7>K4>K2>K6>K3}
+        - {type: number, value: "10"}
+        - {type: string, value: K3>K7>K2>K6}
+    why_surface_similar: 状态、目标、全部卡名、成本及七张未改变卡的关系都与目标一致。
+    why_structurally_different: lure 强制复制 source 代码本，违反目标日志唯一恢复出的 K7=F9。
+    wrong_schema_id: copied-affine-codebook-without-recalibration-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: number, value: "12"}
+        - {type: string, value: K8>K2>K3>K1>K7}
+        - {type: number, value: "14"}
+        - {type: string, value: K7>K4>K2>K6>K3}
+        - {type: number, value: "10"}
+        - {type: string, value: K3>K7>K2>K6}
+    derivation: 把 source 的三个最优卡序列逐码重命名，未由目标日志重校准 K7 的隐藏变换。
+  hints:
+    schema_name: 从歧义校准日志联合恢复匿名仿射操作并适配单码变换
+    oracle_mindset: {insight: 先为每条日志列兼容 Fi，再用代码互异约束做全局匹配；确认 K7=F9 后才在状态×已用卡空间搜索。, when_to_use: 匿名操作语义只能由部分输入输出日志联合辨识时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_hard_p5_latent_l4_01
+    method: injective-codebook-enumeration-and-uniform-cost-affine-planning
+  provenance: original synthetic AR-hard seed; latent operator identification plus single-relation adaptation
+  verified: 三问全局代码本唯一且最优序列唯一；target 成本 7/11/11；三条复制计划在真实 target 下分别落到 11010100/01110001/01011111。

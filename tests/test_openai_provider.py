@@ -7,7 +7,7 @@ import pytest
 
 from mindsetbench.models.prompt import Condition, PromptArtifact
 from mindsetbench.models.run import ModelRequest
-from mindsetbench.runner.providers import OpenAICompatibleProvider
+from mindsetbench.runner.providers import OpenAICompatibleProvider, ProviderError
 
 
 def _request() -> ModelRequest:
@@ -57,6 +57,21 @@ def test_openai_provider_extracts_text(monkeypatch) -> None:
     assert response.model == "served-model"
     assert response.input_tokens == 10
     assert response.output_tokens == 3
+
+
+def test_openai_provider_wraps_read_timeout_as_retryable_error(monkeypatch) -> None:
+    def raise_timeout(*_args, **_kwargs):
+        raise TimeoutError("read timed out")
+
+    monkeypatch.setattr("mindsetbench.runner.providers.urlopen", raise_timeout)
+    provider = OpenAICompatibleProvider(
+        "https://example.test/v1/chat/completions",
+        "secret",
+        timeout_seconds=1,
+    )
+    with pytest.raises(ProviderError, match="read timed out") as exc_info:
+        asyncio.run(provider.generate(_request()))
+    assert exc_info.value.retryable
 
 
 def test_openai_provider_negotiates_completion_token_parameter(monkeypatch) -> None:

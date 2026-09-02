@@ -100,6 +100,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--max-output-tokens", type=int, default=2048)
     run.add_argument("--concurrency", type=int, default=4)
     run.add_argument("--max-retries", type=int, default=2)
+    run.add_argument("--request-timeout-seconds", type=float, default=180.0)
 
     report = subcommands.add_parser("report", help="summarize a saved experiment database")
     report.add_argument("--database", required=True)
@@ -287,8 +288,13 @@ def _cmd_run(args: argparse.Namespace) -> int:
         max_output_tokens=args.max_output_tokens,
         concurrency=args.concurrency,
         max_retries=args.max_retries,
+        request_timeout_seconds=args.request_timeout_seconds,
     )
-    provider = OpenAICompatibleProvider(args.endpoint, api_key)
+    provider = OpenAICompatibleProvider(
+        args.endpoint,
+        api_key,
+        timeout_seconds=config.request_timeout_seconds,
+    )
     with ResultStore(args.database) as store:
         try:
             new_records = asyncio.run(run_experiment(cases, config, provider, store))

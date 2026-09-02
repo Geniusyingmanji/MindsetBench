@@ -17,3 +17,4 @@ class ExperimentConfig(BaseModel):
     max_output_tokens: int = Field(default=2048, ge=1)
     concurrency: int = Field(default=4, ge=1)
     max_retries: int = Field(default=2, ge=0, le=10)
+    request_timeout_seconds: float = Field(default=180.0, gt=0, le=3600)

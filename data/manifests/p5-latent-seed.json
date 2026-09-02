@@ -1,0 +1,7 @@
+{
+  "name": "p5-latent-affine-hard-seed",
+  "description": "A single P5 L4 seed coupling ambiguous affine-codebook recovery with shortest-path planning.",
+  "datasets": [
+    "../v1/p5-latent-seeds.yaml"
+  ]
+}

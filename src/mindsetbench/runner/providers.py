@@ -126,9 +126,10 @@ class OpenAICompatibleProvider:
                     f"provider HTTP {exc.code}: {detail}",
                     retryable=retryable,
                 ) from exc
-            except URLError as exc:
+            except (TimeoutError, URLError) as exc:
+                reason = exc.reason if isinstance(exc, URLError) else str(exc)
                 raise ProviderError(
-                    f"provider connection failed: {exc.reason}",
+                    f"provider connection failed: {reason}",
                     retryable=True,
                 ) from exc
         raise ProviderError("provider parameter negotiation did not converge")

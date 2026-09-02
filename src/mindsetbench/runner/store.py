@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import sqlite3
 from pathlib import Path
 
@@ -55,10 +54,17 @@ class ResultStore:
             "SELECT config_json FROM experiments WHERE experiment_id = ?",
             (config.experiment_id,),
         ).fetchone()
-        if existing is not None and json.loads(existing[0]) != json.loads(serialized):
-            raise ValueError(
-                f"experiment {config.experiment_id!r} already exists with a different config"
-            )
+        if existing is not None:
+            try:
+                existing_config = ExperimentConfig.model_validate_json(existing[0])
+            except ValueError as exc:
+                raise ValueError(
+                    f"experiment {config.experiment_id!r} has an invalid stored config"
+                ) from exc
+            if existing_config != config:
+                raise ValueError(
+                    f"experiment {config.experiment_id!r} already exists with a different config"
+                )
         self._connection.execute(
             "INSERT OR IGNORE INTO experiments(experiment_id, config_json) VALUES (?, ?)",
             (config.experiment_id, serialized),

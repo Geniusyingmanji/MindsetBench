@@ -55,6 +55,23 @@ def test_experiment_id_cannot_change_config(tmp_path) -> None:
             raise AssertionError("changed config was accepted")
 
 
+def test_experiment_registration_accepts_legacy_config_defaults(tmp_path) -> None:
+    config = ExperimentConfig(
+        experiment_id="legacy-config",
+        model="model-a",
+        conditions=[Condition.TARGET_ONLY],
+    )
+    legacy = json.loads(config.model_dump_json())
+    legacy.pop("request_timeout_seconds")
+    with ResultStore(tmp_path / "legacy.sqlite") as store:
+        store._connection.execute(
+            "INSERT INTO experiments(experiment_id, config_json) VALUES (?, ?)",
+            (config.experiment_id, json.dumps(legacy)),
+        )
+        store._connection.commit()
+        store.register_experiment(config)
+
+
 def test_replay_provider_reads_existing_pilot() -> None:
     cases = load_manifest(PROJECT_ROOT / "data" / "manifests" / "smoke.json")
     case = next(case for case in cases if case.id == "L1-A-C1")
@@ -168,10 +185,13 @@ def test_run_command_surfaces_provider_error_without_traceback(
 
     provider = PermanentProvider()
     monkeypatch.setenv("TEST_MINDSETBENCH_KEY", "placeholder")
-    monkeypatch.setattr(
-        "mindsetbench.cli.OpenAICompatibleProvider",
-        lambda *_args, **_kwargs: provider,
-    )
+    provider_kwargs = {}
+
+    def provider_factory(*_args, **kwargs):
+        provider_kwargs.update(kwargs)
+        return provider
+
+    monkeypatch.setattr("mindsetbench.cli.OpenAICompatibleProvider", provider_factory)
     with pytest.raises(SystemExit) as exit_info:
         main(
             [
@@ -194,6 +214,8 @@ def test_run_command_surfaces_provider_error_without_traceback(
                 "1",
                 "--max-retries",
                 "2",
+                "--request-timeout-seconds",
+                "42",
             ]
         )
     assert exit_info.value.code == 3
@@ -203,6 +225,7 @@ def test_run_command_surfaces_provider_error_without_traceback(
     assert "partial_trials_saved=0" in captured.err
     assert "Traceback" not in captured.err
     assert provider.call_count == 1
+    assert provider_kwargs["timeout_seconds"] == 42
 
 
 def test_run_command_surfaces_resume_config_drift_without_traceback(

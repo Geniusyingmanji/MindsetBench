@@ -114,6 +114,16 @@ python3 -m venv .venv
 
 构造协议见 `docs/AR_HARD_CONSTRUCTION.md`，P2 的每轮失败模式和多样本结果见 `docs/hard-seed-eval.md`，25 题的构造与最新校准状态见 `docs/formal25-report.md`。五条链仍置于 `calibration` split；GPT-5.5 单样本预筛对新增范式的 L3/L4 为 8/8，仍有天花板效应，不应提前混入隐藏 test split。
 
+在显式 P5 规划仍表现出天花板后，下一轮已加入一个“歧义日志恢复匿名仿射操作 + broken relation 适配 + 三问最短规划”的 L4 hard seed：
+
+```bash
+.venv/bin/mb validate data/v1/p5-latent-seeds.yaml --strict-v1
+.venv/bin/mb audit data/v1/p5-latent-seeds.yaml
+.venv/bin/mb verify all --dataset data/manifests/p5-latent-seed.json
+```
+
+它仍属于 calibration；当前 GPT-5.5 target-only 有一次有效推理失败，paired 条件则在 16,384 输出 tokens 处删失，不能提前报告迁移增益。构造、真值与逐次诊断见 `docs/p5-latent-seed-report.md`。
+
 真实模型实验通过环境变量传入密钥，不把凭据写进命令参数、配置或结果库：
 
 ```bash
