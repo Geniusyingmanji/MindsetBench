@@ -1,0 +1,12 @@
+{
+  "name": "v1-vertical-slice",
+  "description": "One representative case for each transfer level.",
+  "overrides": "../v1/smoke.overrides.json",
+  "case_ids": [
+    "L0-A-01",
+    "L1-A-C1",
+    "L2-F-05",
+    "L3-A-01",
+    "L4-F-01"
+  ]
+}

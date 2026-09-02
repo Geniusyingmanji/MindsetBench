@@ -1,0 +1,929 @@
+# First multi-paradigm expansion. YAML anchors make fixed-chain sources byte-identical
+# after parsing and keep later edits from silently drifting between levels.
+
+- id: V1-P2-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: B-符号约束
+  schema_id: exact-one-csp-01
+  schema_name: 精确约束下的唯一一致赋值
+  level: 0
+  chain: v1-p2-csp-01
+  source: &p2_source
+    domain: 计算机运维排程
+    problem: >-
+      四个维护任务 A、B、C、D 恰好各占用时段 1—4 之一，每个时段恰有一个任务。
+      A 早于 C；B 紧接在 D 之后；C 不在时段 4。请按时段顺序输出四个任务组成的字符串。
+    solution: >-
+      枚举相邻块 DB 的位置。若 DB 在时段 1—2，则 A、C 只能在 3—4，但 C 不能在 4；
+      若 DB 在 2—3，则 A、C 只能在 1—4，仍迫使 C 在 4。故 DB 只能在 3—4，
+      A、C 依次占 1—2，唯一顺序为 ACDB。
+    answer: ACDB
+  target:
+    domain: 计算机运维排程
+    problem: >-
+      四个维护任务 E、F、G、H 恰好各占用时段 1—4 之一，每个时段恰有一个任务。
+      E 早于 G；F 紧接在 H 之后；G 不在时段 4。请按时段顺序输出四个任务组成的字符串。
+    answer:
+      parts: [{type: string, value: EGHF}]
+  mapping:
+    objects: {A: E, C: G, D: H, B: F}
+    shared_relations:
+      - 四个对象对四个时段的一一赋值
+      - 一个先于约束、一个紧邻约束和一个末位排除约束
+      - 满足全部约束的排列唯一
+    varied: [仅替换任务符号]
+  lure: null
+  copy_probe: null
+  hints: &p2_hints
+    schema_name: 精确约束下的唯一一致赋值
+    oracle_mindset:
+      insight: 把每个完整赋值当作候选世界，传播互斥与关系约束，只保留同时满足全部硬约束的唯一世界。
+      when_to_use: 对象必须一一占据有限状态，且答案由顺序、邻接、排除或真值约束共同决定时。
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p2_l0_01
+    method: permutation-enumeration
+  provenance: original
+  verified: 穷举 4! 个排列，唯一解 EGHF。
+
+- id: V1-P2-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: B-符号约束
+  schema_id: exact-one-csp-01
+  schema_name: 精确约束下的唯一一致赋值
+  level: 1
+  chain: v1-p2-csp-01
+  source: *p2_source
+  target:
+    domain: 计算机网络变更编排
+    problem: >-
+      一次网络切换窗口分四步完成：P（冻结配置）、Q（恢复流量）、R（刷新路由）、S（切换主链路）。
+      四步各出现一次；P 必须早于 R；Q 必须紧接在 S 后；R 不能是最后一步。
+      请输出四个字母组成的唯一执行顺序。
+    answer:
+      parts: [{type: string, value: PRSQ}]
+  mapping:
+    objects: {A: P, C: R, D: S, B: Q}
+    shared_relations:
+      - 四对象全异排程
+      - 前序、紧邻和末位排除三类约束逐一同构
+      - 约束传播后只剩一个排列
+    varied:
+      - 从抽象维护任务换成同属计算系统的网络切换动作
+      - 约束被自然语言分散到操作语义中
+  lure: null
+  copy_probe: null
+  hints: *p2_hints
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p2_l1_01
+    method: permutation-enumeration
+  provenance: original
+  verified: 穷举 4! 个执行序列，唯一解 PRSQ。
+
+- id: V1-P2-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: B-符号约束
+  schema_id: exact-one-csp-01
+  schema_name: 精确约束下的唯一一致赋值
+  level: 2
+  chain: v1-p2-csp-01
+  source: *p2_source
+  target:
+    domain: 分子实验工序
+    problem: >-
+      样本依次经过 W、X、Y、Z 四道工序，每道恰好一次。W 必须早于 Y；
+      X 必须紧接在 Z 后；Y 不能排在第 4。请输出四个字母组成的唯一工序顺序。
+    answer:
+      parts: [{type: string, value: WYZX}]
+  mapping:
+    objects: {维护任务 A: 工序 W, 维护任务 C: 工序 Y, 维护任务 D: 工序 Z, 维护任务 B: 工序 X}
+    shared_relations:
+      - 四对象到四位置的一一映射
+      - W 早于 Y 对应 A 早于 C
+      - ZX 紧邻块对应 DB 紧邻块
+      - Y 的末位排除对应 C 的末位排除
+    varied: [从计算机排程跨到湿实验流程，形式约束图与求解算子完全保持]
+  lure:
+    problem: >-
+      同一实验室另有 W、X、Y、Z 四道工序，各做一次。W 早于 Y；X 必须紧接在 Z 前；
+      Y 不能排在第 4。输出唯一顺序。
+    solution: >-
+      把 XZ 当作相邻块尝试三个位置，前两个都会迫使 Y 在第 4；只有 XZ 位于 3—4，
+      W、Y 位于 1—2，得到 WYXZ。
+    answer:
+      parts: [{type: string, value: WYXZ}]
+    why_surface_similar: 对象、实验场景、前序约束和末位排除完全相同，仅邻接句只差“前/后”一字。
+    why_structurally_different: 目标题需要 Z 紧接 X 之前，lure 则需要 X 紧接 Z 之前；邻接有方向，两个约束图不相同。
+    wrong_schema_id: reversed-adjacency-csp-01
+  copy_probe: null
+  hints: *p2_hints
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p2_l2_01
+    method: permutation-enumeration
+  provenance: original
+  verified: 独立穷举确认目标唯一解 WYZX，lure 唯一解 WYXZ。
+
+- id: V1-P2-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: B-符号约束
+  schema_id: exact-one-csp-01
+  schema_name: 精确约束下的唯一一致赋值
+  level: 3
+  chain: v1-p2-csp-01
+  source: *p2_source
+  target:
+    domain: 生物信息分析流水线
+    problem: >-
+      五个阶段 E、F、G、H、X 各执行一次。E 早于 G；F 紧接在 H 后；G 不在第 4；
+      X 紧接在 E 前；H 是第一阶段。请输出五个字母组成的唯一执行顺序。
+    answer:
+      parts: [{type: string, value: HFXEG}]
+  mapping:
+    objects: {A: E, C: G, D: H, B: F, 源题无对应对象: X}
+    shared_relations:
+      - 核心四对象仍满足前序、紧邻和位置排除约束
+      - 所有阶段仍须形成满足全部硬约束的唯一全异排列
+    added_relations:
+      - 新增阶段 X 且 X 紧接在 E 前
+      - H 被锚定为第一阶段
+    adaptation_required:
+      - 不能先求四对象顺序再把 X 塞入空位，必须在五对象状态空间联合传播约束
+    varied:
+      - 对象数从 4 增到 5，新增邻接块与端点锚定
+      - 源题的 DB 位置枚举要改成同时处理 HF 与 XE 两个块
+  lure:
+    problem: >-
+      五阶段流水线 E、F、G、H、X 各执行一次。H 为第一阶段，F 紧接在 H 后；
+      E 早于 G；G 不在第 5；X 为最后阶段。输出唯一顺序。
+    solution: H、F 固定在 1—2，X 固定在 5；E 必须早于 G，故 E、G 依次位于 3—4，答案 HFEGX。
+    answer:
+      parts: [{type: string, value: HFEGX}]
+    why_surface_similar: 同为五阶段生信流水线，四个核心关系和首阶段 H 完全相同。
+    why_structurally_different: lure 把 X 固定在末位，目标题却把 X 与 E 绑定成有向邻接块，候选空间不同。
+    wrong_schema_id: fixed-endpoint-csp-01
+  copy_probe:
+    answer:
+      parts: [{type: string, value: EGHFX}]
+    derivation: 先照搬源题得到核心四阶段 EGHF，再未经联合约束传播就把新增阶段 X 附到末尾。
+  hints: *p2_hints
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p2_l3_01
+    method: permutation-enumeration
+  provenance: original
+  verified: 穷举 5! 个排列确认目标唯一解 HFXEG；copy probe EGHFX 违反 H 首位与 XE 紧邻。
+
+- id: V1-P2-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: B-符号约束
+  schema_id: exact-one-csp-01
+  schema_name: 精确约束下的唯一一致赋值
+  level: 4
+  chain: v1-p2-csp-01
+  source: *p2_source
+  target:
+    domain: 事故取证
+    problem: >-
+      A、B、C、D 四名嫌疑人中恰有一人破坏了设备。四条陈述分别是：
+      A 说“是 B”；B 说“不是 B”；C 说“是 D”；D 说“不是 A”。
+      已知四条陈述中恰好一条为真。请输出破坏者字母。
+    answer:
+      parts: [{type: label, value: A}]
+  mapping:
+    objects: {完整任务排列: 候选破坏者世界, 排程硬约束: 每个世界诱导的四条陈述真值, 唯一可行排列: 唯一满足精确真值数的世界}
+    shared_relations:
+      - 枚举有限候选世界
+      - 每个世界必须满足精确的全局约束而非尽量多满足
+      - 排除不一致世界后答案唯一
+    varied:
+      - 排列 CSP 改为命题真值世界枚举
+      - 顺序与邻接算子全部消失，只保留一致性筛选图式
+    adaptation_required:
+      - 对每个嫌疑人假设计算四条陈述的真值数，并严格筛选真值数等于一的世界
+  lure:
+    problem: >-
+      仍使用 A、B、C、D 四名嫌疑人与同样四条陈述，但已知四条陈述中恰好一条为假。
+      请输出破坏者字母。
+    solution: >-
+      分别假设四人为破坏者，真话数依次为 1、2、2、3。恰好一条为假等价于三条为真，故破坏者为 D。
+    answer:
+      parts: [{type: label, value: D}]
+    why_surface_similar: 嫌疑人、陈述文本和“恰好一条”措辞完全相同。
+    why_structurally_different: 目标题限定恰好一条为真，lure 限定恰好一条为假，即真值计数约束从 1 变成 3。
+    wrong_schema_id: exact-one-false-01
+  copy_probe:
+    answer:
+      parts: [{type: label, value: D}]
+    derivation: 把精确满足误成选择“满足陈述最多”的候选，D 使三条陈述为真但不满足目标题恰好一真。
+  hints: *p2_hints
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p2_l4_01
+    method: finite-world-truth-enumeration
+  provenance: original
+  verified: 四个嫌疑人对应真话数为 A:1、B:2、C:2、D:3，目标与 lure 均唯一。
+
+- id: V1-P3-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-因果拓扑
+  schema_id: noncausal-path-control-01
+  schema_name: 先识别非因果路径，再决定阻断或保留
+  level: 0
+  chain: v1-p3-causal-01
+  source: &p3_source
+    domain: 临床因果研究
+    problem: >-
+      已知因果图 U→T、U→Y、T→Y，其中 T 是治疗，Y 是结局，U 是治疗前严重度。
+      为识别 T 对 Y 的总因果效应，应采用哪个最小调整集？输出 NONE、U 或 Y。
+    solution: >-
+      U 同时影响治疗与结局，形成后门路径 T←U→Y；调整 U 可阻断该非因果路径。
+      Y 是结局，不能作为治疗前调整变量。因此最小调整集是 U。
+    answer: U
+  target:
+    domain: 临床因果研究
+    problem: >-
+      已知因果图 S→M、S→R、M→R，其中 M 是用药，R 是康复结局，S 是用药前严重度。
+      为识别 M 对 R 的总因果效应，应采用哪个最小调整集？输出 NONE、S 或 R。
+    answer:
+      parts: [{type: label, value: S}]
+  mapping:
+    objects: {U: S, T: M, Y: R}
+    shared_relations:
+      - 处理前共同原因指向处理与结局
+      - 处理到结局存在目标因果边
+      - 阻断唯一后门路径所需的最小调整集是共同原因
+    varied: [仅替换变量符号与临床名词]
+  lure: null
+  copy_probe: null
+  hints: &p3_hints
+    schema_name: 先识别非因果路径，再决定阻断或保留
+    oracle_mindset:
+      insight: 先在因果图中区分目标因果路径与后门、对撞等非因果路径；只阻断非因果路径，并保留总效应经过的中介路径。
+      when_to_use: 需要从观测关联识别因果效应，且题面给出共同原因、中介或选择机制时。
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p3_l0_01
+    method: backdoor-graph-check
+  provenance: original
+  verified: 删除 M 的出边后，S 是阻断 M←S→R 的唯一最小单变量调整集。
+
+- id: V1-P3-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-因果拓扑
+  schema_id: noncausal-path-control-01
+  schema_name: 先识别非因果路径，再决定阻断或保留
+  level: 1
+  chain: v1-p3-causal-01
+  source: *p3_source
+  target:
+    domain: 医疗检测政策
+    problem: >-
+      遗传风险 G 会提高主动接受筛查 X 的概率，也会直接提高一年内确诊 D 的概率；
+      筛查 X 还会提高一年内发现疾病 D 的概率。图为 G→X、G→D、X→D。
+      要识别筛查 X 对确诊 D 的总效应，最小调整集是什么？输出 NONE、G 或 D。
+    answer:
+      parts: [{type: label, value: G}]
+  mapping:
+    objects: {严重度 U: 遗传风险 G, 治疗 T: 筛查 X, 结局 Y: 确诊 D}
+    shared_relations:
+      - 暴露前因素同时影响暴露与结局
+      - 暴露还直接影响观测结局
+      - 调整共同原因阻断后门
+    varied:
+      - 仍在医疗域，但从治疗效果换成检测政策与发现概率
+      - 结局语义包含“发现”而非单纯健康变化
+  lure: null
+  copy_probe: null
+  hints: *p3_hints
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p3_l1_01
+    method: backdoor-graph-check
+  provenance: original
+  verified: G 是 X 与 D 的共同原因，也是唯一最小有效调整集。
+
+- id: V1-P3-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-因果拓扑
+  schema_id: noncausal-path-control-01
+  schema_name: 先识别非因果路径，再决定阻断或保留
+  level: 2
+  chain: v1-p3-causal-01
+  source: *p3_source
+  target:
+    domain: 劳动力经济学
+    problem: >-
+      地区景气 C 会影响劳动者是否参加培训 X，也会直接影响次年工资 Y；培训 X 还可能影响工资 Y。
+      图为 C→X、C→Y、X→Y。要识别培训 X 对工资 Y 的总效应，最小调整集是什么？
+      输出 NONE、C 或 Y。
+    answer:
+      parts: [{type: label, value: C}]
+  mapping:
+    objects: {严重度 U: 地区景气 C, 治疗 T: 培训 X, 临床结局 Y: 工资 Y}
+    shared_relations:
+      - C 是处理前共同原因并打开 X←C→Y 后门
+      - X→Y 是待识别的目标因果路径
+      - 调整 C 且不调整 Y 可识别总效应
+    varied: [从临床治疗跨到劳动培训，DAG 与后门调整算子完全同构]
+  lure:
+    problem: >-
+      在另一培训项目中，公司先随机决定是否培训 X；培训会提升技能 C，技能再影响工资 Y，
+      同时培训也可能直接影响工资。图为 X→C→Y 且 X→Y。识别培训对工资的总效应时，
+      最小调整集是什么？输出 NONE、C 或 Y。
+    solution: X 已随机化，没有后门路径；C 是处理中介，估计总效应时不应调整，故最小调整集为 NONE。
+    answer:
+      parts: [{type: label, value: NONE}]
+    why_surface_similar: 同为培训、技能或环境变量 C 与工资 Y，且都问总效应的调整集。
+    why_structurally_different: 目标题 C 是共同原因 X←C→Y，lure 中 C 是中介 X→C→Y；控制中介会切断部分总效应。
+    wrong_schema_id: mediator-control-01
+  copy_probe: null
+  hints: *p3_hints
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p3_l2_01
+    method: backdoor-graph-check
+  provenance: original
+  verified: 后门准则确认目标最小集 C；lure 因 X 随机且 C 为后代，最小集 NONE。
+
+- id: V1-P3-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-因果拓扑
+  schema_id: noncausal-path-control-01
+  schema_name: 先识别非因果路径，再决定阻断或保留
+  level: 3
+  chain: v1-p3-causal-01
+  source: *p3_source
+  target:
+    domain: 教育政策评估
+    problem: >-
+      家庭资源 C 影响是否参加辅导 X，也直接影响期末成绩 Y；辅导 X 会先提高练习量 M，
+      M 再提高 Y，且 X 还可能直接影响 Y。图为 C→X、C→Y、X→M→Y、X→Y。
+      要识别 X 对 Y 的总效应，以下哪个是最小有效调整集？输出 NONE、C、M 或 C+M。
+    answer:
+      parts: [{type: string, value: C}]
+  mapping:
+    objects: {共同原因 U: 家庭资源 C, 治疗 T: 辅导 X, 结局 Y: 成绩 Y, 源题无对应对象: 中介 M}
+    shared_relations:
+      - C 打开 X←C→Y 后门，必须阻断
+      - X 到 Y 的全部有向路径构成目标总效应
+    added_relations: [新增处理后中介路径 X→M→Y]
+    adaptation_required:
+      - 保留“控制共同原因”，但拒绝把所有能预测 Y 的变量一并控制
+      - 识别总效应时不能控制 X 的后代 M
+    varied: [从三节点混杂图扩为含直接效应与中介效应的四节点图]
+  lure:
+    problem: >-
+      沿用同一教育因果图 C→X、C→Y、X→M→Y、X→Y，但研究问题改为识别
+      辅导 X 不经过练习量 M 的直接效应。输出 NONE、C、M 或 C+M。
+    solution: C 用于阻断后门；M 需被控制以切断中介路径，故直接效应分析采用 C+M。
+    answer:
+      parts: [{type: string, value: C+M}]
+    why_surface_similar: 变量、教育故事与整张因果图完全相同，只把“总效应”换成“直接效应”。
+    why_structurally_different: 总效应必须保留中介路径，直接效应则要阻断它；因此 M 的调整角色相反。
+    wrong_schema_id: direct-effect-adjustment-01
+  copy_probe:
+    answer:
+      parts: [{type: string, value: C+M}]
+    derivation: 机械控制所有同时能预测成绩的可观测变量，把处理后的中介 M 错当成额外混杂因素。
+  hints: *p3_hints
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p3_l3_01
+    method: backdoor-graph-and-descendant-check
+  provenance: original
+  verified: 后门图中 C 阻断唯一后门；M 是 X 的后代，C+M 不满足总效应后门准则。
+
+- id: V1-P3-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-因果拓扑
+  schema_id: noncausal-path-control-01
+  schema_name: 先识别非因果路径，再决定阻断或保留
+  level: 4
+  chain: v1-p3-causal-01
+  source: *p3_source
+  target:
+    domain: 科研项目档案分析
+    problem: >-
+      在总体中，研究团队能力 A 与获得的额外预算 B 相互独立；A 高或 B 高都会提高项目进入
+      “成果档案”S 的概率，结构为 A→S←B。分析员只拿到了 S=1 的入档项目，并在其中观察到
+      A 与 B 明显负相关。仅依据这些信息，应输出哪一结论：
+      A-CAUSES-B、B-CAUSES-A 或 NONCAUSAL。
+    answer:
+      parts: [{type: string, value: NONCAUSAL}]
+  mapping:
+    objects: {非因果后门路径: 条件化选择对撞点后打开的非因果路径, 调整决策: 判断入档筛选能否制造关联, 因果结论: 相关是否可被解释为因果}
+    shared_relations:
+      - 观测关联可能由因果拓扑中的非目标路径产生
+      - 必须先分析路径的开闭状态，再解释相关性
+      - 图结构足以否定由相关方向直接推出因果方向
+    varied:
+      - 共同原因后门改为共同结果对撞点
+      - 从选择调整集改为解释经选择后的关联
+      - 不再计算一个控制变量，只保留“拓扑先于相关”的高层图式
+    adaptation_required:
+      - 识别条件 S=1 会打开 A→S←B 路径，使原本独立的 A、B 在样本内相关
+  lure:
+    problem: >-
+      另一批项目中，额外预算 B 由随机抽签分配；能力评分 A 在分配后按预注册量表测量，
+      所有项目无选择地进入数据。若 B 高组的 A 明显更低且实验执行无偏差，
+      输出 A-CAUSES-B、B-CAUSES-A 或 NONCAUSAL。
+    solution: B 是随机干预且先于 A，完整样本排除了题设中的选择机制；负组间差支持 B-CAUSES-A。
+    answer:
+      parts: [{type: string, value: B-CAUSES-A}]
+    why_surface_similar: 同为项目预算 B、能力评分 A 与负相关结果。
+    why_structurally_different: lure 中 B 被随机干预且没有按共同结果选择，相关具有明确干预方向；目标只是对撞选择偏差。
+    wrong_schema_id: randomized-treatment-effect-01
+  copy_probe:
+    answer:
+      parts: [{type: string, value: B-CAUSES-A}]
+    derivation: 忽略只观察 S=1 的选择条件，把样本内负相关按时间或资源直觉直接解释为预算降低能力。
+  hints: *p3_hints
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p3_l4_01
+    method: collider-selection-probability-enumeration
+  provenance: original
+  verified: 令 A、B 独立等概率二元且 S=A∨B；条件 S=1 后二者负相关，但任一方向因果边均不存在。
+
+- id: V1-P4-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-规范规则
+  schema_id: defeasible-obligation-01
+  schema_name: 规则触发、例外覆盖与优先级合规判定
+  level: 0
+  chain: v1-p4-rules-01
+  source: &p4_source
+    domain: 火星站门禁规范
+    problem: >-
+      封闭规则只有一条：“任何人只要进入红区，就必须持有通行证。”四条记录为：
+      R1 进入红区且有证；R2 进入红区且无证；R3 进入蓝区且无证；R4 进入蓝区且有证。
+      请按编号排序输出全部违规记录；若多条用分号分隔。
+    solution: >-
+      逐条检查前件“进入红区”。R1 触发但满足义务；R2 触发且未持证，违规；
+      R3、R4 未触发本规则，不论是否持证都不构成该规则违规。答案只有 R2。
+    answer: R2
+  target:
+    domain: 火星站设施规范
+    problem: >-
+      封闭规则只有一条：“任何人只要进入低温舱，就必须穿隔热服。”记录为：
+      S1 进入低温舱且穿服；S2 进入常温舱且未穿服；S3 进入低温舱且未穿服；
+      S4 进入常温舱且穿服。请按编号排序输出全部违规记录；若多条用分号分隔。
+    answer:
+      parts: [{type: label, value: S3}]
+  mapping:
+    objects: {进入红区: 进入低温舱, 持有通行证: 穿隔热服, R1/R2/R3/R4: S1/S3/S2/S4}
+    shared_relations:
+      - 前件触发时产生义务
+      - 触发且义务不满足才违规
+      - 未触发时后件真假均不构成该规则违规
+    varied: [仅替换区域、装备和记录编号]
+  lure: null
+  copy_probe: null
+  hints: &p4_hints
+    schema_name: 规则触发、例外覆盖与优先级合规判定
+    oracle_mindset:
+      insight: 先找被事实触发的规则，再依次应用明示例外与优先级，最后检查仍有效的义务或禁止是否被违反。
+      when_to_use: 在封闭的虚构规范体系中判断许可、义务、例外或冲突规则的合规性时。
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p4_l0_01
+    method: closed-world-rule-evaluation
+  provenance: original
+  verified: 布尔规则 violation=entered_cold AND NOT insulated，唯一命中 S3。
+
+- id: V1-P4-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-规范规则
+  schema_id: defeasible-obligation-01
+  schema_name: 规则触发、例外覆盖与优先级合规判定
+  level: 1
+  chain: v1-p4-rules-01
+  source: *p4_source
+  target:
+    domain: 火星站信息安全规范
+    problem: >-
+      封闭规则只有一条：“凡下载导航密钥者，必须登记审计日志。”记录为：
+      N1 下载密钥且已登记；N2 只查看公开手册且未登记；N3 下载密钥且未登记；
+      N4 只查看公开手册且已登记。请按编号排序输出全部违规记录；若多条用分号分隔。
+    answer:
+      parts: [{type: label, value: N3}]
+  mapping:
+    objects: {进入红区: 下载导航密钥, 持有通行证: 登记审计日志, 人员记录: 操作记录}
+    shared_relations:
+      - 特定受控行为触发后续义务
+      - 只有触发且未履行义务的记录违规
+      - 履行义务并不反推受控行为发生
+    varied: [同属空间站治理，但从物理门禁换成信息安全审计]
+  lure: null
+  copy_probe: null
+  hints: *p4_hints
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p4_l1_01
+    method: closed-world-rule-evaluation
+  provenance: original
+  verified: 布尔规则 violation=downloaded AND NOT logged，唯一命中 N3。
+
+- id: V1-P4-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-规范规则
+  schema_id: defeasible-obligation-01
+  schema_name: 规则触发、例外覆盖与优先级合规判定
+  level: 2
+  chain: v1-p4-rules-01
+  source: *p4_source
+  target:
+    domain: 博物馆藏品操作规范
+    problem: >-
+      封闭规则只有一条：“凡直接接触青铜器者，必须戴棉质手套。”记录为：
+      M1 接触青铜器且戴手套；M2 接触青铜器且未戴；M3 接触石器且未戴；
+      M4 接触石器且戴手套。请按编号排序输出全部违规记录；若多条用分号分隔。
+    answer:
+      parts: [{type: label, value: M2}]
+  mapping:
+    objects: {进入红区: 接触青铜器, 持有通行证: 戴棉质手套, 门禁记录: 藏品操作记录}
+    shared_relations:
+      - 行为类别触发义务
+      - 触发且义务未满足构成唯一违规形态
+      - 后件出现不能反推出前件
+    varied: [从火星站门禁跨到文物保护，规则逻辑与逐记录判定完全同构]
+  lure:
+    problem: >-
+      同一馆另有封闭规则：“凡戴棉质手套者，只能直接接触青铜器。”仍使用记录 M1—M4。
+      请按编号排序输出全部违规记录。
+    solution: 规则前件是“戴手套”；M1 的后件满足，M4 戴手套却接触石器，故只有 M4 违规。
+    answer:
+      parts: [{type: label, value: M4}]
+    why_surface_similar: 使用完全相同的博物馆、青铜器、手套和四条记录。
+    why_structurally_different: 目标规则是接触青铜器→戴手套，lure 是戴手套→接触青铜器；条件方向相反。
+    wrong_schema_id: reversed-deontic-conditional-01
+  copy_probe: null
+  hints: *p4_hints
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p4_l2_01
+    method: closed-world-rule-evaluation
+  provenance: original
+  verified: 目标规则唯一违规 M2；反向 lure 唯一违规 M4。
+
+- id: V1-P4-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-规范规则
+  schema_id: defeasible-obligation-01
+  schema_name: 规则触发、例外覆盖与优先级合规判定
+  level: 3
+  chain: v1-p4-rules-01
+  source: *p4_source
+  target:
+    domain: 极地站样本库规范
+    problem: >-
+      封闭规则如下：一般规则“任何人进入样本库必须持许可”；唯一例外是
+      “消防组在真实火警处置期间进入样本库，无需许可”。训练演习不算真实火警。
+      记录为：V1 科研员进入且有许可；V2 承包商进入且无许可；
+      V3 消防组在真实火警期间进入且无许可；V4 消防组在训练演习期间进入且无许可。
+      请按编号排序输出全部违规记录；若多条用分号分隔。
+    answer:
+      parts:
+        - {type: label, value: V2}
+        - {type: label, value: V4}
+  mapping:
+    objects: {进入红区: 进入样本库, 通行证: 样本库许可, 源题无对应条件: 真实火警消防例外}
+    shared_relations:
+      - 进入受控区域会触发一般许可义务
+      - 未满足有效义务的记录违规
+    added_relations: [消防组且真实火警时取消一般许可义务]
+    adaptation_required:
+      - 先判断一般规则，再用合取条件“消防组 AND 真实火警”检查例外
+      - 不能把消防身份单独当作永久豁免
+    varied: [简单条件规则扩为可撤销规则，训练演习提供近似但不满足的边界案例]
+  lure:
+    problem: >-
+      同一极地站暂时取消了所有例外，封闭规则只有“任何人进入样本库必须持许可”。
+      仍使用 V1—V4 四条记录。请按编号排序输出全部违规记录。
+    solution: V2、V3、V4 都进入且无许可，取消例外后均违规；V1 合规。
+    answer:
+      parts:
+        - {type: label, value: V2}
+        - {type: label, value: V3}
+        - {type: label, value: V4}
+    why_surface_similar: 场景、人员、行为和四条记录完全相同。
+    why_structurally_different: lure 明示不存在例外，目标规则则允许满足两个条件的 V3 覆盖一般义务。
+    wrong_schema_id: strict-obligation-no-exception-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: V2}
+        - {type: label, value: V3}
+        - {type: label, value: V4}
+    derivation: 照搬源题的单层实质规则，凡进入且无许可一律判违规，遗漏 V3 的明示例外。
+  hints: *p4_hints
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p4_l3_01
+    method: defeasible-rule-evaluation
+  provenance: original
+  verified: 规则引擎先触发一般义务再应用合取例外，目标违规集合为 V2、V4。
+
+- id: V1-P4-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-规范规则
+  schema_id: defeasible-obligation-01
+  schema_name: 规则触发、例外覆盖与优先级合规判定
+  level: 4
+  chain: v1-p4-rules-01
+  source: *p4_source
+  target:
+    domain: 外星生物样本出口章程
+    problem: >-
+      封闭章程有三条且优先级从高到低为 R3>R2>R1：
+      R1“所有出口都须主管批准”；R2“紧急医疗出口若经伦理官批准，可不经主管批准”；
+      R3“受隔离令约束的样本禁止出口，任何许可不得覆盖”。记录为：
+      E1 普通出口且有主管批准；E2 普通出口且无主管批准；
+      E3 紧急医疗出口，有伦理批准、无主管批准、无隔离令；
+      E4 紧急医疗出口，有伦理批准、无主管批准、受隔离令约束。
+      请按编号排序输出全部违规记录；若多条用分号分隔。
+    answer:
+      parts:
+        - {type: label, value: E2}
+        - {type: label, value: E4}
+  mapping:
+    objects: {进入受控区: 发起出口, 持证义务: 主管批准义务, 源题无对应规则: 医疗许可例外与隔离绝对禁止}
+    shared_relations:
+      - 事实触发一般规范后检查义务是否满足
+      - 规则是否有效取决于更具体或更高优先级规范
+      - 合规判定必须对每条记录应用全部相关规则
+    varied:
+      - 单层义务升级为义务、许可例外、绝对禁止三层优先规则
+      - 输出既包含未获一般批准的违规，也包含违反高优先级禁止的违规
+    adaptation_required:
+      - E3 用 R2 合法覆盖 R1；E4 虽满足 R2 条件，仍被优先级更高的 R3 禁止
+  lure:
+    problem: >-
+      另一基地只保留一条封闭规则：“所有出口都须主管批准”，不存在医疗例外或隔离规则。
+      仍使用 E1—E4 的事实记录。请按编号排序输出全部违规记录。
+    solution: E2、E3、E4 都发起出口且无主管批准，故三条违规；E1 合规。
+    answer:
+      parts:
+        - {type: label, value: E2}
+        - {type: label, value: E3}
+        - {type: label, value: E4}
+    why_surface_similar: 出口记录、批准状态和编号完全相同。
+    why_structurally_different: lure 是单层义务；目标包含可覆盖义务的例外和再次覆盖例外的最高优先禁止。
+    wrong_schema_id: flat-export-obligation-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: E2}
+        - {type: label, value: E3}
+        - {type: label, value: E4}
+    derivation: 只执行最先看到的一般批准义务，忽略 R2 对 E3 的许可与 R3 对 E4 的绝对禁止层级。
+  hints: *p4_hints
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p4_l4_01
+    method: prioritized-defeasible-rule-evaluation
+  provenance: original
+  verified: 按 R3>R2>R1 决策，E1 与 E3 合规，E2 与 E4 违规；扁平规则探针多报 E3。
+
+- id: V1-P6-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: K-角色映射
+  schema_id: anchored-role-mapping-01
+  schema_name: 锚定后按关系职责而非位置映射角色
+  level: 0
+  chain: v1-p6-role-01
+  source: &p6_source
+    domain: 数字内容生产
+    problem: >-
+      印刷线中，策划员 P 向操作员 O 发送工单；O 把成品交给检验员 I；I 批准批次 B。
+      数字媒体线中，编辑 E 向渲染引擎 R 发送工单；R 把视频交给审片员 V；V 批准发布物 L。
+      已知 P 对应 E，按关系结构，I 对应哪个符号？
+    solution: >-
+      锚点 P↔E 固定两条链的方向。沿“发送工单”得 O↔R；沿“把产物交给”得 I↔V；
+      二者都对末端对象执行批准关系，B↔L 再次核对。因此 I 对应 V。
+    answer: V
+  target:
+    domain: 数字内容生产
+    problem: >-
+      音频线中，制作人 A 向混音师 B 发工单；B 把母带交给审核员 C；C 批准发行包 D。
+      视频线中，导演 W 向渲染器 X 发工单；X 把成片交给审查员 Y；Y 批准发布包 Z。
+      已知 A 对应 W，按关系结构，C 对应哪个符号？
+    answer:
+      parts: [{type: label, value: Y}]
+  mapping:
+    objects: {策划员 P: 制作人 A, 操作员 O: 混音师 B, 检验员 I: 审核员 C, 批次 B: 发行包 D}
+    shared_relations:
+      - 两个四角色系统都依次具有发工单、交付产物、批准末端对象三条有向关系
+      - 首角色锚点固定映射方向
+      - 待求角色是执行批准关系的主体
+    varied: [同一内容生产域内仅替换媒体类型与角色符号]
+  lure: null
+  copy_probe: null
+  hints: &p6_hints
+    schema_name: 锚定后按关系职责而非位置映射角色
+    oracle_mindset:
+      insight: 先用已知锚点固定两个系统的对应方向，再比较候选角色参与的输入、输出和门控关系；职责关系优先于名称或线性位置。
+      when_to_use: 两个案例共享角色关系，但名称、领域、节点数量或一对一粒度可能发生变化时。
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p6_l0_01
+    method: relation-signature-matching
+  provenance: original
+  verified: 两条链的关系签名唯一确定 C↔Y。
+
+- id: V1-P6-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: K-角色映射
+  schema_id: anchored-role-mapping-01
+  schema_name: 锚定后按关系职责而非位置映射角色
+  level: 1
+  chain: v1-p6-role-01
+  source: *p6_source
+  target:
+    domain: 媒体播出流程
+    problem: >-
+      剧场线中，导演 D 向演员 A 发出脚本指令；A 把演出片段交给 dramaturg G；G 批准公演 P。
+      广播线中，制片人 Q 向主持人 H 发出脚本指令；H 把节目片段交给标准官 S；S 批准播出 R。
+      已知 D 对应 Q，按关系结构，G 对应哪个符号？
+    answer:
+      parts: [{type: label, value: S}]
+  mapping:
+    objects: {策划员 P: 导演 D, 操作员 O: 演员 A, 检验员 I: dramaturg G, 批次 B: 公演 P}
+    shared_relations:
+      - 指令发送者、内容执行者、批准门控者和末端对象形成同向关系链
+      - 已知首角色锚点固定两系统方向
+      - G 与 S 都接收中间产物并批准末端对象
+    varied: [同属媒体生产，但从技术渲染换成剧场与广播治理角色]
+  lure: null
+  copy_probe: null
+  hints: *p6_hints
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p6_l1_01
+    method: relation-signature-matching
+  provenance: original
+  verified: 关系签名 in=片段、out=批准 唯一匹配 G 与 S。
+
+- id: V1-P6-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: K-角色映射
+  schema_id: anchored-role-mapping-01
+  schema_name: 锚定后按关系职责而非位置映射角色
+  level: 2
+  chain: v1-p6-role-01
+  source: *p6_source
+  target:
+    domain: 细胞内运输
+    problem: >-
+      物流链中，调度器 D 向承运者 C 发路线；C 把包裹交给检查员 I；I 放行包裹 P。
+      细胞链中，受体 R 向马达蛋白 M 发信号；M 把囊泡交给检查点 K；K 放行货物 G。
+      已知 D 对应 R，按关系结构，I 对应哪个符号？
+    answer:
+      parts: [{type: label, value: K}]
+  mapping:
+    objects: {策划员 P: 调度器 D, 操作员 O: 承运者 C, 检验员 I: 检查员 I, 批次 B: 包裹 P}
+    shared_relations:
+      - 首角色向执行角色发送控制信息
+      - 执行角色把载荷交给门控角色
+      - 门控角色决定是否放行末端载荷
+    varied: [从内容生产跨到细胞运输；工单、成品、批准分别换成信号、囊泡、放行]
+  lure:
+    problem: >-
+      在另一细胞链中，受体 R 把审批信号先交给检查点 K；K 再指令马达蛋白 M；
+      M 最终放行货物 G。若把物流链 D→C→I→P 按有向链位置与该链对齐，I 对应哪个符号？
+    solution: 链的第三个角色 I 对齐第三个角色 M，因此答案为 M。
+    answer:
+      parts: [{type: label, value: M}]
+    why_surface_similar: 使用相同的受体、马达蛋白、检查点和货物符号。
+    why_structurally_different: 目标题由检查点 K 执行放行；lure 中放行职责被赋给 M，角色间有向关系也被重排。
+    wrong_schema_id: reordered-cellular-chain-01
+  copy_probe: null
+  hints: *p6_hints
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p6_l2_01
+    method: relation-signature-matching
+  provenance: original
+  verified: 在目标关系图中，唯一同时接收囊泡并执行放行的节点是 K；lure 为 M。
+
+- id: V1-P6-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: K-角色映射
+  schema_id: anchored-role-mapping-01
+  schema_name: 锚定后按关系职责而非位置映射角色
+  level: 3
+  chain: v1-p6-role-01
+  source: *p6_source
+  target:
+    domain: 机器人数据生产
+    problem: >-
+      诊所链中，协调员 C 向配送员 K 发工单；K 把器材交给灭菌员 S；S 认证批次 B。
+      机器人链中，控制器 R 向机器人 A 发计划；A 把原始扫描交给格式化器 F；
+      F 把格式化扫描交给验证器 J；J 认证数据集 D。
+      已知 C 对应 R、B 对应 D。按关系职责，S 对应哪个符号？
+    answer:
+      parts: [{type: label, value: J}]
+  mapping:
+    objects: {策划员 P: 协调员 C, 操作员 O: 配送员 K, 检验员 I: 灭菌员 S, 批次 B: 批次 B, 目标新增角色: 格式化器 F}
+    shared_relations:
+      - 首角色向执行角色发控制信息
+      - 中间角色处理并传递产物
+      - 待映射角色对锚定的末端对象执行认证门控
+    added_relations: [机器人链在执行角色与认证角色之间插入格式化器 F]
+    adaptation_required:
+      - 不能按第三位置机械映射到 F，必须优先保持“认证末端对象”的高阶职责关系
+    varied: [目标关系图比源图多一个预处理节点，线性距离不再保持]
+  lure:
+    problem: >-
+      另一机器人链仍含控制器 R、机器人 A、格式化器 F、验证器 J 和数据集 D，
+      但规则改为 F 认证数据集 D，J 只在认证后归档。已知 C 对应 R、B 对应 D，S 对应哪个符号？
+    solution: S 在诊所链中认证末端批次；lure 中执行同一认证关系的是 F，所以 S 对应 F。
+    answer:
+      parts: [{type: label, value: F}]
+    why_surface_similar: 两条机器人链的所有角色名和锚点完全相同。
+    why_structurally_different: 目标由 J 执行认证，lure 则把认证边改接到 F；职责签名决定不同映射。
+    wrong_schema_id: positional-role-mapping-01
+  copy_probe:
+    answer:
+      parts: [{type: label, value: F}]
+    derivation: 把源链第三个角色机械对应到目标从首锚点数起的第三个角色，忽略目标插入节点与认证关系。
+  hints: *p6_hints
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p6_l3_01
+    method: relation-signature-matching-with-insertion
+  provenance: original
+  verified: J 是唯一对锚定末端 D 执行认证的角色；序位探针 F 不具该关系。
+
+- id: V1-P6-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: K-角色映射
+  schema_id: anchored-role-mapping-01
+  schema_name: 锚定后按关系职责而非位置映射角色
+  level: 4
+  chain: v1-p6-role-01
+  source: *p6_source
+  target:
+    domain: 分布式账本共识
+    problem: >-
+      在源印刷线中，检验员 I 的批准是批次 B 获准的门槛。某复制账本中，客户端 C 向领导者 L
+      提交提案；L 把条目发给跟随者 F1、F2、F3；任意两名跟随者共同确认后条目才提交为 Q，
+      单个跟随者的确认从不充分。已知源策划员 P 对应 C、源批次 B 对应 Q。
+      按“谁承担使末端对象获准的门控职责”映射，I 对应 L、F1、QUORUM 或 C 中哪一个？
+    answer:
+      parts: [{type: label, value: QUORUM}]
+  mapping:
+    objects: {策划员 P: 客户端 C, 批次 B: 已提交条目 Q, 检验员 I: 任意两跟随者组成的 QUORUM}
+    shared_relations:
+      - 已知首端和末端锚点固定系统方向
+      - 待映射角色承担使末端对象获得有效状态的门控职责
+      - 没有该角色的充分批准，末端状态不能成立
+    varied:
+      - 单个检验员变为动态的两成员集合角色
+      - 一对一节点映射改为一个源角色对应一类最小充分集合
+      - 线性工作流改为广播加阈值聚合
+    adaptation_required:
+      - 枚举最小充分确认集合，识别角色概念是 QUORUM 而非任一固定跟随者
+  lure:
+    problem: >-
+      另一复制账本指定 F1 为唯一审计跟随者：只有 F1 的单独确认能使条目提交为 Q，
+      F2、F3 的确认没有批准效力。仍给定 P 对应 C、B 对应 Q。I 对应 L、F1、QUORUM 或 C 中哪一个？
+    solution: F1 单独承担使 Q 获准的必要且充分门控职责，与源检验员 I 对应，答案 F1。
+    answer:
+      parts: [{type: label, value: F1}]
+    why_surface_similar: 同为客户端、领导者、三个跟随者与条目提交，且问批准门控角色。
+    why_structurally_different: lure 把批准权集中给固定单节点 F1；目标的任何单节点都不充分，角色由两节点集合实现。
+    wrong_schema_id: single-approver-role-01
+  copy_probe:
+    answer:
+      parts: [{type: label, value: F1}]
+    derivation: 强行保持源题的一对一角色映射，从三个跟随者中任选第一个作为单独检验员，忽略二人阈值关系。
+  hints: *p6_hints
+  verification:
+    entrypoint: mindsetbench.verification.expansion_cases:verify_v1_p6_l4_01
+    method: minimal-sufficient-set-enumeration
+  provenance: original
+  verified: 三个最小充分集合均为二元组，抽象角色只能是 QUORUM；任何单个 Fi 均不足。

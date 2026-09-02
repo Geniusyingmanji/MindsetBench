@@ -1,0 +1,17 @@
+{
+  "name": "formal-new-high-prescreen",
+  "description": "Only L3-L4 from the newly expanded P3, P4, and P6 chains.",
+  "datasets": [
+    "../v1/formal-p3-causal-chain.yaml",
+    "../v1/formal-p4-closure-chain.yaml",
+    "../v1/formal-p6-alignment-chain.yaml"
+  ],
+  "case_ids": [
+    "FORMAL-P3-CAUSAL-L3-01",
+    "FORMAL-P3-CAUSAL-L4-01",
+    "FORMAL-P4-CLOSURE-L3-01",
+    "FORMAL-P4-CLOSURE-L4-01",
+    "FORMAL-P6-ALIGN-L3-01",
+    "FORMAL-P6-ALIGN-L4-01"
+  ]
+}

@@ -1,0 +1,234 @@
+- id: FORMAL-P2-SENS-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: B-符号约束
+  schema_id: coefficient-filtered-arborescence-sensitivity-v1
+  schema_name: 带类型基数约束的后继收敛计数与局部灵敏度迁移
+  chain: p2-sensitivity-v1
+  level: 0
+  source: &p2_sensitivity_source
+    domain: 八菌落谱类迁徙基准
+    problem: >-
+      菌落 U1—U8 各选一条出通道，反复跟随所选通道必须最终到避难所 R。
+      通道记为“去向:形态数,谱类”：
+      U1→U2:2,蓝，U1→U4:5,灰，U1→R:3,灰；
+      U2→U3:4,灰，U2→U5:2,蓝，U2→R:6,灰；
+      U3→U4:3,蓝，U3→U6:4,灰，U3→R:2,蓝；
+      U4→U5:5,灰，U4→U7:3,蓝，U4→R:4,灰；
+      U5→U6:2,蓝，U5→U8:6,灰，U5→R:5,蓝；
+      U6→U7:7,灰，U6→U1:2,蓝，U6→R:3,灰；
+      U7→U8:4,蓝，U7→U2:5,灰，U7→R:2,灰；
+      U8→U1:3,灰，U8→U3:7,蓝，U8→R:4,蓝。
+      按已选边形态数乘积计数。求恰好四条蓝边的总数对 1000 的余数；
+      并在推理中保留完整谱类生成多项式 P(x)，以及灰边 U3→U6 每增加一个形态时
+      对 P(x) 的单位增量 Q(x)。
+    solution: >-
+      给蓝边权乘 x，用指向 R 的出边拉普拉斯余子式。按 x^0 到 x^8 列出系数，
+      P=[1895040,20986920,57806304,78520864,56237600,22042736,4732816,493176,16320]。
+      对边 U3→U6 的权做线性展开，每增加一个灰色形态的单位增量为
+      Q=[473760,4506480,8599776,7211176,3180720,735296,89304,5280,0]。
+      P_4=56237600，对 1000 取余得 600。对重命名系统，先以每行的去向、权重与谱类作全局签名；
+      若只有一条边的权从 w 变为 w+Δ，直接用 P+ΔQ 更新，不要重算整个行列式。
+    answer: "600"
+  target:
+    domain: 双菌落迁徙
+    problem: >-
+      菌落 X、Y 各选且只选一条出通道，反复跟随必须最终到避难所 R。
+      X→Y:2,蓝；X→R:3,灰；Y→X:1,灰；Y→R:4,蓝。
+      一个后继结构的方案数是两条已选边形态数的乘积。求恰好选一条蓝边的有效方案数。
+    answer:
+      parts: [{type: number, value: "12"}]
+  mapping:
+    objects: {菌落 U: 菌落 X/Y, 避难所: 避难所 R, 蓝通道: 蓝通道, 形态数: 形态数}
+    shared_relations: [每个非根点恰选一条出边, 所有后继最终汇入根, 边权乘积计数, 按特殊边数筛选]
+    varied: [收缩为两个非根节点且只需一阶谱系数]
+  lure:
+    problem: 使用同样四条通道，但不要求后继最终到 R；只要 X、Y 各选一条边且恰好一条蓝边即有效。
+    solution: 除 X→R、Y→R 的 12 种外，环 X→Y→X 也恰有一条蓝边并贡献 2 种，合计 14。
+    answer: {parts: [{type: number, value: "14"}]}
+    why_surface_similar: 节点、通道、权重和蓝边数完全相同。
+    why_structurally_different: lure 允许非根环，目标必须全局收敛。
+    wrong_schema_id: unconstrained-functional-digraph-spectrum-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "14"}]}
+    derivation: 忽略全局收敛，把 X→Y→X 环也计入。
+  hints:
+    schema_name: 带类型基数约束的后继收敛计数与局部灵敏度迁移
+    oracle_mindset: {insight: 直接枚举四种后继组合，排除非根环后按蓝边数筛选。, when_to_use: 非根节点很少时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p2_chain:verify_formal_p2_sens_l0_01
+    method: exhaustive-and-polynomial-determinant
+  provenance: formal chain derived from calibrated HARD-P2-L4-05 v1.1
+  verified: 枚举与二阶多项式余子式均得一次系数 12。
+
+- id: FORMAL-P2-SENS-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: B-符号约束
+  schema_id: coefficient-filtered-arborescence-sensitivity-v1
+  schema_name: 带类型基数约束的后继收敛计数与局部灵敏度迁移
+  chain: p2-sensitivity-v1
+  level: 1
+  source: *p2_sensitivity_source
+  target:
+    domain: 四菌落迁徙
+    problem: >-
+      A、B、C、D 各选一条出通道，所有后继链必须到 R。
+      A→B:2,蓝，A→R:3,灰；B→C:4,灰，B→R:2,蓝；
+      C→D:3,蓝，C→R:5,灰；D→A:2,灰，D→R:4,蓝。
+      按四条已选边权重乘积计数，求恰好两条蓝边的有效方案数。
+    answer: {parts: [{type: number, value: "500"}]}
+  mapping:
+    objects: {菌落: 菌落, 避难所 R: 避难所 R, 谱类: 蓝/灰, 形态数: 通道权重}
+    shared_relations: [非根点各选一出边, 全部汇入根, 权重乘积计数, 抽取指定谱类次数]
+    varied: [四个非根节点形成一个可能的四环]
+  lure:
+    problem: 同样的节点和通道，但四环 A→B→C→D→A 被允许；求恰好两条蓝边的方案数。
+    solution: 忽略收敛限制的二次系数为 548；唯一需排除的四环贡献 48，目标才是 500。
+    answer: {parts: [{type: number, value: "548"}]}
+    why_surface_similar: 所有局部边与权重完全一致。
+    why_structurally_different: lure 明示允许唯一非根环。
+    wrong_schema_id: cycle-permitted-spectrum-count-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "548"}]}
+    derivation: 只乘每点局部生成函数，未扣除四环。
+  hints:
+    schema_name: 带类型基数约束的后继收敛计数与局部灵敏度迁移
+    oracle_mindset: {insight: 用 x 标记蓝边，从局部选择多项式的二次系数中扣除唯一四环。, when_to_use: 内部环结构少且可显式枚举时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p2_chain:verify_formal_p2_sens_l1_01
+    method: exhaustive-and-polynomial-determinant
+  provenance: formal chain derived from calibrated HARD-P2-L4-05 v1.1
+  verified: 2^4 枚举和四阶多项式余子式的二次系数均为 500。
+
+- id: FORMAL-P2-SENS-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: B-符号约束
+  schema_id: coefficient-filtered-arborescence-sensitivity-v1
+  schema_name: 带类型基数约束的后继收敛计数与局部灵敏度迁移
+  chain: p2-sensitivity-v1
+  level: 2
+  source: *p2_sensitivity_source
+  target:
+    domain: 六转换器的吸收协议
+    problem: >-
+      转换器 A—F 各选一条出指向，所有指向链必须最终到吸收点 G。每项为“去向:变体数,谱类”：
+      A→C:5,V，A→D:2,P，A→B:4,V；B→C:5,P，B→D:5,V，B→E:5,P；
+      C→G:1,V，C→F:3,P，C→A:2,V；D→E:3,P，D→G:2,V，D→F:4,V；
+      E→D:2,V，E→B:2,P，E→G:4,P；F→G:4,P，F→A:4,V，F→E:2,V。
+      按六条边变体数乘积计数，只计恰好两条 V 边的有效结构。输出总数对 1000 的余数。
+    answer: {parts: [{type: number, value: "520"}]}
+  mapping:
+    objects: {菌落: 转换器, 避难所 R: 吸收点 G, 蓝边: V 边, 形态数: 变体数}
+    shared_relations: [每个非根点恰选一出边, 后继全部汇入根, 按边权乘积计数, 特殊边数是生成多项式次数]
+    varied: [跨域重命名并扩到六个三出边节点]
+  lure:
+    problem: 使用完全相同的六个转换器和边，但允许指向落入内部环；求恰好两条 V 边的权重总数对 1000 的余数。
+    solution: 不限制收敛时，六个局部多项式乘积的二次系数为 148680，余数 680。
+    answer: {parts: [{type: number, value: "680"}]}
+    why_surface_similar: 节点、边、谱类和权重表相同。
+    why_structurally_different: lure 移除了全局吸收约束。
+    wrong_schema_id: local-spectrum-product-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "680"}]}
+    derivation: 直接乘六个局部选择多项式，未排除内部环。
+  hints:
+    schema_name: 带类型基数约束的后继收敛计数与局部灵敏度迁移
+    oracle_mindset: {insight: 将 V 边权乘 x，对指向 G 的出边拉普拉斯余子式取 x^2 系数。, when_to_use: 内部环已无法少量手工排除时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p2_chain:verify_formal_p2_sens_l2_01
+    method: exhaustive-and-polynomial-determinant
+  provenance: formal chain derived from calibrated HARD-P2-L4-05 v1.1
+  verified: 3^6 枚举与六阶多项式余子式均得二次系数 83520。
+
+- id: FORMAL-P2-SENS-L3-01
+  version: "1.1"
+  split: calibration
+  paradigm: P2
+  thread: B-符号约束
+  schema_id: coefficient-filtered-arborescence-sensitivity-v1
+  schema_name: 带类型基数约束的后继收敛计数与局部灵敏度迁移
+  chain: p2-sensitivity-v1
+  level: 3
+  source: *p2_sensitivity_source
+  target:
+    domain: 重命名后继场
+    problem: &p2_eight_node_baseline >-
+      代号 A—H 各选一条出指向，所有后继链必须最终到 Z。每项为“去向:变体数,谱类”：
+      F→B:2,V，F→D:5,P，F→Z:3,P；B→H:4,P，B→A:2,V，B→Z:6,P；
+      H→D:3,V，H→G:4,P，H→Z:2,V；D→A:5,P，D→C:3,V，D→Z:4,P；
+      A→G:2,V，A→E:6,P，A→Z:5,V；G→C:7,P，G→F:2,V，G→Z:3,P；
+      C→E:4,V，C→B:5,P，C→Z:2,P；E→F:3,P，E→H:7,V，E→Z:4,V。
+      按八条边权重乘积计数，求恰好四条 V 边的有效结构总数对 1000 的余数。
+    answer: {parts: [{type: number, value: "600"}]}
+  mapping:
+    objects: {U1: F, U2: B, U3: H, U4: D, U5: A, U6: G, U7: C, U8: E, R: Z, 蓝: V, 灰: P}
+    shared_relations: [八个节点的三出边结构完全同构, 权重与谱类逐边保持, 全部后继汇入根, 抽取四次谱系数]
+    varied: [跨域并对全部节点和谱类重命名]
+  lure:
+    problem: 使用目标的完全相同边表、谱类和收敛条件，但忽略所有变体数，每条被选边只计一种。求恰好四条 V 边的无权树数模 1000。
+    solution: 将所有边权置 1 后，无权树谱的四次系数为 1545，余数 545。
+    answer: {parts: [{type: number, value: "545"}]}
+    why_surface_similar: 节点、边表、谱类、收敛和查询次数相同。
+    why_structurally_different: lure 折叠边变体而目标按变体数乘积加权。
+    wrong_schema_id: unweighted-arborescence-spectrum-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "545"}]}
+    derivation: 误将每条边的变体数都当成 1。
+  hints:
+    schema_name: 带类型基数约束的后继收敛计数与局部灵敏度迁移
+    oracle_mindset: {insight: 用全局出边签名对齐八个重命名节点；逐边确认权重与谱类都保持后直接复用基准四次系数。, when_to_use: 目标是 source 的完全重命名同构时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p2_chain:verify_formal_p2_sens_l3_01
+    method: exhaustive-and-polynomial-determinant
+  provenance: formal chain derived from calibrated HARD-P2-L4-05 v1.1
+  verified: 重命名后的 3^8 枚举与基准八阶多项式完全一致。
+
+- id: FORMAL-P2-SENS-L4-01
+  version: "1.1"
+  split: calibration
+  paradigm: P2
+  thread: B-符号约束
+  schema_id: coefficient-filtered-arborescence-sensitivity-v1
+  schema_name: 带类型基数约束的后继收敛计数与局部灵敏度迁移
+  chain: p2-sensitivity-v1
+  level: 4
+  source: *p2_sensitivity_source
+  target:
+    domain: 重命名后继场的局部重标定
+    problem: >-
+      代号 A—H 各选一条出指向，所有后继链必须最终到 Z。每项为“去向:变体数,谱类”：
+      F→B:2,V，F→D:5,P，F→Z:3,P；B→H:4,P，B→A:2,V，B→Z:6,P；
+      H→D:3,V，H→G:9,P，H→Z:2,V；D→A:5,P，D→C:3,V，D→Z:4,P；
+      A→G:2,V，A→E:6,P，A→Z:5,V；G→C:7,P，G→F:2,V，G→Z:3,P；
+      C→E:4,V，C→B:5,P，C→Z:2,P；E→F:3,P，E→H:7,V，E→Z:4,V。
+      按八条边权重乘积计数，求恰好四条 V 边的有效结构总数对 1000 的余数。
+    answer: {parts: [{type: number, value: "200"}]}
+  mapping:
+    objects: {U1: F, U2: B, U3: H, U4: D, U5: A, U6: G, U7: C, U8: E, R: Z, 蓝: V, 灰: P}
+    shared_relations: [八个节点的三出边结构保持, 谱类逐边保持, 全部后继汇入根, 树总权对单边权线性]
+    added_relations: [H→G 对应的局部边权从 4 改为 9]
+    adaptation_required: [恢复重命名映射, 识别唯一 broken relation, 用 P_4+5Q_4 更新]
+    varied: [跨域重命名与一条局部参数扰动同时存在]
+  lure:
+    problem: 使用目标的完全相同边表、谱类和收敛条件，但忽略所有变体数，每条被选边只计一种。求恰好四条 V 边的无权树数模 1000。
+    solution: 将所有边权置 1 后，无权树谱的四次系数为 1545，余数 545。
+    answer: {parts: [{type: number, value: "545"}]}
+    why_surface_similar: 节点、边表、谱类、收敛和查询次数相同。
+    why_structurally_different: lure 折叠边变体而目标按变体数乘积加权，且目标还需适配局部权变化。
+    wrong_schema_id: unweighted-arborescence-spectrum-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "545"}]}
+    derivation: 误将每条边的变体数都当成 1。
+  hints:
+    schema_name: 带类型基数约束的后继收敛计数与局部灵敏度迁移
+    oracle_mindset: {insight: 对齐全局边签名后逐边对比，确认唯一差异 H→G:4→9，然后对四次系数作 P_4+5Q_4。, when_to_use: 新组合系统是已解系统的重命名并只有一个局部权重变化时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p2_chain:verify_formal_p2_sens_l4_01
+    method: exhaustive-polynomial-determinant-and-sensitivity-update
+  provenance: formal chain derived from calibrated HARD-P2-L4-05 v1.1
+  verified: 3^8 枚举、八阶多项式余子式和基准灵敏度更新均得 72141200。

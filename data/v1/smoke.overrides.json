@@ -1,0 +1,128 @@
+{
+  "L0-A-01": {
+    "version": "1.0",
+    "split": "dev",
+    "paradigm": "P1",
+    "schema_id": "bounded-composition-01",
+    "hints": {
+      "schema_name": "总和守恒与变量上限共同切割可行域",
+      "oracle_mindset": {
+        "insight": "把超过各变量上限的区域作为事件，用容斥从无约束整数分配中逐层扣除。",
+        "when_to_use": "总量固定、变量非负且各变量具有不同上限时。"
+      }
+    },
+    "verification": {
+      "entrypoint": "mindsetbench.verification.smoke_cases:verify_l0_a_01",
+      "method": "exhaustive-enumeration"
+    }
+  },
+  "L1-A-C1": {
+    "version": "1.0",
+    "split": "dev",
+    "paradigm": "P1",
+    "schema_id": "integer-triangle-01",
+    "hints": {
+      "schema_name": "从语义中恢复隐式约束后枚举可行域",
+      "oracle_mindset": {
+        "insight": "先规范化变量顺序，再把题面语义隐含的不等式显式化并用于切割整数解空间。",
+        "when_to_use": "对象不计排列，且可行性还隐含未直接写出的几何或结构约束时。"
+      }
+    },
+    "verification": {
+      "entrypoint": "mindsetbench.verification.smoke_cases:verify_l1_a_c1",
+      "method": "exhaustive-enumeration"
+    }
+  },
+  "L2-F-05": {
+    "version": "1.0",
+    "split": "dev",
+    "paradigm": "P1",
+    "schema_id": "single-exponential-inverse-01",
+    "lure": {
+      "solution": "零级消除是线性下降。由两次浓度差验证速率为 0.15 g/L/h，再用 (1.8-1.2)/0.15=4 小时回溯，得到 18:00。",
+      "answer": {
+        "parts": [{"type": "string", "value": "18:00"}],
+        "separator": ";"
+      },
+      "wrong_schema_id": "linear-decay-01"
+    },
+    "hints": {
+      "schema_name": "单指数过程的两点反演",
+      "oracle_mindset": {
+        "insight": "先用两次观测的比值消去未知初值并求指数速率，再结合已知初值用对数回溯源事件时刻。",
+        "when_to_use": "状态按单指数增长或衰减，且具有两个时点观测和一个已知初值时。"
+      }
+    },
+    "verification": {
+      "entrypoint": "mindsetbench.verification.smoke_cases:verify_l2_f_05",
+      "method": "closed-form"
+    }
+  },
+  "L3-A-01": {
+    "version": "1.0",
+    "split": "dev",
+    "paradigm": "P1",
+    "schema_id": "resource-constrained-shortest-path-01",
+    "copy_probe": {
+      "answer": {
+        "parts": [{"type": "number", "value": "6"}],
+        "separator": ";"
+      },
+      "derivation": "忽略脂肪预算，照搬单代价 Dijkstra 选择 S-A-C-T。"
+    },
+    "lure": {
+      "solution": "忽略脂肪维度后运行普通 Dijkstra，最短路径为 S-A-C-T，总飞行时间 6 天。",
+      "answer": {
+        "parts": [{"type": "number", "value": "6"}],
+        "separator": ";"
+      },
+      "wrong_schema_id": "unconstrained-shortest-path-01"
+    },
+    "hints": {
+      "schema_name": "资源约束切割最短路径可行域",
+      "oracle_mindset": {
+        "insight": "当路径还受累积资源预算约束时，把状态从节点扩展为节点与已耗资源，并只在可行标签中优化时间。",
+        "when_to_use": "目标是最短或最优路径，但每条边还有必须累计且不可超过预算的第二代价时。"
+      }
+    },
+    "verification": {
+      "entrypoint": "mindsetbench.verification.smoke_cases:verify_l3_a_01",
+      "method": "simple-path-enumeration"
+    }
+  },
+  "L4-F-01": {
+    "version": "1.0",
+    "split": "dev",
+    "paradigm": "P1",
+    "schema_id": "multi-observation-source-inversion-01",
+    "copy_probe": {
+      "answer": {
+        "parts": [{"type": "label", "value": "S3"}],
+        "separator": ";"
+      },
+      "derivation": "只要求候选覆盖全部阳性成品而忽略阴性证据时，S2 与 S3 无法区分；天真选择 S3。"
+    },
+    "lure": {
+      "solution": "按每箱毛利从高到低召回：先召回 P2 的 250 箱，再召回 P1 的 350 箱，正好使用 600 箱容量。",
+      "answer": {
+        "parts": [
+          {"type": "string", "value": "P2:250"},
+          {"type": "string", "value": "P1:350"}
+        ],
+        "separator": ";"
+      },
+      "wrong_schema_id": "capacity-allocation-01"
+    },
+    "hints": {
+      "schema_name": "多观测约束交集反演隐藏源",
+      "oracle_mindset": {
+        "insight": "为每个候选隐藏源推导其全部可观测后果，同时使用阳性证据要求覆盖、阴性证据执行排除，最后取与全部观测一致的唯一候选。",
+        "when_to_use": "源头不可直接观测，只能通过传播网络上的多个阳性与阴性观测反向定位时。"
+      }
+    },
+    "verification": {
+      "entrypoint": "mindsetbench.verification.smoke_cases:verify_l4_f_01",
+      "method": "graph-reachability-enumeration"
+    }
+  }
+}

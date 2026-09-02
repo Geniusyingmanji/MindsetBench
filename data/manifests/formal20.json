@@ -1,0 +1,10 @@
+{
+  "name": "formal20-calibration-candidates",
+  "description": "Four fixed-source L0-L4 chains across P2, P3, P4, and P6.",
+  "datasets": [
+    "../v1/formal-p2-sensitivity-chain.yaml",
+    "../v1/formal-p3-causal-chain.yaml",
+    "../v1/formal-p4-closure-chain.yaml",
+    "../v1/formal-p6-alignment-chain.yaml"
+  ]
+}

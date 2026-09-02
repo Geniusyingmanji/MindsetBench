@@ -1,0 +1,251 @@
+- id: FORMAL-P4-CLOSURE-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-规范规则
+  schema_id: least-fixed-point-norm-sensitivity-v1
+  schema_name: 派生事实最小不动点、规范优先级与单规则失效迁移
+  chain: p4-closure-sensitivity-v1
+  level: 0
+  source: &p4_closure_source
+    domain: 十二货舱闭包章程基准
+    problem: >-
+      对每条记录，从初始标签出发反复应用规则直到最小不动点：
+      R1 kiln∧sealed→stable；R2 stable→cleared；R3 silver→cleared；
+      R4 cleared∧beacon→priority；R5 priority→authorized；R6 stable∧antidote→neutralized。
+      一般条款：带 route 而没有 authorized 的记录违规，但 mercy∧sponsor 构成例外。
+      最高条款：volatile 而没有 neutralized 的记录一律违规，例外不能覆盖。
+      初始标签为：S1 route,kiln,sealed,beacon；S2 route,silver,beacon；
+      S3 route,kiln,sealed；S4 route,mercy,sponsor；S5 route,mercy；
+      S6 volatile,kiln,sealed,antidote；S7 volatile,kiln,sealed；
+      S8 route,volatile,kiln,sealed,beacon,antidote；
+      S9 route,volatile,silver,beacon；S10 volatile,kiln,sealed,antidote；
+      S11 route,kiln,sealed,beacon,mercy；S12 route,kiln,sealed,beacon,silver。
+      输出违规编号；并保留当且仅当 R2 失效时新增的违规记录。
+    solution: >-
+      先求完整闭包。S3、S5 缺授权且无完整例外；S7、S9 命中最高禁止，baseline 违规为
+      S3;S5;S7;S9。R2 失效时，仍可由 R3 的 silver 获得 cleared；R1 与 R6 仍可产生
+      stable 和 neutralized。新增违规恰为 S1、S8、S11，所以失效后的全集为
+      S1;S3;S5;S7;S8;S9;S11。跨域重命名时应按初始事实剖面而非记录序号对齐。
+    answer: S3;S5;S7;S9
+  target:
+    domain: 双件许可记录
+    problem: >-
+      从初始事实反复应用 hot∧sealed→stable、stable→authorized，直到不再产生新事实。
+      带 route 而最终没有 authorized 的记录违规。A 初始为 route,hot,sealed；
+      B 初始为 route,hot。输出全部违规编号。
+    answer: {parts: [{type: label, value: B}]}
+  mapping:
+    objects: {派生标签 stable: stable, 最终许可 authorized: authorized, route 一般义务: route 一般义务}
+    shared_relations: [派生规则必须迭代到最小不动点, 规范判断使用闭包后的事实而非初始事实]
+    varied: [缩为两条记录和两级派生链]
+  lure:
+    problem: >-
+      使用相同事实与规则，但所有规则只同时检查一次初始事实，新派生事实不能再触发另一规则。
+      输出违规编号。
+    solution: A 在这一轮只能派生 stable，不能由新 stable 再派生 authorized；A、B 都违规。
+    answer: {parts: [{type: label, value: A}, {type: label, value: B}]}
+    why_surface_similar: 初始事实、规则和违规条件相同。
+    why_structurally_different: lure 使用非递归的一轮语义，目标使用最小不动点语义。
+    wrong_schema_id: initial-facts-single-pass-rules-01
+  copy_probe:
+    answer: {parts: [{type: label, value: A}, {type: label, value: B}]}
+    derivation: 只检查一次初始事实，没有让 stable 继续触发 authorized。
+  hints:
+    schema_name: 派生事实最小不动点、规范优先级与单规则失效迁移
+    oracle_mindset: {insight: 把新事实加入集合后继续扫描规则，直到整轮没有变化，再执行规范判断。, when_to_use: 规则结论可以成为另一规则前件时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p4_chain:verify_formal_p4_closure_l0_01
+    method: monotone-fixed-point-and-initial-fact-one-pass
+  provenance: original; formal AR-hard chain using reusable closure and rule-ablation certificates
+  verified: 最小不动点下仅 B 违规；单轮语义下 A、B 均违规。
+
+- id: FORMAL-P4-CLOSURE-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-规范规则
+  schema_id: least-fixed-point-norm-sensitivity-v1
+  schema_name: 派生事实最小不动点、规范优先级与单规则失效迁移
+  chain: p4-closure-sensitivity-v1
+  level: 1
+  source: *p4_closure_source
+  target:
+    domain: 四份通行申请
+    problem: >-
+      对每份申请反复应用：seed∧sealed→stable；stable→cleared；silver→cleared；
+      cleared∧beacon→authorized；只要还能产生新事实就继续应用。带 route 而最终没有 authorized 的申请违规。
+      P1:route,seed,sealed,beacon；P2:route,seed,sealed；
+      P3:route,silver,beacon；P4:seed,sealed,beacon。输出全部违规编号。
+    answer: {parts: [{type: label, value: P2}]}
+  mapping:
+    objects: {kiln: seed, stable: stable, cleared: cleared, beacon: beacon, authorized: authorized}
+    shared_relations: [两条以上派生规则可串联, 另一路初始标签可在中间层汇合, route 义务只在闭包后检查]
+    varied: [四记录、三层链与一个中层旁路]
+  lure:
+    problem: 使用同样事实和规则，但所有规则只同时检查一次初始事实；输出违规编号。
+    solution: P1 的 seed,sealed 只能产生 stable；P3 的 silver 只能产生 cleared，两者都不能在同一轮继续获得 authorized。P1、P2、P3 违规，P4 无 route。
+    answer: {parts: [{type: label, value: P1}, {type: label, value: P2}, {type: label, value: P3}]}
+    why_surface_similar: 规则文字和记录完全一致。
+    why_structurally_different: 新结论在 lure 中不能继续触发规则。
+    wrong_schema_id: initial-facts-single-pass-rules-01
+  copy_probe:
+    answer: {parts: [{type: label, value: P1}, {type: label, value: P2}, {type: label, value: P3}]}
+    derivation: 将派生系统误当成无递归的一轮分类器。
+  hints:
+    schema_name: 派生事实最小不动点、规范优先级与单规则失效迁移
+    oracle_mindset: {insight: 用事实集合的单调增长实现闭包，silver 旁路和 stable 主链最终都可汇入 cleared。, when_to_use: 多条规则在中间谓词处汇合时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p4_chain:verify_formal_p4_closure_l1_01
+    method: monotone-fixed-point-and-initial-fact-one-pass
+  provenance: original; formal AR-hard chain using reusable closure and rule-ablation certificates
+  verified: 闭包语义仅 P2 违规；一轮初始事实语义为 P1、P2、P3。
+
+- id: FORMAL-P4-CLOSURE-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-规范规则
+  schema_id: least-fixed-point-norm-sensitivity-v1
+  schema_name: 派生事实最小不动点、规范优先级与单规则失效迁移
+  chain: p4-closure-sensitivity-v1
+  level: 2
+  source: *p4_closure_source
+  target:
+    domain: 七舱派生许可章程
+    problem: >-
+      对每舱初始标签反复应用，只要还能产生新标签就继续：kiln∧sealed→stable；stable→cleared；
+      silver→cleared；cleared∧beacon→priority；priority→authorized；
+      stable∧antidote→neutralized。一般条款：route 且无 authorized 违规，
+      mercy∧sponsor 可豁免；最高条款：volatile 且无 neutralized 一律违规。
+      C1 route,kiln,sealed,beacon；C2 route,silver,beacon；C3 route,kiln,sealed；
+      C4 route,mercy,sponsor；C5 route,mercy；C6 volatile,kiln,sealed,antidote；
+      C7 volatile,kiln,sealed。输出全部违规编号。
+    answer: {parts: [{type: label, value: C3}, {type: label, value: C5}, {type: label, value: C7}]}
+  mapping:
+    objects: {货舱 S: 货舱 C, 派生许可链: 派生许可链, 一般 route 条款: 一般 route 条款, volatile 最高条款: volatile 最高条款}
+    shared_relations: [先完成所有单调派生, 完整双条件例外只覆盖一般义务, 最高禁止独立于一般许可]
+    varied: [七条记录覆盖主链、旁路、例外和最高禁止边界]
+  lure:
+    problem: 使用完全相同的七条记录、派生规则和规范，但派生规则只同时检查一次初始事实；输出违规编号。
+    solution: 一轮中没有记录能产生 authorized 或 neutralized；除完整例外 C4 外，C1、C2、C3、C5 的 route 义务失败，C6、C7 又命中最高禁止。
+    answer: {parts: [{type: label, value: C1}, {type: label, value: C2}, {type: label, value: C3}, {type: label, value: C5}, {type: label, value: C6}, {type: label, value: C7}]}
+    why_surface_similar: 所有事实、规则、例外与优先级完全相同。
+    why_structurally_different: lure 禁止派生事实继续触发规则，破坏授权和中和链。
+    wrong_schema_id: initial-facts-single-pass-rules-01
+  copy_probe:
+    answer: {parts: [{type: label, value: C1}, {type: label, value: C2}, {type: label, value: C3}, {type: label, value: C5}, {type: label, value: C6}, {type: label, value: C7}]}
+    derivation: 仅以初始标签评估所有派生规则。
+  hints:
+    schema_name: 派生事实最小不动点、规范优先级与单规则失效迁移
+    oracle_mindset: {insight: 将“事实闭包”和“规范求值”分成两阶段；最高禁止与一般义务最后取并集。, when_to_use: 派生类别、例外和不可覆盖规则共存时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p4_chain:verify_formal_p4_closure_l2_01
+    method: monotone-fixed-point-priority-norm-and-initial-fact-one-pass
+  provenance: original; formal AR-hard chain using reusable closure and rule-ablation certificates
+  verified: 闭包违规 C3,C5,C7；只看初始事实的一轮语义额外误报 C1,C2,C6。
+
+- id: FORMAL-P4-CLOSURE-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-规范规则
+  schema_id: least-fixed-point-norm-sensitivity-v1
+  schema_name: 派生事实最小不动点、规范优先级与单规则失效迁移
+  chain: p4-closure-sensitivity-v1
+  level: 3
+  source: *p4_closure_source
+  target:
+    domain: 重命名的十二份轨道请愿
+    problem: &p4_full_target >-
+      对每份请愿，从初始印记反复应用规则，只要还能产生新印记就继续：
+      ore∧latched→balanced；balanced→screened；opal→screened；
+      screened∧signal→urgent；urgent→licensed；balanced∧remedy→quenched。
+      一般条款：有 dispatch 而最终没有 licensed 的请愿违规，但 aid∧seal 构成例外。
+      最高条款：reactive 而最终没有 quenched 的请愿一律违规。
+      每条记录还带校验权重：
+      Q1(131):dispatch,aid；Q2(73):dispatch,opal,signal；
+      Q3(233):reactive,ore,latched,remedy；Q4(173):reactive,ore,latched；
+      Q5(107):dispatch,aid,seal；Q6(211):dispatch,reactive,opal,signal；
+      Q7(41):dispatch,ore,latched,signal；Q8(281):dispatch,ore,latched,signal,opal；
+      Q9(151):reactive,ore,latched,remedy；Q10(257):dispatch,ore,latched,signal,aid；
+      Q11(89):dispatch,ore,latched；
+      Q12(197):dispatch,reactive,ore,latched,signal,remedy。
+      求所有违规记录的校验权重之和对 1000 的余数。
+    answer: {parts: [{type: number, value: "604"}]}
+  mapping:
+    objects: {kiln: ore, sealed: latched, stable: balanced, silver: opal, cleared: screened, beacon: signal, priority: urgent, authorized: licensed, antidote: remedy, neutralized: quenched, route: dispatch, mercy: aid, sponsor: seal, volatile: reactive}
+    shared_relations: [全部初始事实剖面在打乱记录顺序后逐一保持, 六条派生规则与两层规范优先级同构, 完整双条件例外只覆盖一般义务而最高禁止不可覆盖, 违规集合应按事实剖面迁移再换算目标权重]
+    varied: [谓词全重命名、记录顺序置换并把输出改为带权校验和]
+  lure:
+    problem: 使用目标完全相同的十二条记录、规则和规范，但所有派生规则只同时检查一次初始印记，新事实不能触发另一规则。求违规权重和模 1000。
+    solution: 一轮语义下没有记录得到 licensed 或 quenched；除 Q5 的完整例外外其余记录均至少违反一般或最高条款。权重和为 1837，模 1000 得 837。
+    answer: {parts: [{type: number, value: "837"}]}
+    why_surface_similar: 记录、权重、规则和规范逐字相同。
+    why_structurally_different: lure 把递归闭包替换成只读初始事实的一轮变换。
+    wrong_schema_id: initial-facts-single-pass-rules-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "837"}]}
+    derivation: 不允许 balanced、screened、urgent 等新事实继续触发规则。
+  hints:
+    schema_name: 派生事实最小不动点、规范优先级与单规则失效迁移
+    oracle_mindset: {insight: 按初始事实剖面恢复 source 记录对应，不依赖编号；复用其闭包违规证书，再将对应目标权重求和。, when_to_use: 规则系统完全重命名且记录被置换时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p4_chain:verify_formal_p4_closure_l3_01
+    method: fixed-point-rule-engine-profile-isomorphism-and-negative-control
+  provenance: original; formal AR-hard chain using reusable closure and rule-ablation certificates
+  verified: 违规剖面对应 Q11,Q1,Q4,Q6，权重和 89+131+173+211=604；一轮语义为 837。
+
+- id: FORMAL-P4-CLOSURE-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-规范规则
+  schema_id: least-fixed-point-norm-sensitivity-v1
+  schema_name: 派生事实最小不动点、规范优先级与单规则失效迁移
+  chain: p4-closure-sensitivity-v1
+  level: 4
+  source: *p4_closure_source
+  target:
+    domain: 重命名十二请愿的单规则停用
+    problem: >-
+      对每份请愿，从初始印记反复应用规则，只要还能产生新印记就继续。当前有效规则只有：
+      ore∧latched→balanced；opal→screened；screened∧signal→urgent；
+      urgent→licensed；balanced∧remedy→quenched。
+      注意旧规则 balanced→screened 已停用。
+      一般条款：有 dispatch 而最终没有 licensed 的请愿违规，但 aid∧seal 构成例外。
+      最高条款：reactive 而最终没有 quenched 的请愿一律违规。
+      每条记录还带校验权重：
+      Q1(131):dispatch,aid；Q2(73):dispatch,opal,signal；
+      Q3(233):reactive,ore,latched,remedy；Q4(173):reactive,ore,latched；
+      Q5(107):dispatch,aid,seal；Q6(211):dispatch,reactive,opal,signal；
+      Q7(41):dispatch,ore,latched,signal；Q8(281):dispatch,ore,latched,signal,opal；
+      Q9(151):reactive,ore,latched,remedy；Q10(257):dispatch,ore,latched,signal,aid；
+      Q11(89):dispatch,ore,latched；
+      Q12(197):dispatch,reactive,ore,latched,signal,remedy。
+      求所有违规记录的校验权重之和对 1000 的余数。
+    answer: {parts: [{type: number, value: "99"}]}
+  mapping:
+    objects: {kiln: ore, sealed: latched, stable: balanced, silver: opal, cleared: screened, beacon: signal, priority: urgent, authorized: licensed, antidote: remedy, neutralized: quenched, route: dispatch, mercy: aid, sponsor: seal, volatile: reactive}
+    shared_relations: [初始事实剖面与其余五条派生规则保持, 一般义务与完整例外关系保持, 最高禁止仍不可被例外覆盖, source 的 R2 失效证书可迁移]
+    removed_relations: [balanced→screened 对应 source 的 stable→cleared，当前已停用]
+    adaptation_required: [按事实剖面对齐 source 与目标记录, 将 source 的 R2 失效新增违规剖面加入 baseline, 用目标权重重新求和]
+    varied: [完全重命名、记录置换和单条派生规则失效同时存在]
+  lure:
+    problem: 使用目标完全相同的十二条记录、当前有效规则和规范，但所有派生规则只同时检查一次初始印记。求违规权重和模 1000。
+    solution: 一轮语义本来就不能让 balanced 触发 screened，因此停用该旧规则不改变负控制；除 Q5 外其余记录违规，权重和模 1000 为 837。
+    answer: {parts: [{type: number, value: "837"}]}
+    why_surface_similar: 当前规则、记录、权重和停用信息相同。
+    why_structurally_different: lure 的一轮语义对被停用的中间规则不敏感，目标闭包语义必须进行局部失效传播。
+    wrong_schema_id: initial-facts-single-pass-rules-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "837"}]}
+    derivation: 用只看初始事实的一轮规则替代最小不动点，因此错过停用规则的真实增量。
+  hints:
+    schema_name: 派生事实最小不动点、规范优先级与单规则失效迁移
+    oracle_mindset: {insight: 对齐谓词和事实剖面后，识别唯一失效规则；复用 source 中该规则消融导致的新增违规剖面，再按目标权重更新。, when_to_use: 已解规则闭包系统被重命名且只删去一条派生规则时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p4_chain:verify_formal_p4_closure_l4_01
+    method: fixed-point-rule-engine-profile-isomorphism-and-rule-ablation-sensitivity
+  provenance: original; formal AR-hard chain using reusable closure and rule-ablation certificates
+  verified: 停用规则新增 Q7,Q12,Q10；总权重 604+41+197+257=1099，模 1000 得 99。

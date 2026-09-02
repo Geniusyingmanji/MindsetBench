@@ -1,0 +1,357 @@
+- id: FORMAL-P6-ALIGN-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: K-角色映射
+  schema_id: joint-typed-alignment-edit-sensitivity-v1
+  schema_name: 锚定带类型关系图的联合对齐与单边编辑敏感性迁移
+  chain: p6-alignment-sensitivity-v1
+  level: 0
+  source: &p6_alignment_source
+    domain: 七角色匿名协议对齐基准
+    problem: >-
+      档案甲的节点 A1—A7、关系码 nex/vul/sor，有向记录为：
+      A1-nex-A2；A1-vul-A5；A3-sor-A1；A4-nex-A1；A4-nex-A5；
+      A4-sor-A7；A5-sor-A7；A5-vul-A1；A6-sor-A1；A6-vul-A5；
+      A7-nex-A1；A7-nex-A6；A7-sor-A3；A7-sor-A6。
+      档案乙的节点 B1—B7、关系码 %/@/#，有向记录为：
+      B4-%-B7；B1-#-B2；B3-@-B4；B1-#-B4；B2-#-B1；B2-#-B3；
+      B2-#-B5；B2-%-B4；B2-%-B5；B3-#-B2；B3-#-B4；B4-@-B1；
+      B4-@-B3；B5-#-B4；B5-@-B1；B5-@-B3；B6-#-B2；B6-%-B1；
+      B6-%-B3；B6-%-B4；另有噪声 B2-@-B7、B3-#-B1、B7-@-B4。
+      已知 A1↔B4、A7↔B2。选择其余节点的一一映射和三种关系码的双射；
+      每条甲记录映成乙中的同码直接记录得 1 分，乙的其余记录可为噪声。求唯一最高分映射，
+      依次输出 A2—A6 对应节点及 nex/vul/sor 对应码。另保留局部编辑证书：
+      若乙中 B6-%-B3 被 B1-@-B4 替换，新的唯一最高分映射是什么？
+    solution: >-
+      联合枚举 5! 个节点排列与 3! 个关系词典。baseline 唯一满分 14 的映射为
+      A2↔B7、A3↔B1、A4↔B6、A5↔B3、A6↔B5，
+      nex↔%、vul↔@、sor↔#；唯一 runner-up 得 13 分，它只交换 A3/A5 的像。
+      指定替换删去 baseline 独占的一条支持边并补上 runner-up 缺失的一条边，故新唯一满分映射为
+      A2↔B7、A3↔B3、A4↔B6、A5↔B1、A6↔B5，关系词典仍为 nex↔%、vul↔@、sor↔#。
+    answer: B7;B1;B6;B3;B5;%;@;#
+  target:
+    domain: 三节点消息链
+    problem: >-
+      图甲记录 X1-a-X2、X2-b-X3。图乙记录 Y1-○-Y3、Y2-◇-Y1。
+      已知 X1↔Y2、X3↔Y3。要求节点一一对应且关系码一一对应，最大化保留的同码有向记录。
+      输出 X2 对应节点，以及 a、b 依次对应的乙关系码。
+    answer:
+      parts:
+        - {type: label, value: Y1}
+        - {type: string, value: ◇}
+        - {type: string, value: ○}
+  mapping:
+    objects: {甲档案节点: 图甲节点, 乙档案节点: 图乙节点, 匿名关系码: 匿名关系码, 锚点: 两端锚点}
+    shared_relations: [节点置换与关系码置换必须联合保持带类型有向三元组, 锚点固定整体方向]
+    varied: [缩为唯一三节点链]
+  lure:
+    problem: >-
+      使用同一对图和锚点，但关系码必须按两份记录中首次出现顺序固定：a↔○、b↔◇；
+      输出同样三段结果。
+    solution: 锚点使中间节点只能是 Y1；按规定的首次出现词典输出 Y1;○;◇。
+    answer:
+      parts:
+        - {type: label, value: Y1}
+        - {type: string, value: ○}
+        - {type: string, value: ◇}
+    why_surface_similar: 节点、记录、锚点和输出格式完全相同。
+    why_structurally_different: lure 外生固定关系词典，目标需由有向三元组联合恢复词典。
+    wrong_schema_id: first-occurrence-fixed-codebook-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: Y1}
+        - {type: string, value: ○}
+        - {type: string, value: ◇}
+    derivation: 按记录出现顺序而非结构对应关系锁定关系码。
+  hints:
+    schema_name: 锚定带类型关系图的联合对齐与单边编辑敏感性迁移
+    oracle_mindset: {insight: 锚点固定两端后，同时检查节点像与关系码像，使两条有向记录都被保留。, when_to_use: 实体名和关系名都匿名化时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p6_chain:verify_formal_p6_align_l0_01
+    method: exhaustive-joint-node-predicate-alignment
+  provenance: original; formal AR-hard chain using optimal-alignment margin and edit certificates
+  verified: 唯一满分联合映射为 Y1;◇;○；首次出现词典给 Y1;○;◇。
+
+- id: FORMAL-P6-ALIGN-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: K-角色映射
+  schema_id: joint-typed-alignment-edit-sensitivity-v1
+  schema_name: 锚定带类型关系图的联合对齐与单边编辑敏感性迁移
+  chain: p6-alignment-sensitivity-v1
+  level: 1
+  source: *p6_alignment_source
+  target:
+    domain: 四角色审批流对齐
+    problem: >-
+      流程甲：A1-nex-A2，A2-vul-A3，A2-nex-A4，A4-vul-A3。
+      流程乙：B3-%-B1，B1-@-B4，B1-%-B2，B2-@-B4，另有噪声 B3-@-B2。
+      已知 A1↔B3、A3↔B4。联合选择 A2/A4 的一一映射及 nex/vul 与 %/@ 的双射，
+      最大化保留的同码有向记录。输出 A2、A4 对应节点，再输出 nex、vul 对应码。
+    answer:
+      parts:
+        - {type: label, value: B1}
+        - {type: label, value: B2}
+        - {type: string, value: "%"}
+        - {type: string, value: "@"}
+  mapping:
+    objects: {甲角色: A 角色, 乙角色: B 角色, 关系词典: nex/vul 到 %/@, 锚点: A1/B3 与 A3/B4}
+    shared_relations: [联合枚举节点与关系码双射, 用全部带类型方向边评分, 额外乙边可为噪声]
+    varied: [四节点菱形和一条会干扰局部匹配的噪声边]
+  lure:
+    problem: >-
+      使用相同流程与锚点，但按首次出现顺序固定 nex↔@、vul↔%；在此词典下求最高分节点映射并输出四段结果。
+    solution: 固定错误词典后，A2↔B2、A4↔B1 的得分唯一较高，输出 B2;B1;@;% 。
+    answer:
+      parts:
+        - {type: label, value: B2}
+        - {type: label, value: B1}
+        - {type: string, value: "@"}
+        - {type: string, value: "%"}
+    why_surface_similar: 图、锚点、噪声和评分都相同。
+    why_structurally_different: lure 先固定错误词典，失去联合优化。
+    wrong_schema_id: first-occurrence-fixed-codebook-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: B2}
+        - {type: label, value: B1}
+        - {type: string, value: "@"}
+        - {type: string, value: "%"}
+    derivation: 先按出现顺序锁死关系词典，再优化节点。
+  hints:
+    schema_name: 锚定带类型关系图的联合对齐与单边编辑敏感性迁移
+    oracle_mindset: {insight: 关系码和节点相互约束，不能先凭出现顺序固定其中一层。, when_to_use: 两侧都有匿名关系码且含噪声边时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p6_chain:verify_formal_p6_align_l1_01
+    method: exhaustive-joint-node-predicate-alignment
+  provenance: original; formal AR-hard chain using optimal-alignment margin and edit certificates
+  verified: 联合最优保留四条甲记录；固定错误词典时唯一节点解交换 B1/B2。
+
+- id: FORMAL-P6-ALIGN-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: K-角色映射
+  schema_id: joint-typed-alignment-edit-sensitivity-v1
+  schema_name: 锚定带类型关系图的联合对齐与单边编辑敏感性迁移
+  chain: p6-alignment-sensitivity-v1
+  level: 2
+  source: *p6_alignment_source
+  target:
+    domain: 五节点匿名关系档案
+    problem: >-
+      档案甲：A1-n-A2，A2-v-A3，A3-s-A5，A2-s-A4，A4-n-A5，A3-n-A4。
+      档案乙：B4-@-B2，B2-#-B5，B5-%-B1，B2-%-B3，B3-@-B1，B5-@-B3，
+      另有噪声 B4-%-B3、B2-@-B1、B3-#-B5。已知 A1↔B4、A5↔B1。
+      联合选择 A2—A4 的一一映射及 n/v/s 与 @/#/% 的双射，使被保留的同码有向记录数最大。
+      输出 A2、A3、A4 对应节点，再输出 n、v、s 对应码。
+    answer:
+      parts:
+        - {type: label, value: B2}
+        - {type: label, value: B5}
+        - {type: label, value: B3}
+        - {type: string, value: "@"}
+        - {type: string, value: "#"}
+        - {type: string, value: "%"}
+  mapping:
+    objects: {源档案: 档案甲, 目标档案: 档案乙, 三类关系: n/v/s 与 @/#/%, 首末锚点: A1/B4 与 A5/B1}
+    shared_relations: [节点排列与关系词典的直积空间联合评分, 噪声边不要求反向解释, 全局最高分优先于局部度数相似]
+    varied: [五节点、三关系、六条信号与三条噪声]
+  lure:
+    problem: >-
+      使用相同档案和锚点，但关系词典按两侧记录首次出现顺序固定为 n↔%、v↔@、s↔#。
+      在此词典下求最高分节点映射并输出六段结果。
+    solution: 固定词典下的唯一最优节点序列为 B3、B2、B5，故输出 B3;B2;B5;%;@;#。
+    answer:
+      parts:
+        - {type: label, value: B3}
+        - {type: label, value: B2}
+        - {type: label, value: B5}
+        - {type: string, value: "%"}
+        - {type: string, value: "@"}
+        - {type: string, value: "#"}
+    why_surface_similar: 两图、锚点、噪声和评分方法相同。
+    why_structurally_different: lure 用记录顺序固定一个错误词典。
+    wrong_schema_id: first-occurrence-fixed-codebook-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: B3}
+        - {type: label, value: B2}
+        - {type: label, value: B5}
+        - {type: string, value: "%"}
+        - {type: string, value: "@"}
+        - {type: string, value: "#"}
+    derivation: 将关系码首次出现顺序误当成语义对应。
+  hints:
+    schema_name: 锚定带类型关系图的联合对齐与单边编辑敏感性迁移
+    oracle_mindset: {insight: 对 3! 节点排列与 3! 关系码排列联合计分，要求最高分的联合假设唯一。, when_to_use: 噪声足以欺骗逐节点贪心时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p6_chain:verify_formal_p6_align_l2_01
+    method: exhaustive-joint-node-predicate-alignment
+  provenance: original; formal AR-hard chain using optimal-alignment margin and edit certificates
+  verified: 唯一联合满分解保留六条信号；首次出现词典下唯一解得三分且答案不同。
+
+- id: FORMAL-P6-ALIGN-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: K-角色映射
+  schema_id: joint-typed-alignment-edit-sensitivity-v1
+  schema_name: 锚定带类型关系图的联合对齐与单边编辑敏感性迁移
+  chain: p6-alignment-sensitivity-v1
+  level: 3
+  source: *p6_alignment_source
+  target:
+    domain: 双重重命名的协议同一化
+    problem: &p6_full_target >-
+      档案左含节点 C1—C7、关系码 tor/mek/zul，记录为：
+      C4-tor-C3；C3-mek-C6；C1-zul-C4；C4-zul-C3；C4-zul-C7；
+      C1-tor-C6；C1-tor-C5；C6-mek-C5；C4-tor-C5；C5-mek-C6；
+      C5-tor-C2；C6-zul-C4；C7-zul-C5；C3-zul-C5。
+      档案右含节点 D1—D7、关系码 △/○/□，记录按归档顺序为：
+      D5-△-D4；D2-□-D1；D1-○-D7；D1-□-D4；D4-○-D6；D7-○-D4；
+      D2-□-D6；D5-△-D7；D2-△-D1；D1-○-D6；D5-□-D2；D4-△-D3；
+      D2-○-D3；D5-△-D6；D2-△-D4；D6-□-D2；D7-□-D4；D4-○-D7；
+      D7-□-D6；D2-□-D7；D7-□-D2；D6-□-D4；D3-○-D4。
+      已知 C5↔D4、C4↔D2。联合选择其余五个节点的一一映射和三种关系码双射，
+      每条左记录映成右侧同码直接记录得 1 分，其他右记录可为噪声。求唯一最高分映射。
+      依次输出 C2、C7、C1、C6、C3 对应节点，再输出 tor、mek、zul 对应码。
+    answer:
+      parts:
+        - {type: label, value: D3}
+        - {type: label, value: D6}
+        - {type: label, value: D5}
+        - {type: label, value: D7}
+        - {type: label, value: D1}
+        - {type: string, value: △}
+        - {type: string, value: ○}
+        - {type: string, value: □}
+  mapping:
+    objects: {A1: C5, A2: C2, A3: C7, A4: C1, A5: C6, A6: C3, A7: C4, B1: D6, B2: D2, B3: D7, B4: D4, B5: D1, B6: D5, B7: D3, nex: tor, vul: mek, sor: zul, "%": △, "@": ○, "#": □}
+    shared_relations: [整个联合对齐实例在左右节点和两套关系码上同时重命名, 两个锚点与十四条信号记录保持, 右侧额外记录仍只作无需反向解释的噪声, baseline 最优分 14 且领先唯一 runner-up 一分]
+    varied: [对对齐问题本身做双层跨域置换，而不是只重命名单张图]
+  lure:
+    problem: >-
+      使用目标完全相同的左右档案、锚点和评分，但关系词典必须按两侧记录首次出现顺序固定为
+      tor↔△、mek↔□、zul↔○。在此词典下求最高分节点映射并按目标八段格式输出。
+    solution: 固定该词典后，唯一最优节点序列为 D1,D3,D5,D6,D7，得 8 分。
+    answer:
+      parts:
+        - {type: label, value: D1}
+        - {type: label, value: D3}
+        - {type: label, value: D5}
+        - {type: label, value: D6}
+        - {type: label, value: D7}
+        - {type: string, value: △}
+        - {type: string, value: □}
+        - {type: string, value: ○}
+    why_surface_similar: 节点、记录、锚点和直接边评分完全相同。
+    why_structurally_different: lure 用归档顺序外生固定关系词典，目标必须联合恢复两层置换。
+    wrong_schema_id: first-occurrence-fixed-codebook-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: D1}
+        - {type: label, value: D3}
+        - {type: label, value: D5}
+        - {type: label, value: D6}
+        - {type: label, value: D7}
+        - {type: string, value: △}
+        - {type: string, value: □}
+        - {type: string, value: ○}
+    derivation: 用首次出现顺序固定错误关系词典，再优化节点映射。
+  hints:
+    schema_name: 锚定带类型关系图的联合对齐与单边编辑敏感性迁移
+    oracle_mindset: {insight: 识别目标是 source 整个联合对齐实例的双层重命名；迁移最优映射和一分边际证书，而非重新做局部贪心。, when_to_use: 两张图以及图间代码词典都被再次重命名时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p6_chain:verify_formal_p6_align_l3_01
+    method: exhaustive-joint-alignment-and-meta-isomorphism
+  provenance: original; formal AR-hard chain using optimal-alignment margin and edit certificates
+  verified: 穷举 5!×3! 个联合假设，唯一满分映射得 14，唯一 runner-up 得 13；固定错误词典唯一得分 8 且节点映射不同。
+
+- id: FORMAL-P6-ALIGN-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: K-角色映射
+  schema_id: joint-typed-alignment-edit-sensitivity-v1
+  schema_name: 锚定带类型关系图的联合对齐与单边编辑敏感性迁移
+  chain: p6-alignment-sensitivity-v1
+  level: 4
+  source: *p6_alignment_source
+  target:
+    domain: 双重重命名协议的一次关系替换
+    problem: >-
+      档案左含节点 C1—C7、关系码 tor/mek/zul，记录为：
+      C4-tor-C3；C3-mek-C6；C1-zul-C4；C4-zul-C3；C4-zul-C7；
+      C1-tor-C6；C1-tor-C5；C6-mek-C5；C4-tor-C5；C5-mek-C6；
+      C5-tor-C2；C6-zul-C4；C7-zul-C5；C3-zul-C5。
+      档案右含节点 D1—D7、关系码 △/○/□，记录按归档顺序为：
+      D5-△-D4；D2-□-D1；D1-○-D7；D1-□-D4；D4-○-D6；D7-○-D4；
+      D2-□-D6；D2-△-D1；D1-○-D6；D5-□-D2；D4-△-D3；D6-○-D4；
+      D2-○-D3；D5-△-D6；D2-△-D4；D6-□-D2；D7-□-D4；D4-○-D7；
+      D7-□-D6；D2-□-D7；D7-□-D2；D6-□-D4；D3-○-D4。
+      与旧档案相比，D5-△-D7 已删除，D6-○-D4 已加入。
+      已知 C5↔D4、C4↔D2。仍联合选择其余五节点的一一映射与三种关系码双射，
+      最大化左侧十四条记录中被右侧同码直接记录保留的数量。依次输出
+      C2、C7、C1、C6、C3 对应节点，再输出 tor、mek、zul 对应码。
+    answer:
+      parts:
+        - {type: label, value: D3}
+        - {type: label, value: D7}
+        - {type: label, value: D5}
+        - {type: label, value: D6}
+        - {type: label, value: D1}
+        - {type: string, value: △}
+        - {type: string, value: ○}
+        - {type: string, value: □}
+  mapping:
+    objects: {A1: C5, A2: C2, A3: C7, A4: C1, A5: C6, A6: C3, A7: C4, B1: D6, B2: D2, B3: D7, B4: D4, B5: D1, B6: D5, B7: D3, nex: tor, vul: mek, sor: zul, "%": △, "@": ○, "#": □}
+    shared_relations: [双层重命名和锚点保持, 十四条左记录及直接边评分函数保持, source 的 baseline 与唯一 runner-up 只在 A3/A5 的像上交换, 关系词典保持]
+    removed_relations: [D5-△-D7 对应 source 编辑证书中的 B6-%-B3]
+    added_relations: [D6-○-D4 对应 source 编辑证书中的 B1-@-B4]
+    adaptation_required: [恢复对齐问题的元级置换, 识别对应的一删一增, 迁移 source 的编辑后唯一最优映射]
+    varied: [整个实例重命名后再作一次支持边替换，使 baseline 与 runner-up 交换最优性]
+  lure:
+    problem: >-
+      使用目标当前的左右档案、锚点和评分，但按首次出现顺序固定关系词典为
+      tor↔△、mek↔□、zul↔○。在此词典下求最高分节点映射并输出八段结果。
+    solution: 固定词典下唯一最优节点序列为 D1,D3,D5,D6,D7，得 8 分。
+    answer:
+      parts:
+        - {type: label, value: D1}
+        - {type: label, value: D3}
+        - {type: label, value: D5}
+        - {type: label, value: D6}
+        - {type: label, value: D7}
+        - {type: string, value: △}
+        - {type: string, value: □}
+        - {type: string, value: ○}
+    why_surface_similar: 当前节点、记录、编辑、锚点和评分相同。
+    why_structurally_different: lure 的错误关系词典在三条专门噪声边支持下导向另一组节点映射，不能充当目标节点层的捷径。
+    wrong_schema_id: first-occurrence-fixed-codebook-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: D1}
+        - {type: label, value: D3}
+        - {type: label, value: D5}
+        - {type: label, value: D6}
+        - {type: label, value: D7}
+        - {type: string, value: △}
+        - {type: string, value: □}
+        - {type: string, value: ○}
+    derivation: 按首次出现顺序固定错误关系词典后，噪声边把节点优化也牵引到另一组唯一解。
+  hints:
+    schema_name: 锚定带类型关系图的联合对齐与单边编辑敏感性迁移
+    oracle_mindset: {insight: 把 source 的一分最优边际视作敏感性证书；对齐一删一增后，原 runner-up 获得缺失支持并成为唯一满分解。, when_to_use: 图对齐实例只发生一项支持边替换且 source 给出 runner-up 结构时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p6_chain:verify_formal_p6_align_l4_01
+    method: exhaustive-joint-alignment-meta-isomorphism-and-edit-sensitivity
+  provenance: original; formal AR-hard chain using optimal-alignment margin and edit certificates
+  verified: 删除 baseline 独占支持并加入 runner-up 缺失支持后，唯一满分节点映射交换 C7/C6 的像，关系词典不变。

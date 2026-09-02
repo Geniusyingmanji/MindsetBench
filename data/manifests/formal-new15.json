@@ -1,0 +1,9 @@
+{
+  "name": "formal-new15-calibration-candidates",
+  "description": "The newly expanded P3, P4, and P6 L0-L4 chains.",
+  "datasets": [
+    "../v1/formal-p3-causal-chain.yaml",
+    "../v1/formal-p4-closure-chain.yaml",
+    "../v1/formal-p6-alignment-chain.yaml"
+  ]
+}

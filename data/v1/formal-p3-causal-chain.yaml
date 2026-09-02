@@ -1,0 +1,232 @@
+- id: FORMAL-P3-CAUSAL-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-因果拓扑
+  schema_id: linear-scm-path-sensitivity-v1
+  schema_name: 线性结构因果模型的总效应路径和与局部系数灵敏度迁移
+  chain: p3-causal-sensitivity-v1
+  level: 0
+  source: &p3_causal_source
+    domain: 十模块干预基准
+    problem: >-
+      一个线性结构因果模型按 X,A,B,C,D,E,F,G,H,Y 的顺序无环生成。省略的项均为外生项；
+      外生项之间即使相关，也不改变下面所问的 do-总效应。结构边及系数为：
+      X→A:2，X→B:-1，X→C:3；A→B:2，A→D:4，A→E:-2；
+      B→D:5，B→E:1，B→F:3；C→D:-2，C→E:2，C→F:-4；
+      D→G:3，D→H:-1，D→Y:2；E→G:5，E→H:2，E→Y:-1；
+      F→G:-2，F→H:4，F→Y:5；G→H:1，G→Y:6；H→Y:-3。
+      求 τ=∂E[Y|do(X=x)]/∂x，并保留按拓扑顺序计算的各节点响应导数，
+      以及边 E→G 的系数每增加 1 时 τ 的单位增量 q。
+    solution: >-
+      在干预图中令 d_X=1，再按拓扑序使用 d_v=Σ_{u→v}β_{uv}d_u；相关外生项和进入 X 的边
+      不属于 do-总效应。得到
+      (d_X,d_A,d_B,d_C,d_D,d_E,d_F,d_G,d_H,d_Y)
+      =(1,2,3,3,17,5,-3,82,63,317)，故 τ=317。
+      E→G 的局部灵敏度是“X 对 E 的效应”乘“G 对 Y 的下游效应”：5×(6+1×(-3))=15。
+      若重命名模型仅把该系数从 5 改成 5+Δ，可直接用 τ'=317+15Δ。
+    answer: "317"
+  target:
+    domain: 三变量剂量干预
+    problem: >-
+      系统关系为 M=2T+ε_M，Y=3T+4M+ε_Y。现在由外部强制把 T 设为 t，
+      切断原来所有进入 T 的生成机制。求 ∂E[Y]/∂t。
+    answer: {parts: [{type: number, value: "11"}]}
+  mapping:
+    objects: {处理 X: 剂量 T, 中介节点: 中介 M, 结局 Y: 结局 Y, 结构系数: 结构系数}
+    shared_relations: [do-总效应等于所有从处理到结局的有向路径系数乘积之和, 也可按拓扑序传播响应导数]
+    varied: [缩为一条直接路径和一条单中介路径]
+  lure:
+    problem: >-
+      使用同一张 T→M、T→Y、M→Y 的有向图，但忽略边上的数值系数；求 T 到 Y 的有向路径条数。
+    solution: 一条直接路径 T→Y 和一条中介路径 T→M→Y，共 2 条。
+    answer: {parts: [{type: number, value: "2"}]}
+    why_surface_similar: 节点和全部有向边完全相同。
+    why_structurally_different: lure 只数路径，目标必须把每条路径的结构系数相乘后求和。
+    wrong_schema_id: unweighted-causal-path-count-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "2"}]}
+    derivation: 把非零结构系数全部折叠为 1，只计算路径条数。
+  hints:
+    schema_name: 线性结构因果模型的总效应路径和与局部系数灵敏度迁移
+    oracle_mindset: {insight: 在干预图上令处理响应为 1，按拓扑序传播导数；等价于对每条有向因果路径的系数乘积求和。, when_to_use: 线性无环 SCM 询问 do-总效应而非观测回归时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p3_chain:verify_formal_p3_causal_l0_01
+    method: dynamic-total-effect-and-explicit-path-enumeration
+  provenance: original; formal AR-hard chain using a reusable path-response certificate
+  verified: 拓扑动态规划与显式路径枚举均得 3+2×4=11；无权路径数为 2。
+
+- id: FORMAL-P3-CAUSAL-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-因果拓扑
+  schema_id: linear-scm-path-sensitivity-v1
+  schema_name: 线性结构因果模型的总效应路径和与局部系数灵敏度迁移
+  chain: p3-causal-sensitivity-v1
+  level: 1
+  source: *p3_causal_source
+  target:
+    domain: 四阶段政策响应
+    problem: >-
+      变量按 T,A,B,Y 无环生成：A=2T+ε_A；B=-T+3A+ε_B；
+      Y=-2T+4A+5B+ε_Y。外生项允许相关。求
+      ∂E[Y|do(T=t)]/∂t。
+    answer: {parts: [{type: number, value: "31"}]}
+  mapping:
+    objects: {处理 X: 政策 T, 中间模块: A/B, 结局 Y: 响应 Y, 结构系数: 线性响应系数}
+    shared_relations: [干预后只沿处理的有向后代传播响应, 多条有向路径的带符号贡献相加]
+    varied: [四节点 DAG 同时含直接路径和三级路径]
+  lure:
+    problem: 使用同一张 T、A、B、Y 的有向图并忽略所有系数，求 T 到 Y 的有向路径条数。
+    solution: 路径为 T→Y、T→A→Y、T→B→Y、T→A→B→Y，共 4 条。
+    answer: {parts: [{type: number, value: "4"}]}
+    why_surface_similar: 有向拓扑与目标完全相同。
+    why_structurally_different: lure 不保留正负系数及路径乘积。
+    wrong_schema_id: unweighted-causal-path-count-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "4"}]}
+    derivation: 用路径数量替代带权总效应。
+  hints:
+    schema_name: 线性结构因果模型的总效应路径和与局部系数灵敏度迁移
+    oracle_mindset: {insight: 先算 d_A=2、d_B=-1+3d_A，再把直接与中介响应代入 Y。, when_to_use: DAG 有共享中介时可避免重复列路径。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p3_chain:verify_formal_p3_causal_l1_01
+    method: dynamic-total-effect-and-explicit-path-enumeration
+  provenance: original; formal AR-hard chain using a reusable path-response certificate
+  verified: 动态传播得到 d_A=2、d_B=5、d_Y=-2+8+25=31；无权路径数为 4。
+
+- id: FORMAL-P3-CAUSAL-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-因果拓扑
+  schema_id: linear-scm-path-sensitivity-v1
+  schema_name: 线性结构因果模型的总效应路径和与局部系数灵敏度迁移
+  chain: p3-causal-sensitivity-v1
+  level: 2
+  source: *p3_causal_source
+  target:
+    domain: 七单元生态干预网
+    problem: >-
+      单元按 T,A,B,C,D,E,F,Y 的顺序无环生成。边及系数为：
+      T→A:2，T→B:-1，T→C:3；A→B:2，A→D:4，A→E:-2；
+      B→D:5，B→E:1，B→F:3；C→D:-2，C→E:2，C→F:-4；
+      D→Y:2，E→Y:-1，F→Y:5。另有未列出的处理前共同原因同时影响 T 与 Y，
+      但没有从 T 指向它的边。现在外部强制把 T 设为 t 并切断原有进入 T 的机制，
+      求 ∂E[Y]/∂t。
+    answer: {parts: [{type: number, value: "14"}]}
+  mapping:
+    objects: {处理 X: 生态干预 T, 中间节点: A—F, 结局 Y: 生态结局 Y, 处理前共同原因: 未列名共同原因}
+    shared_relations: [do-总效应只累计处理发出的有向路径, 进入处理的后门关联不计入因果导数, 共享中间节点的贡献按拓扑序合并]
+    varied: [七个中间和结局节点并加入观测关联干扰叙述]
+  lure:
+    problem: 使用目标中完全相同的 T,A—F,Y 有向边，但把每个非零系数都置为 1；求 T 到 Y 的有向路径条数。
+    solution: 到 D、E、F 的路径数分别为 4、4、3，接到 Y 后共有 11 条。
+    answer: {parts: [{type: number, value: "11"}]}
+    why_surface_similar: 拓扑、变量和处理结局均相同。
+    why_structurally_different: lure 删除系数的符号和大小，也不考查 do 与观测关联的区分。
+    wrong_schema_id: unweighted-causal-path-count-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "11"}]}
+    derivation: 忽略结构系数与符号，只数从 T 到 Y 的路径。
+  hints:
+    schema_name: 线性结构因果模型的总效应路径和与局部系数灵敏度迁移
+    oracle_mindset: {insight: 不要把处理前共同原因的观测关联加进 do-导数；只在干预图中传播 d_T=1。, when_to_use: 题干同时给出结构方程与混杂叙述时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p3_chain:verify_formal_p3_causal_l2_01
+    method: dynamic-total-effect-and-explicit-path-enumeration
+  provenance: original; formal AR-hard chain using a reusable path-response certificate
+  verified: d_D=17、d_E=5、d_F=-3，故 d_Y=34-5-15=14；无权路径数为 11。
+
+- id: FORMAL-P3-CAUSAL-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-因果拓扑
+  schema_id: linear-scm-path-sensitivity-v1
+  schema_name: 线性结构因果模型的总效应路径和与局部系数灵敏度迁移
+  chain: p3-causal-sensitivity-v1
+  level: 3
+  source: *p3_causal_source
+  target:
+    domain: 重命名的十站信号干预网
+    problem: &p3_full_target >-
+      信号站按 J,R,K,N,S,V,L,Q,P,W 的顺序无环生成。省略项均为外生扰动，且可能相关。
+      结构边及系数按采集顺序记录为：
+      N→S:-2，V→Q:5，Q→W:6，J→N:3，V→W:-1，S→Q:3；
+      R→K:2，S→W:2，N→V:2，K→V:1，L→Q:-2，L→P:4；
+      J→R:2，P→W:-3，R→V:-2，Q→P:1，K→S:5，L→W:5；
+      K→L:3，R→S:4，N→L:-4，V→P:2，J→K:-1，S→P:-1。
+      J 还受一个未列名背景量影响，该背景量也直接影响 W。现在外部强制把 J 设为 j，
+      切断原来所有进入 J 的生成机制。求 ∂E[W]/∂j。
+    answer: {parts: [{type: number, value: "317"}]}
+  mapping:
+    objects: {X: J, A: R, B: K, C: N, D: S, E: V, F: L, G: Q, H: P, Y: W}
+    shared_relations: [十节点结构系数逐边保持, 处理前共同原因不进入 do-总效应路径和, 各节点响应导数构成可迁移的全局证书, 四十四条处理到结局路径及其带符号乘积逐一对应]
+    varied: [全部节点与领域重命名并加入无关的处理前共同原因]
+  lure:
+    problem: 使用目标完全相同的十站有向拓扑，但忽略边上系数；求 J 到 W 的有向路径条数。
+    solution: 令 J 的路径计数为 1 并按拓扑序相加，得到 R=1、K=2、N=1、S=4、V=4、L=3、Q=11、P=22、W=44。
+    answer: {parts: [{type: number, value: "44"}]}
+    why_surface_similar: 变量、方向、起点和终点完全相同。
+    why_structurally_different: lure 的无权计数不能保留正负结构系数，亦不能代表 do-总效应。
+    wrong_schema_id: unweighted-causal-path-count-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "44"}]}
+    derivation: 把所有非零结构系数当作 1，返回无权路径数。
+  hints:
+    schema_name: 线性结构因果模型的总效应路径和与局部系数灵敏度迁移
+    oracle_mindset: {insight: 先用全局入出边和系数签名恢复 source 到目标的节点置换；若逐边保持，直接迁移 source 的响应导数证书。, when_to_use: 大型线性 SCM 是已解模型的跨域完全重命名时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p3_chain:verify_formal_p3_causal_l3_01
+    method: dynamic-total-effect-explicit-path-enumeration-and-isomorphism
+  provenance: original; formal AR-hard chain using a reusable path-response certificate
+  verified: 重命名后的拓扑动态规划与 44 条显式有向路径带权求和均得 317。
+
+- id: FORMAL-P3-CAUSAL-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-因果拓扑
+  schema_id: linear-scm-path-sensitivity-v1
+  schema_name: 线性结构因果模型的总效应路径和与局部系数灵敏度迁移
+  chain: p3-causal-sensitivity-v1
+  level: 4
+  source: *p3_causal_source
+  target:
+    domain: 重命名十站网的局部机制漂移
+    problem: >-
+      信号站按 J,R,K,N,S,V,L,Q,P,W 的顺序无环生成。省略项均为外生扰动，且可能相关。
+      结构边及系数按采集顺序记录为：
+      N→S:-2，V→Q:9，Q→W:6，J→N:3，V→W:-1，S→Q:3；
+      R→K:2，S→W:2，N→V:2，K→V:1，L→Q:-2，L→P:4；
+      J→R:2，P→W:-3，R→V:-2，Q→P:1，K→S:5，L→W:5；
+      K→L:3，R→S:4，N→L:-4，V→P:2，J→K:-1，S→P:-1。
+      J 还受一个未列名背景量影响，该背景量也直接影响 W。现在外部强制把 J 设为 j，
+      切断原来所有进入 J 的生成机制。求 ∂E[W]/∂j。
+    answer: {parts: [{type: number, value: "377"}]}
+  mapping:
+    objects: {X: J, A: R, B: K, C: N, D: S, E: V, F: L, G: Q, H: P, Y: W}
+    shared_relations: [十节点有向拓扑与除一条边外的结构系数保持, do-总效应对单条边系数是仿射函数, source 响应导数与下游效应可作为局部灵敏度证书, 处理前共同原因仍不进入干预响应且四十四条有向路径保持]
+    added_relations: [V→Q 对应 E→G，结构系数由 5 改为 9]
+    adaptation_required: [恢复节点置换, 检查逐边系数并发现唯一漂移, 用 317+(9-5)×15 更新]
+    varied: [跨域重命名与单一因果机制系数漂移同时存在]
+  lure:
+    problem: 使用目标完全相同的十站有向拓扑，但忽略边上系数；求 J 到 W 的有向路径条数。
+    solution: 系数 5→9 不改变拓扑；按拓扑序累计仍有 44 条 J 到 W 的路径。
+    answer: {parts: [{type: number, value: "44"}]}
+    why_surface_similar: 节点、全部边、起点和终点相同，且包含发生漂移的那条边。
+    why_structurally_different: 无权路径计数对系数漂移完全不敏感，而目标总效应必须响应这一 broken relation。
+    wrong_schema_id: unweighted-causal-path-count-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "44"}]}
+    derivation: 忽略权重与局部系数漂移，只数拓扑路径。
+  hints:
+    schema_name: 线性结构因果模型的总效应路径和与局部系数灵敏度迁移
+    oracle_mindset: {insight: 对齐全局结构后逐边核对系数；总效应对单边系数的导数等于处理到该边尾的效应乘该边头到结局的效应。, when_to_use: 目标 SCM 是已解模型的重命名并仅有一个局部机制系数改变时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p3_chain:verify_formal_p3_causal_l4_01
+    method: dynamic-total-effect-explicit-path-enumeration-and-local-sensitivity
+  provenance: original; formal AR-hard chain using a reusable path-response certificate
+  verified: V 的处理响应为 5，Q 到 W 的下游效应为 3；系数增加 4 使总效应增加 60，从 317 变为 377。

@@ -48,3 +48,92 @@ python3 harness/prompts.py L3-A-01 target-only   # 生成某题某条件的评�
 ## 现状
 
 题库 85 题（L0×2 / L1×15 / L2×19 / L3×30 / L4×19），七条认知线程全覆盖 L1–L4；固定源链 ×2 + 多跳长链 ×6；全部答案（含照搬错误答案与 lure 答案）经独立脚本验证。分诊与已知问题见 data/CASE_STATUS.md，路线图见 PLAN.md 第 7 节。
+
+## 开发版工具链
+
+新的类型化工具链位于 `src/mindsetbench/`，保留原有 `harness/` 接口兼容。首个 vertical slice 覆盖 L0–L4 各一题，并提供结构校验、严格判分、核心提示条件、可执行答案验证、可恢复 SQLite runner 与基础迁移指标。
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -e '.[dev]'
+
+.venv/bin/mb validate
+.venv/bin/mb verify all
+.venv/bin/mb smoke
+.venv/bin/pytest -q
+```
+
+`mb validate --strict-v1` 会把旧版题目缺少的结构化 copy probe、lure 解答、显式 split、oracle hint 和 verifier 当作错误；普通 `mb validate` 维持旧数据兼容，并以 warning 形式给出迁移清单。
+
+## 多范式扩展开发集
+
+首批 P2/P3/P4/P6 扩展包含四条固定源 L0—L4 链，共 20 题：
+
+```bash
+.venv/bin/mb validate data/v1/expansion20.yaml --strict-v1
+.venv/bin/mb validate-cards data/schema_cards/pilot-v1.yaml data/v1/expansion20.yaml
+.venv/bin/mb verify all --dataset data/v1/expansion20.yaml
+```
+
+对应 schema cards 位于 `data/schema_cards/pilot-v1.yaml`，初测结果与难度分诊见 `docs/expansion20-report.md`。这批题已通过结构与答案验证，但强模型初测存在明显天花板效应，当前只作为 calibration/sanity 候选。
+
+## AR-hard 迭代与正式扩展候选 20 题
+
+基于类比推理“结构抽取—跨域映射—broken relation 适配”方法的 dev seeds 位于 `data/v1/hard-seeds.yaml`。经过多轮 GPT-5.5/GPT-5.4 配对校准，P2 机制首先通过；当前又完成了 P3 因果路径灵敏度、P4 规则闭包消融和 P6 联合图对齐编辑三条链。四个范式各含 L0—L4 五题，共 20 个正式扩展候选：
+
+```bash
+.venv/bin/mb validate data/v1/hard-seeds.yaml --strict-v1
+.venv/bin/mb verify all --dataset data/v1/hard-seeds.yaml
+
+.venv/bin/mb validate data/v1/formal-p2-sensitivity-chain.yaml --strict-v1
+.venv/bin/mb validate-cards \
+  data/schema_cards/formal-p2-sensitivity-v1.yaml \
+  data/v1/formal-p2-sensitivity-chain.yaml
+.venv/bin/mb verify all --dataset data/v1/formal-p2-sensitivity-chain.yaml
+
+.venv/bin/mb validate data/v1/formal-p3-causal-chain.yaml --strict-v1
+.venv/bin/mb verify all --dataset data/v1/formal-p3-causal-chain.yaml
+
+.venv/bin/mb validate data/v1/formal-p4-closure-chain.yaml --strict-v1
+.venv/bin/mb verify all --dataset data/v1/formal-p4-closure-chain.yaml
+
+.venv/bin/mb validate data/v1/formal-p6-alignment-chain.yaml --strict-v1
+.venv/bin/mb verify all --dataset data/v1/formal-p6-alignment-chain.yaml
+
+# 无复制聚合：四条链 20 题、四张 schema card、构造硬门槛
+.venv/bin/mb validate data/manifests/formal20.json --strict-v1
+.venv/bin/mb validate-cards \
+  data/manifests/formal20-cards.json \
+  data/manifests/formal20.json
+.venv/bin/mb audit data/manifests/formal20.json --require-complete-chains
+.venv/bin/mb verify all --dataset data/manifests/formal20.json
+```
+
+构造协议见 `docs/AR_HARD_CONSTRUCTION.md`，P2 的每轮失败模式和多样本结果见 `docs/hard-seed-eval.md`，20 题的构造与校准状态见 `docs/formal20-report.md`。四条链仍置于 `calibration` split；P3/P4/P6 尚需在可用端点上完成多样本、多模型校准，不应提前混入隐藏 test split。
+
+真实模型实验通过环境变量传入密钥，不把凭据写进命令参数、配置或结果库：
+
+```bash
+export MINDSETBENCH_API_KEY='...'
+.venv/bin/mb run \
+  --dataset data/v1/expansion20.yaml \
+  --database artifacts/runs/example.sqlite \
+  --experiment-id example-v1 \
+  --model MODEL_ID \
+  --endpoint https://example.com/v1/chat/completions
+```
+
+三条新链的 L3/L4 可用 `data/manifests/formal-new-high.json` 统一预筛。实验结束后可重复读取 SQLite，并应用预注册的 target window、source gain、structural selectivity 与覆盖率门槛：
+
+```bash
+.venv/bin/mb plan-run \
+  --dataset data/manifests/formal-new-high.json \
+  --samples-per-item 3 \
+  --max-output-tokens 8192
+
+.venv/bin/mb report \
+  --database artifacts/runs/formal-new-high-gpt55.sqlite \
+  --experiment-id formal-new-high-gpt55-paired-v1 \
+  --calibration-gates \
+  --min-samples 3
+```

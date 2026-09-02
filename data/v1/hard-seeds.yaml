@@ -1,0 +1,750 @@
+- id: HARD-P2-L3-01
+  version: "1.0"
+  split: dev
+  paradigm: P2
+  thread: B-符号约束
+  schema_id: parity-toggle-with-cardinality-01
+  schema_name: 从局部翻转恢复全局状态并满足集合约束
+  level: 3
+  source:
+    domain: 数字电路自检
+    problem: >-
+      六个指示位 A—F 初始均为 0。按钮 B1—B6 每个至多按一次，按下会翻转所列位：
+      B1:ABC，B2:BD，B3:ACE，B4:CDF，B5:BEF，B6:ADE。
+      要使六位最终全为 1，输出按编号字典序最小的按钮集合；多项用分号分隔。
+    solution: >-
+      将每个按钮是否按下记为 GF(2) 变量，某位最终为 1 等价于覆盖该位的按钮变量异或为 1。
+      对六个方程消元得到两个可行集合 {B1,B2,B5} 与 {B2,B4,B6}；按编号比较，前者更小。
+    answer: B1;B2;B5
+  target:
+    domain: 合成细胞脉冲实验
+    problem: >-
+      九个荧光标记 A—I 初始均为暗。十种脉冲 J1—J10 每种至多施加一次；每次会把所列标记
+      从暗变亮或从亮变暗：J1:DI，J2:CEGI，J3:BFGH，J4:AI，J5:BEFGHI，
+      J6:DFG，J7:CDGI，J8:CDEGH，J9:BCEH，J10:ABCDEFGI。
+      实验结束时必须恰有 A、D、G、H 为亮，其余为暗，并且必须恰好施加四种脉冲。
+      按编号升序输出这四种脉冲；用分号分隔。
+    answer:
+      parts:
+        - {type: label, value: J1}
+        - {type: label, value: J5}
+        - {type: label, value: J7}
+        - {type: label, value: J10}
+  mapping:
+    objects: {电路位: 荧光标记, 按钮: 实验脉冲, 按一次: 施加一次, 目标位模式: 目标亮暗模式}
+    shared_relations:
+      - 每个操作对一组二元状态执行翻转
+      - 同一状态被翻转偶数次保持、奇数次改变
+      - 全局目标等价于一组异或约束
+    added_relations: [目标另要求所选操作集合的基数恰好为四]
+    adaptation_required: [先求异或方程的全部仿射解，再按集合基数筛选，而非任取一个消元解]
+    varied: [六状态六操作改为九状态十操作的欠定系统，并加入基数约束]
+  lure:
+    problem: >-
+      使用相同的九个标记和十种脉冲覆盖表，但这套标记一旦被脉冲点亮就不会熄灭；
+      只要求 A、D、G、H 最终都亮，其他标记状态不作要求。求脉冲数最少的集合；
+      若并列，取按编号字典序最小者。
+    solution: >-
+      这是单调覆盖而非翻转抵消。没有单个脉冲同时覆盖 A、D、G、H；
+      J3 覆盖 G、H，J10 覆盖 A、D、G，二者合并满足目标，且是字典序最小的二脉冲解。
+    answer:
+      parts:
+        - {type: label, value: J3}
+        - {type: label, value: J10}
+    why_surface_similar: 标记、脉冲及目标状态完全相同。
+    why_structurally_different: lure 的点亮不可逆且允许额外标记变亮，是单调集合覆盖；目标操作会翻转抵消，并要求完整亮暗模式与四脉冲基数。
+    wrong_schema_id: monotone-set-cover-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: J3}
+        - {type: label, value: J10}
+    derivation: 把可逆翻转误作只增不减的覆盖，选择能并集覆盖目标标记的最少脉冲 J3、J10。
+  hints:
+    schema_name: 从局部翻转恢复全局状态并满足集合约束
+    oracle_mindset:
+      insight: 先把反复翻转编码成 GF(2) 线性约束，枚举自由变量产生的全部解，再施加非线性的集合基数约束。
+      when_to_use: 多个操作对重叠的二元状态执行可抵消翻转，且还有限制操作数量时。
+  verification:
+    entrypoint: mindsetbench.verification.hard_seeds:verify_hard_p2_l3_01
+    method: exhaustive-bitmask-enumeration
+  provenance: original; AR-style transfer from digital circuit syndrome solving to synthetic-cell pulse design
+  verified: 穷举 2^10 个操作子集得到四个可达解，其中唯一四元素解为 J1,J5,J7,J10。
+
+- id: HARD-P3-L3-01
+  version: "1.0"
+  split: dev
+  paradigm: P3
+  thread: H-因果拓扑
+  schema_id: multi-backdoor-with-posttreatment-01
+  schema_name: 从叙述恢复路径并区分混杂代理、中介和对撞
+  level: 3
+  source:
+    domain: 公共卫生政策
+    problem: >-
+      基线风险 U 同时影响是否采用政策 T 和结局 Y；政策 T 会改变中间行为 M，M 再影响 Y，
+      且 T 也直接影响 Y。要识别 T 对 Y 的总效应，在 U、M 中应调整哪些变量？
+    solution: U 打开 T←U→Y 后门，必须调整；M 位于 T→M→Y 上，是总效应的一部分，不能调整。答案 U。
+    answer: U
+  target:
+    domain: 软件运维政策评估
+    problem: >-
+      某公司想评估采用自动回滚 X 对事故损失 Y 的总影响。长期行政传统 A 会影响是否采用 X，
+      也会提高审计强度 B；B 会降低 Y，但 A 无法直接观测。工作负荷 C 同时影响 X 与 Y。
+      采用 X 会改变告警数量 M，M 又影响 Y；X 也可能直接影响 Y。X 与 Y 都会增加事后复盘 D
+      被启动的概率。地区补贴 Z 影响 X，但除经由 X 外不影响上述变量。
+      数据中可观测 B、C、M、D、Z。为识别 X 对 Y 的总效应，输出一个变量数最少的有效调整集，
+      按字母排序并用分号分隔；若无需调整输出 NONE。
+    answer:
+      parts:
+        - {type: label, value: B}
+        - {type: label, value: C}
+  mapping:
+    objects: {政策 T: 自动回滚 X, 结局 Y: 事故损失 Y, 基线风险 U: 工作负荷 C, 中间行为 M: 告警数量 M}
+    shared_relations:
+      - 处理前共同原因产生必须阻断的后门路径
+      - 处理后的中介承载部分总效应
+      - 总效应调整集不能包含处理中介
+    added_relations:
+      - 不可观测共同原因 A 通过可观测 B 位于另一条后门路径上
+      - 事后复盘 D 是 X 与 Y 的共同结果
+      - Z 只影响处理，不是必要调整变量
+    adaptation_required: [逐路径检查并选择 B、C，排除中介 M、对撞后代 D 与非必要工具变量 Z]
+    varied: [三节点显式图改为需从自然叙述恢复的九变量多路径结构]
+  lure:
+    problem: >-
+      沿用完全相同的公司、变量和影响关系，但研究问题改为自动回滚 X 不经过告警数量 M 的直接效应。
+      输出变量数最少的有效调整集，按字母排序并用分号分隔。
+    solution: B、C 阻断两条后门；M 需被固定以排除 X→M→Y 的中介部分；D 是共同结果，Z 非必要。答案 B;C;M。
+    answer:
+      parts:
+        - {type: label, value: B}
+        - {type: label, value: C}
+        - {type: label, value: M}
+    why_surface_similar: 所有变量和事实相同，仅估计量从总效应变成直接效应。
+    why_structurally_different: M 在直接效应问题中需要固定，在总效应问题中必须保留。
+    wrong_schema_id: controlled-direct-effect-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: B}
+        - {type: label, value: C}
+        - {type: label, value: M}
+    derivation: 把所有位于 X 与 Y 之间且能预测 Y 的变量都控制，错误切断了目标总效应的中介路径。
+  hints:
+    schema_name: 从叙述恢复路径并区分混杂代理、中介和对撞
+    oracle_mindset:
+      insight: 先从叙述画出方向图，逐条阻断进入处理的非因果路径，同时排除处理后中介和共同结果。
+      when_to_use: 多个处理前与处理后变量混在自然叙述中，需要寻找总效应的最小调整集时。
+  verification:
+    entrypoint: mindsetbench.verification.hard_seeds:verify_hard_p3_l3_01
+    method: backdoor-graph-enumeration
+  provenance: original; AR-style transfer from epidemiologic adjustment to software policy evaluation
+  verified: 枚举 B,C,M,D,Z 的全部子集并执行后门与后代约束，唯一最小集为 B,C。
+
+- id: HARD-P4-L3-01
+  version: "1.0"
+  split: dev
+  paradigm: P4
+  thread: I-规范规则
+  schema_id: derived-exception-priority-01
+  schema_name: 事实派生后执行例外与不可覆盖禁止
+  level: 3
+  source:
+    domain: 海底站运输章程
+    problem: >-
+      一般条款：离站货舱须有站长批准。例外：紧急医疗货舱同时有医官批准和定位信标时可免站长批准。
+      最高条款：危险货舱一律不得离站，任何批准不得覆盖。记录 S1 普通且有站长批准；
+      S2 普通且无批准；S3 紧急医疗、无站长批准但有医官批准和信标；S4 危险且有站长批准。
+      输出全部违规编号。
+    solution: S1 合规；S2 缺一般批准；S3 完整满足例外；S4 被最高禁止覆盖批准。答案 S2;S4。
+    answer: S2;S4
+  target:
+    domain: 环轨样本发运章程
+    problem: >-
+      本题世界只有以下条款和记录。①发往环轨站的舱体须有指挥官批准。
+      ②紧急医疗舱若同时有医官批准和工作信标，可不受①限制。训练演习不算紧急。
+      ③危险舱不得发运，①②及任何批准都不能改变此条。
+      ④Lumen 样本若外壳完整性测试失败就算危险，通过则不算危险；Nox 样本除非持有去污证，否则算危险。
+      记录：Q1 环轨普通舱，有指挥官批准，惰性样本；Q2 环轨普通舱，无指挥官批准，惰性样本；
+      Q3 环轨紧急医疗舱，无指挥官批准，有医官批准和工作信标，惰性样本；
+      Q4 环轨紧急医疗舱，无指挥官批准，有医官批准但信标失效，惰性样本；
+      Q5 环轨医疗训练舱，无指挥官批准，有医官批准和工作信标，惰性样本；
+      Q6 环轨普通舱，有指挥官批准，Lumen 样本且完整性测试失败；
+      Q7 环轨紧急医疗舱，无指挥官批准，有医官批准和工作信标，Nox 样本且无去污证；
+      Q8 环轨普通舱，有指挥官批准，Nox 样本且有去污证；
+      Q9 发往核心站的普通舱，无指挥官批准，Nox 样本且无去污证；
+      Q10 发往核心站的普通舱，无指挥官批准，惰性样本。
+      按编号升序输出所有违反至少一条有效条款的记录，用分号分隔。
+    answer:
+      parts:
+        - {type: label, value: Q2}
+        - {type: label, value: Q4}
+        - {type: label, value: Q5}
+        - {type: label, value: Q6}
+        - {type: label, value: Q7}
+        - {type: label, value: Q9}
+  mapping:
+    objects: {离站货舱: 发运舱体, 站长批准: 指挥官批准, 紧急医疗双条件: 医官批准与工作信标, 危险货舱: 派生为危险的样本舱}
+    shared_relations:
+      - 一般批准义务可被完整满足的紧急例外取消
+      - 危险禁止高于一般批准与紧急例外
+      - 每条记录必须应用全部有效条款
+    added_relations:
+      - 危险状态需由样本类型、测试与证书事实派生
+      - 训练演习与失效信标分别构成例外边界
+      - 一般批准只约束环轨目的地，而危险禁止约束所有发运
+    adaptation_required: [先闭包派生危险状态，再逐记录应用例外条件与不可覆盖禁止]
+    varied: [四记录三规则扩为十记录、两个派生规则和多个边界条件]
+  lure:
+    problem: >-
+      使用相同十条记录，但该基地只有条款“发往环轨站的舱体须有指挥官批准”，不存在其他条款。
+      输出全部违规编号。
+    solution: 环轨且无指挥官批准的记录为 Q2、Q3、Q4、Q5、Q7。
+    answer:
+      parts:
+        - {type: label, value: Q2}
+        - {type: label, value: Q3}
+        - {type: label, value: Q4}
+        - {type: label, value: Q5}
+        - {type: label, value: Q7}
+    why_surface_similar: 十条事实记录与一般批准条款完全相同。
+    why_structurally_different: lure 没有紧急例外、危险派生及最高禁止，只需一次条件匹配。
+    wrong_schema_id: flat-ring-approval-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: Q2}
+        - {type: label, value: Q3}
+        - {type: label, value: Q4}
+        - {type: label, value: Q5}
+        - {type: label, value: Q7}
+    derivation: 只执行第一条一般义务，没有应用紧急例外，也没有派生并执行全局危险禁止。
+  hints:
+    schema_name: 事实派生后执行例外与不可覆盖禁止
+    oracle_mindset:
+      insight: 先由底层事实求出派生类别，再判断一般义务、完整例外条件和最高优先禁止，最后合并违规。
+      when_to_use: 规范前件依赖派生事实，且一般规则、例外和不可覆盖禁止同时存在时。
+  verification:
+    entrypoint: mindsetbench.verification.hard_seeds:verify_hard_p4_l3_01
+    method: forward-chaining-priority-rule-engine
+  provenance: original; AR-style transfer from access-control policy evaluation to fictional shipping rules
+  verified: 独立规则引擎逐记录闭包求值，违规集合 Q2,Q4,Q5,Q6,Q7,Q9。
+
+- id: HARD-P6-L3-01
+  version: "1.0"
+  split: dev
+  paradigm: P6
+  thread: K-角色映射
+  schema_id: anchored-dense-graph-mapping-01
+  schema_name: 在插入节点与近邻干扰下保持全局关系签名
+  level: 3
+  source:
+    domain: 数据发布流程
+    problem: >-
+      系统一：A 向 B 发任务；B 把产物交 C；C 批准 D；B 向 E 报告；E 可阻止 C 批准。
+      系统二：P 向 Q 发任务；Q 把产物交 R；R 批准 S；Q 向 T 报告；T 可阻止 R 批准。
+      已知 A↔P、D↔S，输出 B、C、E 依次对应的符号。
+    solution: 同时保持任务接收与双出边得 B↔Q；保持批准末端锚点得 C↔R；保持阻止批准者关系得 E↔T。答案 Q;R;T。
+    answer: Q;R;T
+  target:
+    domain: 极地样本与机器人数据流程
+    problem: >-
+      流程甲有角色 A1—A8：A1 向 A2 发计划；A2 把原始载荷交 A3，并向 A6 报告；
+      A3 把处理后载荷交 A4，同时把校验码发给 A6；A4 认证 A5；A6 可阻止 A4 的认证；A2 监测 A7；
+      A7 可替代 A6 发出阻止；A8 只归档 A5。
+      流程乙有角色 B1—B9：B1 向 B4 发计划；B4 把原始载荷交 B7，并向 B2 报告；
+      B7 先把载荷交 B8，并把校验码发给 B2；B8 再把载荷交 B6；B6 认证 B3；B2 可阻止 B6 的认证；
+      B4 监测 B5；B5 可替代 B2 发出阻止；B9 只归档 B3。
+      已知 A1 对应 B1、A5 对应 B3、A8 对应 B9。要求尽量保持角色参与的全部有向关系，
+      输出 A2、A3、A4、A6、A7 依次对应的 B 角色，用分号分隔。
+    answer:
+      parts:
+        - {type: label, value: B4}
+        - {type: label, value: B7}
+        - {type: label, value: B6}
+        - {type: label, value: B2}
+        - {type: label, value: B5}
+  mapping:
+    objects: {任务发送者: 计划发送者, 执行与报告角色: A2/B4, 中间处理角色: A3/B7, 批准角色: A4/B6, 阻止者: A6/B2}
+    shared_relations:
+      - 首端、末端与归档角色提供三个锚点
+      - 执行角色同时接收计划、传递载荷、报告并监测替代者
+      - 认证者指向末端锚点并被报告接收者阻止
+      - 替代者可替代主要阻止者
+    added_relations: [流程乙在中间处理角色与认证角色之间插入 B8]
+    adaptation_required: [忽略路径长度变化，按全局入边、出边和关系类型联合匹配，而非按线性位置对齐]
+    varied: [五节点链扩成带报告、阻止、监测、替代和归档关系的稠密图]
+  lure:
+    problem: >-
+      沿用两套流程与三个锚点，但流程乙改为 B7 认证 B3，B8 仅把载荷交给 B6，B6 只归档副本；
+      其余关系不变。按关系职责输出 A4 对应的 B 角色。
+    solution: A4 对末端 A5 执行认证；修改后的流程乙中对 B3 执行认证的是 B7，所以答案 B7。
+    answer:
+      parts: [{type: label, value: B7}]
+    why_surface_similar: 角色、锚点与除认证边外的全部叙述相同。
+    why_structurally_different: 唯一决定批准角色的认证边从 B6 改接到 B7。
+    wrong_schema_id: local-position-role-map-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: B4}
+        - {type: label, value: B7}
+        - {type: label, value: B8}
+        - {type: label, value: B2}
+        - {type: label, value: B5}
+    derivation: 前两项映射后按线性位置把 A4 对到插入节点 B8，没有检查谁真正对末端锚点执行认证。
+  hints:
+    schema_name: 在插入节点与近邻干扰下保持全局关系签名
+    oracle_mindset:
+      insight: 用锚点固定方向，为每个角色建立带关系类型的入出边签名；节点插入时优先保持高阶职责而非路径位置。
+      when_to_use: 两个案例的角色图大体相似，但一侧新增中间节点且存在局部签名相近的干扰角色时。
+  verification:
+    entrypoint: mindsetbench.verification.hard_seeds:verify_hard_p6_l3_01
+    method: labeled-relation-graph-matching
+  provenance: original; AR-style transfer from workflow alignment to cross-system role mapping
+  verified: 穷举锚点约束下的一一映射并最大化保留关系，唯一最优映射给出 B4,B7,B6,B2,B5。
+
+- id: HARD-P6-L4-02
+  version: "1.0"
+  split: dev
+  paradigm: P6
+  thread: K-角色映射
+  schema_id: joint-node-relation-codebook-alignment-01
+  schema_name: 联合恢复节点对应与潜在关系词典
+  level: 4
+  source:
+    domain: 异地生态传感器数据对齐
+    problem: >-
+      两支生态队记录了同一群功能角色，但节点代号和三种关系码均被独立重命名。
+      甲队节点 P1—P5，记录为 P1-hun-P2、P2-vek-P3、P3-rom-P5、
+      P2-rom-P4、P4-hun-P5、P3-hun-P4。乙队节点 Q1—Q6，记录为
+      Q4-@-Q2、Q2-#-Q5、Q5-%-Q1、Q2-%-Q3、Q3-@-Q1、Q5-@-Q6、Q6-@-Q3、
+      Q2-@-Q1。已知 P1↔Q4、P5↔Q1；乙队最多有一个额外中继节点，会把一条记录拆成
+      关系码相同的两跳。求 P2、P3、P4 对应节点，以及 hun、vek、rom 依次对应的乙队关系码。
+    solution: >-
+      不能先按名称、频率或局部度数固定关系码；要同时枚举节点单射与关系码双射，
+      对每组联合假设计算被保留的有向关系数。直接边 Q5-@-Q3 缺失，但
+      Q5-@-Q6-@-Q3 恰好是允许的一次中继拆分。唯一保留全部六条关系的联合映射为
+      P2↔Q2、P3↔Q5、P4↔Q3，hun↔@、vek↔#、rom↔%。
+    answer: Q2;Q5;Q3;@;#;%
+  target:
+    domain: 无语义符号档案的协议同一化
+    problem: >-
+      档案甲含节点 A1—A7 与四种无定义记号 nex、vul、sor、tal。其有向记录为：
+      A1-nex-A2；A2-vul-A3；A3-sor-A4；A4-tal-A7；A2-sor-A5；A5-nex-A6；
+      A6-vul-A4；A3-tal-A6；A5-vul-A7；A1-tal-A5；A6-sor-A7；A4-nex-A2。
+
+      档案乙含节点 B1—B8 与四种同样无定义的记号 ○、◇、△、□。其有向记录为：
+      B3-○-B7；B6-◇-B5；B6-△-B3；B7-□-B8；B8-□-B1；B1-◇-B2；
+      B1-△-B3；B3-○-B5；B3-□-B5；B4-○-B1；B4-□-B2；B4-□-B3；
+      B5-○-B2；B5-◇-B1；B5-△-B4；B7-◇-B4；B7-△-B4。
+
+      已知 A1↔B6、A7↔B2。需要同时选择：①将七个 A 节点一对一地嵌入八个 B 节点；
+      ②将四种甲记号与四种乙记号建立双射。一条甲记录若在联合映射后对应于
+      乙档案的同记号直接边，记1分；若对应于经一个额外 B 中继节点的同记号两跳，
+      也记1分。其他乙记录可为噪声。求总分最高的联合映射。
+      依次输出 A2、A3、A4、A5、A6 对应的 B 节点，再输出 nex、vul、sor、tal
+      依次对应的乙记号；全部用分号分隔。
+    answer:
+      parts:
+        - {type: label, value: B3}
+        - {type: label, value: B7}
+        - {type: label, value: B1}
+        - {type: label, value: B5}
+        - {type: label, value: B4}
+        - {type: string, value: △}
+        - {type: string, value: ○}
+        - {type: string, value: □}
+        - {type: string, value: ◇}
+  mapping:
+    objects: {生态功能节点: 档案协议节点, 传感器关系码: 无语义档案记号, 额外采集器: 额外 B 中继节点, 已知生物锚点: 已知档案锚点}
+    shared_relations:
+      - 节点标识与关系标识同时发生了未知置换
+      - 有向三元关系是评分而非表面名称的基本单位
+      - 单个额外中继可将一跳关系伸长为同类型两跳
+      - 真正对应应在全局上最大化保留的带类型有向关系
+    added_relations: [四种关系词典需与五个未知节点同时恢复, 乙档案加入四条会欺骗局部签名的噪声边]
+    adaptation_required: [在节点排列与关系码排列的直积空间中联合优化, 允许一条关系经中继保持而不要求完全同构]
+    varied: [三关系六条记录扩为四关系十二条信号加五条中继或噪声记录]
+  lure:
+    problem: >-
+      使用与目标档案完全相同的 A、B 节点、锚点和有向记录。另一个归档规则规定：
+      关系记号不得根据全局关系重排，而必须按两份记录中首次出现的顺序对齐。
+      因此 nex、vul、sor、tal 被固定对应为 ○、◇、△、□。在此固定词典下，
+      仍按直接边或同记号两跳计分，求分数最高的节点映射，并以目标要求的九段格式输出。
+    solution: >-
+      将固定词典 nex↔○、vul↔◇、sor↔△、tal↔□ 代入后，在锚点
+      A1↔B6、A7↔B2 下枚举五个其余 A 节点对六个其余 B 节点的单射。
+      唯一最高分节点序列为 B1、B5、B4、B3、B7。
+    answer:
+      parts:
+        - {type: label, value: B1}
+        - {type: label, value: B5}
+        - {type: label, value: B4}
+        - {type: label, value: B3}
+        - {type: label, value: B7}
+        - {type: string, value: ○}
+        - {type: string, value: ◇}
+        - {type: string, value: △}
+        - {type: string, value: □}
+    why_surface_similar: 节点、锚点、有向记录、评分方法和输出格式均与目标相同。
+    why_structurally_different: lure 用首次出现顺序外生固定关系词典；目标必须从全局结构中联合推断词典与节点。
+    wrong_schema_id: first-occurrence-fixed-codebook-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: B1}
+        - {type: label, value: B5}
+        - {type: label, value: B4}
+        - {type: label, value: B3}
+        - {type: label, value: B7}
+        - {type: string, value: ○}
+        - {type: string, value: ◇}
+        - {type: string, value: △}
+        - {type: string, value: □}
+    derivation: 误把首次出现顺序当成关系词典，再在这个错误的固定词典下最大化节点对齐得分。
+  hints:
+    schema_name: 联合恢复节点对应与潜在关系词典
+    oracle_mindset:
+      insight: 不要先凭频率或出现顺序锁定关系词典；应联合枚举节点单射与关系类型双射，以全局保留的有向三元关系数评分。
+      when_to_use: 两组带类型关系中，实体标识和关系标识都被重命名，且一侧存在中继或噪声时。
+  verification:
+    entrypoint: mindsetbench.verification.hard_seeds:verify_hard_p6_l4_02
+    method: exhaustive-joint-node-and-predicate-alignment
+  provenance: original; AR-style transfer from heterogeneous ecological sensor alignment to anonymous protocol archive isomorphism
+  verified: 穷举 6P5 个节点单射与 4! 个关系词典，唯一最优解保留 12 条甲关系，比次优解高 2 分。
+
+- id: HARD-P2-L4-02
+  version: "1.0"
+  split: dev
+  paradigm: P2
+  thread: B-符号约束
+  schema_id: poset-cumulative-inversion-01
+  schema_name: 识别偏序上的累积算子并反演局部量
+  level: 4
+  source:
+    domain: 周期信号的除数谐波分解
+    problem: >-
+      某设备只使用 42 的正除数作为周期标签。标签 n 的观测量 H(n) 等于所有周期 d
+      整除 n 的本征量 h(d) 之和，全部数值按模 97 计算。已知
+      H(1)=11、H(2)=48、H(3)=20、H(6)=12、H(7)=35、H(14)=56、H(21)=89、H(42)=31。
+      求 h(42)。
+    solution: >-
+      观测是除数偏序上的向下累积，应作 Möbius 反演，不能把 H(42) 当本征量。
+      由 42=2·3·7 无平方因子，
+      h(42)=H(42)-H(21)-H(14)-H(6)+H(7)+H(3)+H(2)-H(1)
+      =31-89-56-12+35+20+48-11≡63 (mod 97)。
+    answer: "63"
+  target:
+    domain: 可删印记黑箱档案
+    problem: >-
+      一块板的代号是 a—f 中若干个不重复印记按字母顺序连写，空板记为 ∅。
+      每块板 S 有一个未知本征残量 r(S)。仪器对 S 显示的 R(S) 等于从 S 删去任意多个印记
+      能得到的每块板（包括 S 自身和 ∅）的本征残量之和；全部加减都按模 97 计算。
+      仪器完整记录如下，每项为“板:R”：
+
+      ∅:65
+      a:52，b:24，c:32，d:90，e:50，f:22
+      ab:48，ac:17，ad:75，ae:43，af:89，bc:93，bd:88，be:66，bf:45，cd:19，ce:43，cf:88，de:44，df:65，ef:23
+      abc:86，abd:47，abe:11，abf:82，acd:34，ace:12，acf:42，ade:24，adf:25，aef:89，bcd:43，bce:3，bcf:14，bde:34，bdf:31，bef:53，cde:31，cdf:80，cef:67，def:38
+      abcd:51，abce:47，abcf:75，abde:36，abdf:66，abef:40，acde:8，acdf:96，acef:14，adef:4，bcde:93，bcdf:88，bcef:15，bdef:11，cdef:37
+      abcde:72，abcdf:56，abcef:83，abdef:29，acdef:95，bcdef:76
+      abcdef:56
+
+      依次求 r(abcf)、r(acdef)、r(bcdef)、r(abcdef)，用分号分隔。
+    answer:
+      parts:
+        - {type: number, value: "69"}
+        - {type: number, value: "53"}
+        - {type: number, value: "96"}
+        - {type: number, value: "24"}
+  mapping:
+    objects: {周期除数标签: 印记子集板, 本征谐波量: 本征残量, 除数累积观测: 删印记累积读数, 42 的除数格: 六印记布尔格}
+    shared_relations:
+      - 观测量是所有不大于当前元素的局部量之和
+      - 偏序的向下累积可用 Möbius 函数唯一反演
+      - 原素添加对应覆盖关系中的一层上升
+      - 在无平方的布尔区间上反演系数按差集大小交替取正负
+    added_relations: [目标同时询问四个不同大小的子集, 数据扩展到六元布尔格的全部 64 个元素]
+    adaptation_required: [将整除关系改写为印记包含关系, 对每个查询的全部子集按奇偶层作交替求和再取模]
+    varied: [八元除数区间改为六维布尔偏序，并从单查询改为四查询]
+  lure:
+    problem: >-
+      另一台仪器使用同样的 64 块板和完全相同的读数表，但其 R(S) 累加的是能通过
+      向 S 添加印记得到的所有板的本征残量，而不是通过删除印记得到的板。
+      对这台反向累积仪器，依次求四个相同查询的本征残量。
+    solution: >-
+      这是超集方向的累积，应从包含查询板的超集向下反演。对给定表作反向布尔 Möbius 反演得
+      r(abcf)=89、r(acdef)=39、r(bcdef)=20、r(abcdef)=56。
+    answer:
+      parts:
+        - {type: number, value: "89"}
+        - {type: number, value: "39"}
+        - {type: number, value: "20"}
+        - {type: number, value: "56"}
+    why_surface_similar: 64 块板、数值表、模数和四个查询完全相同。
+    why_structurally_different: lure 累加超集而目标累加子集，偏序反演的方向相反。
+    wrong_schema_id: reverse-poset-cumulative-inversion-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: number, value: "89"}
+        - {type: number, value: "39"}
+        - {type: number, value: "20"}
+        - {type: number, value: "56"}
+    derivation: 误把“从 S 删除印记”的向下累积当成“向 S 添加印记”的向上累积，从超集而非子集方向反演。
+  hints:
+    schema_name: 识别偏序上的累积算子并反演局部量
+    oracle_mindset:
+      insight: 先确定读数是沿包含偏序向下累积；在布尔格上，本征量等于全部子集读数按差集大小交替求和。
+      when_to_use: 每个观测值累加了其所有前驱、子集或除数状态，需恢复单个状态的局部贡献时。
+  verification:
+    entrypoint: mindsetbench.verification.hard_seeds:verify_hard_p2_l4_02
+    method: recursive-and-closed-form-boolean-mobius-inversion
+  provenance: original; AR-style transfer from divisor-lattice harmonic decomposition to Boolean-lattice black-box residue recovery
+  verified: 递归下集消元与交替和闭式反演对 64 个状态逐项一致；反向超集反演独立产生 copy-probe。
+
+- id: HARD-P2-L4-03
+  version: "1.0"
+  split: dev
+  paradigm: P2
+  thread: B-符号约束
+  schema_id: weighted-rooted-functional-digraph-count-01
+  schema_name: 将局部唯一后继约束迁移为有向生成树计数
+  level: 4
+  source:
+    domain: 微生物避难迁徙路径组合
+    problem: >-
+      三个菌落 U、V、W 都要固定一个后继去向，避难所 R 不选后继。可用有向通道及
+      并行形态数为 U→V:2、U→R:1、V→W:3、V→R:2、W→U:1、W→R:4。
+      有效方案要求从任一菌落反复跟随所选后继都最终到达 R。一个后继结构若每条边分别有
+      w 种并行形态，记为形态数乘积份不同方案。求有效方案总数。
+    solution: >-
+      局部“每点一个后继”加全局“全部汇入 R”恰好计数指向根 R 的带权有向生成树。
+      建立出边拉普拉斯矩阵 L：L_ii 为 i 的出边权和，L_ij=-w(i→j)。删除 R 行列后得
+      [[3,-2,0],[0,5,-3],[-1,0,5]]，其行列式为 69，即所求总数。
+    answer: "69"
+  target:
+    domain: 抽象后继场的全局收敛认证
+    problem: >-
+      有七个代号 A—G。除 G 外，每个代号必须选且只选一个从自身指向其他代号的
+      “后继对”；G 不选。对每个非 G 代号反复跟随被选的指向，必须有限步后到达 G，
+      不允许落入其他环。可用的指向及其后继对变体数 w 如下：
+
+      A→C:5，A→D:2，A→B:4；
+      B→C:5，B→D:5，B→E:5；
+      C→G:1，C→F:3，C→A:2；
+      D→E:3，D→G:2，D→F:4；
+      E→D:2，E→B:2，E→G:4；
+      F→G:4，F→A:4，F→E:2；
+      G→D:3，G→F:2，G→B:4。
+
+      固定六个非 G 代号的指向结构后，每条已选指向还可独立选择其 w 个变体之一；
+      所以该结构贡献的认证数是六条已选指向的 w 之积。求所有满足全局收敛条件的认证总数，
+      最后只输出该总数对 1009 取余的结果。
+    answer:
+      parts: [{type: number, value: "64"}]
+  mapping:
+    objects: {菌落: 抽象代号, 避难所 R: 收敛点 G, 迁徙后继: 后继对, 通道并行形态: 后继对变体}
+    shared_relations:
+      - 每个非根节点恰有一条被选出边
+      - 所有被选边从任一节点出发都最终汇入根
+      - 全局无非根有向环与指向根的有向生成树等价
+      - 边变体独立使每棵树的贡献为边权乘积
+    added_relations: [节点从四个扩为七个并加入密集环路, 最终总数按素数 1009 取余]
+    adaptation_required: [从自然语言的后继场识别指向根的带权树计数, 使用出边拉普拉斯而非入边拉普拉斯并删除 G 行列]
+    varied: [三个非根节点的小型示例改为六个非根节点的带权密集实例]
+  lure:
+    problem: >-
+      使用完全相同的七个代号、有向边和变体数。但另一种认证要求每个非 G 代号
+      选且只选一条指向自身的入边，并且从 G 沿被选指向的正方向能到达每个代号。
+      同样按已选边的 w 乘积计数，求总数对 1009 的余数。
+    solution: >-
+      这一版计数从 G 向外展开的带权有向树，因此使用入边权和构造的相反方向拉普拉斯余子式。
+      精确行列式为 232700，对 1009 取余得 630。
+    answer:
+      parts: [{type: number, value: "630"}]
+    why_surface_similar: 节点、全部边、权重、根 G 与取模规则完全相同。
+    why_structurally_different: lure 选入边并从根向外可达；目标选出边并向根收敛，所需拉普拉斯方向相反。
+    wrong_schema_id: weighted-out-arborescence-count-01
+  copy_probe:
+    answer:
+      parts: [{type: number, value: "630"}]
+    derivation: 将“每点选一条出边并汇入 G”误作“每点选一条入边并从 G 展开”，使用了相反的拉普拉斯余子式。
+  hints:
+    schema_name: 将局部唯一后继约束迁移为有向生成树计数
+    oracle_mindset:
+      insight: 每个非根点选一条出边且所有路径汇入根，等价于指向根的带权树；其总权是出边拉普拉斯的根余子式。
+      when_to_use: 需计数带权后继函数，并额外要求无非根环、全局汇入指定吸收点时。
+  verification:
+    entrypoint: mindsetbench.verification.hard_seeds:verify_hard_p2_l4_03
+    method: bareiss-directed-matrix-tree-and-exhaustive-source-check
+  provenance: original; AR-style transfer from weighted migration convergence to anonymous successor-field certification
+  verified: 小型 source 用直接枚举与行列式双重复算；target 使用 Bareiss 整数消元得 326980≡64 (mod 1009)，反向 lure 得 232700≡630。
+
+- id: HARD-P2-L4-04
+  version: "1.0"
+  split: dev
+  paradigm: P2
+  thread: B-符号约束
+  schema_id: coefficient-filtered-arborescence-count-01
+  schema_name: 用形式变量将全局基数约束编译为生成树系数提取
+  level: 4
+  source:
+    domain: 受谱线配额约束的菌落迁徙
+    problem: >-
+      菌落 U、V、W 各选一个后继，所有路径必须最终到避难所 R。通道的并行形态数与谱类为：
+      U→V:2,蓝；U→R:1,灰；V→W:3,灰；V→R:2,蓝；W→U:1,蓝；W→R:4,灰。
+      按已选边的形态数乘积计数，求恰好使用一条蓝色通道的有效方案数。
+    solution: >-
+      先把每条蓝边的权改为 wx，灰边仍为 w。指向 R 的带权树总权就变成生成函数，
+      x 的次数精确记录蓝边数。删去 R 的出边拉普拉斯余子式为
+      det([[1+2x,-2x,0],[0,3+2x,-3],[-x,0,4+x]])
+      =12+35x+18x^2+4x^3。因此恰好一条蓝边的系数是 35。
+    answer: "35"
+  target:
+    domain: 带潜在谱类的抽象后继场
+    problem: >-
+      有七个代号 A—G。除 G 外，每个代号必须选且只选一个从自身指向其他代号的
+      后继对；从任一非 G 代号反复跟随被选指向，必须有限步后到达 G。
+      每个可用指向还有变体数 w 与谱类 V 或 P：
+
+      A→C:5,V，A→D:2,P，A→B:4,V；
+      B→C:5,P，B→D:5,V，B→E:5,P；
+      C→G:1,V，C→F:3,P，C→A:2,V；
+      D→E:3,P，D→G:2,V，D→F:4,V；
+      E→D:2,V，E→B:2,P，E→G:4,P；
+      F→G:4,P，F→A:4,V，F→E:2,V。
+
+      一个后继结构的认证数为六条已选指向的 w 之积。只计入恰好选了三条 V 类指向
+      的有效结构；选了 0、1、2、4、5 或 6 条 V 类指向的结构全部排除。
+      求符合条件的认证总数，只输出其对 1009 取余的结果。
+    answer:
+      parts: [{type: number, value: "17"}]
+  mapping:
+    objects: {菌落: 抽象代号, 避难所 R: 收敛点 G, 蓝色通道: V 类指向, 通道形态数: 指向变体数}
+    shared_relations:
+      - 局部唯一后继与全局汇入根等价于指向根的有向树
+      - 边权乘积使树的权总和可由拉普拉斯余子式计算
+      - 给特殊类型边权附加形式变量可记录每棵树使用该类型的次数
+      - 生成多项式中 x^k 的系数恰好筛选使用 k 条特殊边的树
+    added_relations: [特殊边基数从恰好一条改为恰好三条, 生成多项式次数从三次扩到六次]
+    adaptation_required: [在构造拉普拉斯矩阵前将 V 边权替换为 wx, 计算多项式行列式后只提取三次项而非令 x=1]
+    varied: [三个非根节点的一阶系数改为六个非根节点的三阶系数]
+  lure:
+    problem: >-
+      使用相同的 A—G、有向边和变体数，但不限制所选边的谱类：任意 V 边数都可以。
+      仍要求每个非 G 点选一条出边且全部最终汇入 G，按边的 w 乘积计数。
+      求全部认证数对 1009 的余数。
+    solution: >-
+      没有谱类基数筛选时，等价于在谱类生成多项式中令 x=1，即求所有次数系数之和。
+      普通带权有向树余子式为 326980，对 1009 取余得 64。
+    answer:
+      parts: [{type: number, value: "64"}]
+    why_surface_similar: 节点、根、指向、变体数、收敛规则和取模均与目标相同。
+    why_structurally_different: lure 对 V 边数不作筛选，求全部系数之和；目标只求三次系数。
+    wrong_schema_id: unfiltered-weighted-arborescence-count-01
+  copy_probe:
+    answer:
+      parts: [{type: number, value: "64"}]
+    derivation: 识别了普通有向树计数，却忽略“恰好三条 V 边”，直接令谱类生成函数 x=1 求了全部树的权和。
+  hints:
+    schema_name: 用形式变量将全局基数约束编译为生成树系数提取
+    oracle_mindset:
+      insight: 先将 V 类边的权写成 wx，用指向根的出边拉普拉斯余子式得到生成多项式；只取 x^3 系数。
+      when_to_use: 树、路径或组合结构按局部权乘积计数，同时要求恰好使用 k 个某类局部元件时。
+  verification:
+    entrypoint: mindsetbench.verification.hard_seeds:verify_hard_p2_l4_04
+    method: exhaustive-successor-enumeration-and-polynomial-determinant
+  provenance: original; AR-style transfer from spectrum-constrained migration trees to coefficient-filtered anonymous successor fields
+  verified: 枚举 3^6 个后继结构并按 V 边数分层，与六阶形式拉普拉斯行列式逐系数一致；x^3 系数 107980≡17 (mod 1009)。
+
+- id: HARD-P2-L4-05
+  version: "1.3"
+  split: dev
+  paradigm: P2
+  thread: B-符号约束
+  schema_id: analogical-polynomial-sensitivity-update-01
+  schema_name: 识别重命名组合系统并迁移局部参数灵敏度
+  level: 4
+  source:
+    domain: 八菌落谱类迁徙基准
+    problem: >-
+      菌落 U1—U8 各选一条出通道，反复跟随所选通道必须最终到避难所 R。
+      通道记为“去向:形态数,谱类”：
+      U1→U2:2,蓝，U1→U4:5,灰，U1→R:3,灰；
+      U2→U3:4,灰，U2→U5:2,蓝，U2→R:6,灰；
+      U3→U4:3,蓝，U3→U6:4,灰，U3→R:2,蓝；
+      U4→U5:5,灰，U4→U7:3,蓝，U4→R:4,灰；
+      U5→U6:2,蓝，U5→U8:6,灰，U5→R:5,蓝；
+      U6→U7:7,灰，U6→U1:2,蓝，U6→R:3,灰；
+      U7→U8:4,蓝，U7→U2:5,灰，U7→R:2,灰；
+      U8→U1:3,灰，U8→U3:7,蓝，U8→R:4,蓝。
+      按已选边形态数乘积计数。求恰好四条蓝边的总数对 1000 的余数；
+      并在推理中保留完整谱类生成多项式 P(x)，以及灰边 U3→U6 每增加一个形态时
+      对 P(x) 的单位增量 Q(x)。
+    solution: >-
+      给蓝边权乘 x，用指向 R 的出边拉普拉斯余子式。按 x^0 到 x^8 列出系数，
+      P=[1895040,20986920,57806304,78520864,56237600,22042736,4732816,493176,16320]。
+      对边 U3→U6 的权做线性展开，每增加一个灰色形态的单位增量为
+      Q=[473760,4506480,8599776,7211176,3180720,735296,89304,5280,0]。
+      恰好四条蓝边的基准数为 P_4=56237600，对 1000 取余得 600。
+      后续若遇到重命名系统，先用每行的三个去向、权重与谱类作全局签名对齐八个角色；
+      若只有一条边的权重从 w 改为 w+Δ，直接用 P+ΔQ 更新，不要重算整个行列式。
+    answer: "600"
+  target:
+    domain: 重命名后继场的局部重标定
+    problem: >-
+      代号 A—H 各选一条出指向，反复跟随所选指向必须最终到吸收点 Z。
+      指向记为“去向:变体数,谱类”：
+      F→B:2,V，F→D:5,P，F→Z:3,P；
+      B→H:4,P，B→A:2,V，B→Z:6,P；
+      H→D:3,V，H→G:9,P，H→Z:2,V；
+      D→A:5,P，D→C:3,V，D→Z:4,P；
+      A→G:2,V，A→E:6,P，A→Z:5,V；
+      G→C:7,P，G→F:2,V，G→Z:3,P；
+      C→E:4,V，C→B:5,P，C→Z:2,P；
+      E→F:3,P，E→H:7,V，E→Z:4,V。
+      按八条已选边的变体数乘积计数，只计恰好选了四条 V 类边的有效结构。
+      求认证总数对 1000 的余数。
+    answer:
+      parts: [{type: number, value: "200"}]
+  mapping:
+    objects: {U1: F, U2: B, U3: H, U4: D, U5: A, U6: G, U7: C, U8: E, 避难所 R: 吸收点 Z, 蓝色: V 类, 灰色: P 类}
+    shared_relations:
+      - 八个非根节点的三选一出边结构在重命名下保持
+      - 所有后继必须汇入根的全局约束保持
+      - 特殊谱类边数由生成多项式的次数记录
+      - 固定有向边的树总权对该边权是线性的
+    added_relations: [对应 U3→U6 的边 H→G 形态数从 4 增加为 9]
+    adaptation_required: [先从全局出边签名恢复节点重命名, 识别唯一参数变化并用 P_4+5Q_4 局部更新]
+    varied: [生态菌落标识改为无语义后继场代号，且一条灰色边的局部权重发生改变]
+  lure:
+    problem: >-
+      使用与目标完全相同的 A—H、Z、全部有向边、谱类和变体数，
+      但另一种协议忽略“变体数”：每条被选边无论原有几个变体都只计一种。
+      仍要求 A—H 各选一条出边、所有指向链最终到 Z，并且恰好四条为 V 类。
+      求这种无权结构的数量对 1000 的余数。
+    solution: >-
+      将所有边权置为 1，仍用谱变量标记 V 边，对指向 Z 的无权树谱取四次系数。
+      系数为 1545，对 1000 取余得 545。
+    answer:
+      parts: [{type: number, value: "545"}]
+    why_surface_similar: 节点、全部边、谱类、收敛条件和四次系数查询完全相同。
+    why_structurally_different: lure 将每条边的变体数折叠为 1，计数无权结构；目标按八条边的原变体数乘积加权。
+    wrong_schema_id: unweighted-arborescence-spectrum-01
+  copy_probe:
+    answer:
+      parts: [{type: number, value: "545"}]
+    derivation: 保留树结构和 V 边基数，却误将每条边的变体数都当成 1。
+  hints:
+    schema_name: 识别重命名组合系统并迁移局部参数灵敏度
+    oracle_mindset:
+      insight: 先用带权、谱类和去向的全局签名对齐节点；确认只有一条 P 边从 4 变 9 后，用该边的单位灵敏度 Q 更新 P。
+      when_to_use: 已有一个大型组合系统的完整计数与局部灵敏度，新问题是其重命名并只改动一个局部参数时。
+  verification:
+    entrypoint: mindsetbench.verification.hard_seeds:verify_hard_p2_l4_05
+    method: exhaustive-and-polynomial-local-sensitivity-update
+  provenance: original; AR-style transfer from calibrated microbial migration spectra to a renamed abstract successor field with one local perturbation
+  verified: 基准与重标定系统各用 3^8 枚举与八阶多项式行列式双重验证，并逐系数确认 new=base+5Q；v1.1 改为模 1000；v1.3 将 lure 改为忽略变体乘积的无权树谱。
