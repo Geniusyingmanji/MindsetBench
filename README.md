@@ -38,6 +38,47 @@ MindsetBench 用于测量 LLM/agent 能否把一个问题中的认知图式迁�
 
 它们目前都是 calibration/challenge 数据，用于定位失败模式，不代表已经得到稳定的正迁移结论。
 
+## 题目示例
+
+**Case 1：线性因果总效应（P3/L1）**
+
+```text
+A = 2T + ε_A
+B = -T + 3A + ε_B
+Y = -2T + 4A + 5B + ε_Y
+求 ∂E[Y | do(T=t)] / ∂t。
+```
+
+正确图式是沿 DAG 传播响应：`d_A=2`，`d_B=-1+3×2=5`，所以答案为
+`-2+4×2+5×5=31`。`with-source` 提供同类已解结构；`with-lure` 使用同一张图却只数四条路径，答案为 4，用于检测模型是否忽略边权。完整 case 见 [`FORMAL-P3-CAUSAL-L1-01`](data/v1/formal-p3-causal-chain.yaml)。
+
+**Case 2：属性谓词联合规划（P5/L4）**
+
+目标给出 16 张带前置、禁止、置位、清除和费用的操作卡。模型先根据三条集合谓词分别定位唯一卡，再从完整基线独立冻结该卡，计算最优与次优路径层：
+
+```text
+α → K13：最优成本 17，次优成本 18，次优路径 2 条
+β → K2 ：最优成本 17，次优成本 19，次优路径 3 条
+γ → K6 ：最优成本 18，次优成本 19，次优路径 3 条
+```
+
+三次冻结不能叠加；路径首次满足完整目标就必须停止。最终答案包含 3 个七段 block，共 21 段。完整题面见 [`FORMAL-P5-CERT-POLICY-JOINT-01`](data/v1/formal-p5-certificate-policy-joint.yaml)。
+
+## 评测快照
+
+以下均为 GPT-5.6-sol 的小样本 calibration 结果，不是排行榜成绩：
+
+| 实验 | 条件 | 样本 | 整题 exact | 逐段正确 | 7 段 block |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Formal35 单样本预筛 | target-only | 5 题×1 | 4/5 | 29/30 | — |
+| 联合题 solved-reference | target-only | 3 | 0/3 | 50/63 | 1/9 |
+| 联合题 solved-reference | with-source | 3 | 0/3 | 34/63 | 2/9 |
+| 联合题 solved-reference | with-lure | 3 | 1/3 | 54/63 | 4/9 |
+| 联合题 procedure-only | oracle mindset | 3 | 0/3 | 52/63 | 2/9 |
+| 联合题 procedure-only | false mindset | 3 | 0/3 | 44/63 | 0/9 |
+
+Formal35 的 L0–L3 已接近天花板。联合题中 solved source 没有稳定增益，lure 也没有形成稳定的有害控制；procedure-only oracle 相对 false mindset 提高了 12.7 个百分点的逐段正确率和 22.2 个百分点的 block 正确率，但整题 exact 仍为 0。当前结果支持“程序提示改善局部搜索”，尚不支持“已实现稳定 schema transfer”。
+
 ## 快速开始
 
 需要 Python 3.11+：
