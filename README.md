@@ -177,6 +177,14 @@ Q2 又扩展为三道六段最优性证书题，以及三道 target 完全相同
 
 GPT-5.6-sol 单样本预筛在修复路径分隔符契约后为 target-only exact 4/5、逐段 29/30；L4 只错 runner-up 路径数。盲化的 L3/L4 paired 运行中 source 没有提升正确率，lure 则把 L4 从 5/6 段降至 1/6。该结果只用于难度诊断，尚不能估计稳定迁移增益。构造保证、泄露修复和逐条件结果见 `docs/formal35-report.md`。
 
+L4 又派生出三个动作冻结反事实：分别只改变 runner-up 数量、清空旧 runner-up 层、直接击穿旧最优路径。独立 DFS 和 verifier 均通过，但 GPT-5.6-sol 两轮 target-only 都为 3/3；同标签全启用基线 lure 也意外成为有用 scaffold，因此这三题只保留为 counterfactual sanity/ablation。失败分析与后续谓词化联合查询方案见 `docs/p5-certificate-outage-report.md`。
+
+```bash
+.venv/bin/mb validate data/manifests/formal-p5-certificate-outages.json --strict-v1
+.venv/bin/mb audit data/manifests/formal-p5-certificate-outages.json
+.venv/bin/mb verify all --dataset data/manifests/formal-p5-certificate-outages.json
+```
+
 真实模型实验通过环境变量传入密钥，不把凭据写进命令参数、配置或结果库：
 
 ```bash

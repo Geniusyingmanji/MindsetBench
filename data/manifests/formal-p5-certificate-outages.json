@@ -1,0 +1,7 @@
+{
+  "name": "formal-p5-certificate-outage-variants",
+  "description": "Three L4 action-outage counterfactuals that change only runner multiplicity, the runner layer, or the optimum itself.",
+  "datasets": [
+    "../v1/formal-p5-certificate-outages.yaml"
+  ]
+}

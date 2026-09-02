@@ -1,0 +1,198 @@
+- id: FORMAL-P5-CERT-OUTAGE-K13-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-操作证书
+  schema_id: stateful-planning-optimality-certificate-edit-v1
+  schema_name: 有状态操作规划的最优层与次优层证书迁移
+  level: 4
+  source: &outage_source
+    domain: 冻结操作后的双层路径证书
+    problem: >-
+      状态是当前标记集合，每项操作至多使用一次；“需”全有且“禁”全无时才可执行，执行时先清除再置位。
+      初态=a;终态必须含=z;不得含=-。冻结卡=S5；冻结卡仍列在操作表中，但本题不得使用。操作表：
+      S1[1]:需=a;禁=-;置=b;清=-；S2[1]:需=b;禁=-;置=z;清=-；
+      S3[3]:需=a;禁=-;置=z;清=-；S4[2]:需=a;禁=-;置=c;清=-；
+      S5[1]:需=c;禁=-;置=z;清=-。
+      路径首次满足终态即停止。输出六段：最优成本;唯一最优操作串;更低成本目标路径数;最优层目标路径数;次优成本;次优层目标路径数。操作串内部只能用 >，不能用逗号。
+    solution: >-
+      先从可用动作集合删除冻结的 S5，再在状态、已用操作集合和完整有序路径上按成本层枚举。
+      S1>S2 是唯一成本 2 目标路径；未冻结时成本 3 还有 S3 与 S4>S5 两条，冻结 S5 后只剩 S3。
+      证书：C*=2；P*=S1>S2；N<C*=0；N=C*=1；Cnext=3；Nnext=1。
+    answer: 2;S1>S2;0;1;3;1
+  target:
+    domain: 十六卡系统的外围冻结审计
+    problem: >-
+      当前为真的登记项构成状态，每张操作卡至多使用一次；“需”全有且“禁”全无时才可执行，执行时先清除再置位。
+      初态=q,v,p;终态必须含=v,x,y;不得含=q,t,w。冻结卡=K13；冻结卡仍列在操作表中，但本题不得使用。操作表：
+      K13[4]:需=y;禁=-;置=v,x;清=-；K5[7]:需=r;禁=-;置=u,x;清=t,v,w；
+      K2[2]:需=q;禁=-;置=w;清=v；K16[5]:需=s;禁=-;置=v,y;清=u,x；
+      K9[2]:需=u;禁=t;置=s;清=w；K7[2]:需=v;禁=-;置=t;清=p；
+      K12[4]:需=x;禁=-;置=v;清=y；K3[1]:需=y;禁=-;置=p;清=-；
+      K11[6]:需=u;禁=t;置=x,y;清=v,w；K1[2]:需=s;禁=-;置=x;清=u；
+      K15[8]:需=q;禁=-;置=r,t;清=p,v；K6[1]:需=x;禁=-;置=y;清=-；
+      K8[7]:需=q;禁=-;置=t,w;清=p；K4[2]:需=r;禁=-;置=u;清=t；
+      K14[5]:需=r;禁=-;置=s;清=q,t,v,w；K10[3]:需=t,w;禁=-;置=r;清=q。
+      路径首次满足完整终态即停止。输出六段：最优成本;唯一最优操作串;更低成本目标路径数;最优层目标路径数;次优成本;次优层目标路径数。操作串内部只能用 >，不能用逗号。
+    answer:
+      parts:
+        - {type: number, value: "17"}
+        - {type: string, value: K8>K10>K4>K9>K1>K6}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "18"}
+        - {type: number, value: "2"}
+  mapping:
+    objects: {冻结动作: S5→K13, 状态节点: 小型标记集→十标记集, 最优层: 成本2唯一→成本17唯一, 次优层: 成本3候选→成本18候选, 路径计数器: 完整有序路径多重性}
+    shared_relations: [冻结卡仍展示但不属于可执行动作集合, 最优路径不经过冻结卡, 冻结只删除包含该卡的目标路径, 首次命中完整终态即停止, 等成本不同顺序分别计数, 必须继续到首个非空次优层]
+    removed_relations: [K13 可参与成本18次优目标路径]
+    adaptation_required: [保持成本17最优证书, 从成本18层删除唯一包含K13的路径, 把次优层计数从3更新为2]
+    varied: [目标系统规模从五操作扩为十六操作, 冻结影响隐藏在runner-up多重性而不改变最优路径]
+  lure:
+    problem: &all_active_target >-
+      当前为真的登记项构成状态，每张操作卡至多使用一次；“需”全有且“禁”全无时才可执行，执行时先清除再置位。
+      初态=q,v,p;终态必须含=v,x,y;不得含=q,t,w。十六张卡均可使用。操作表：
+      K13[4]:需=y;禁=-;置=v,x;清=-；K5[7]:需=r;禁=-;置=u,x;清=t,v,w；
+      K2[2]:需=q;禁=-;置=w;清=v；K16[5]:需=s;禁=-;置=v,y;清=u,x；
+      K9[2]:需=u;禁=t;置=s;清=w；K7[2]:需=v;禁=-;置=t;清=p；
+      K12[4]:需=x;禁=-;置=v;清=y；K3[1]:需=y;禁=-;置=p;清=-；
+      K11[6]:需=u;禁=t;置=x,y;清=v,w；K1[2]:需=s;禁=-;置=x;清=u；
+      K15[8]:需=q;禁=-;置=r,t;清=p,v；K6[1]:需=x;禁=-;置=y;清=-；
+      K8[7]:需=q;禁=-;置=t,w;清=p；K4[2]:需=r;禁=-;置=u;清=t；
+      K14[5]:需=r;禁=-;置=s;清=q,t,v,w；K10[3]:需=t,w;禁=-;置=r;清=q。
+      路径首次满足完整终态即停止。输出同样的六段证书，操作串内部使用 >。
+    solution: 在十六卡均可使用的版本中，成本17路径唯一；成本18共有三条目标路径。
+    answer: &baseline_answer
+      parts:
+        - {type: number, value: "17"}
+        - {type: string, value: K8>K10>K4>K9>K1>K6}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "18"}
+        - {type: number, value: "3"}
+    why_surface_similar: 十六张卡、初态、终态、费用和证书格式完全相同。
+    why_structurally_different: 参考实例允许 K13，目标实例把 K13 从可执行集合中移除。
+    wrong_schema_id: all-actions-active-certificate
+  copy_probe:
+    answer: *baseline_answer
+    derivation: 忽略冻结声明并沿用十六卡全启用证书。
+  hints:
+    schema_name: 有状态操作规划的最优层与次优层证书迁移
+    oracle_mindset: {insight: 先删除冻结卡，再重放基线最优路径并逐层过滤所有含冻结卡的目标路径。, when_to_use: 局部可用性变化可能只改变最优或次优层的多重性时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_certificate_outage:verify_formal_p5_cert_outage_k13_01
+    method: exhaustive-first-hit-path-certificate-under-action-outage
+  provenance: counterfactual outage variant of FORMAL-P5-CERT-L4-01
+  verified: K13 不在最优路径中，只删去一条成本18路径；证书为 17;K8>K10>K4>K9>K1>K6;0;1;18;2。
+
+- id: FORMAL-P5-CERT-OUTAGE-K2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-操作证书
+  schema_id: stateful-planning-optimality-certificate-edit-v1
+  schema_name: 有状态操作规划的最优层与次优层证书迁移
+  level: 4
+  source: *outage_source
+  target:
+    domain: 十六卡系统的门控冻结审计
+    problem: >-
+      当前为真的登记项构成状态，每张操作卡至多使用一次；“需”全有且“禁”全无时才可执行，执行时先清除再置位。
+      初态=q,v,p;终态必须含=v,x,y;不得含=q,t,w。冻结卡=K2；冻结卡仍列在操作表中，但本题不得使用。操作表：
+      K13[4]:需=y;禁=-;置=v,x;清=-；K5[7]:需=r;禁=-;置=u,x;清=t,v,w；
+      K2[2]:需=q;禁=-;置=w;清=v；K16[5]:需=s;禁=-;置=v,y;清=u,x；
+      K9[2]:需=u;禁=t;置=s;清=w；K7[2]:需=v;禁=-;置=t;清=p；
+      K12[4]:需=x;禁=-;置=v;清=y；K3[1]:需=y;禁=-;置=p;清=-；
+      K11[6]:需=u;禁=t;置=x,y;清=v,w；K1[2]:需=s;禁=-;置=x;清=u；
+      K15[8]:需=q;禁=-;置=r,t;清=p,v；K6[1]:需=x;禁=-;置=y;清=-；
+      K8[7]:需=q;禁=-;置=t,w;清=p；K4[2]:需=r;禁=-;置=u;清=t；
+      K14[5]:需=r;禁=-;置=s;清=q,t,v,w；K10[3]:需=t,w;禁=-;置=r;清=q。
+      路径首次满足完整终态即停止。输出六段：最优成本;唯一最优操作串;更低成本目标路径数;最优层目标路径数;次优成本;次优层目标路径数。操作串内部只能用 >，不能用逗号。
+    answer:
+      parts:
+        - {type: number, value: "17"}
+        - {type: string, value: K8>K10>K4>K9>K1>K6}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "19"}
+        - {type: number, value: "3"}
+  mapping:
+    objects: {冻结动作: S5→K2, 状态节点: 小型标记集→十标记集, 最优层: 成本2唯一→成本17唯一, 次优层: 成本3候选→成本19候选, 路径计数器: 完整有序路径多重性}
+    shared_relations: [冻结卡仍展示但不属于可执行动作集合, 最优路径不经过冻结卡, 冻结会删除包含该卡的目标路径, 首次命中完整终态即停止, 等成本不同顺序分别计数, 空成本层必须跳过直到首个非空次优层]
+    removed_relations: [K2 生成 w 并进入成本18的三条次优路径]
+    adaptation_required: [保持成本17最优证书, 证明成本18目标层被整体清空, 继续枚举到成本19并计得三条]
+    varied: [冻结不只减少多重性而是清空整个旧次优层, 新次优层来自三种K7与K8的可行交错]
+  lure:
+    problem: *all_active_target
+    solution: 在十六卡均可使用的版本中，成本17路径唯一；成本18共有三条目标路径。
+    answer: *baseline_answer
+    why_surface_similar: 十六张卡、初态、终态、费用和证书格式完全相同。
+    why_structurally_different: 参考实例允许 K2，目标实例把 K2 从可执行集合中移除。
+    wrong_schema_id: all-actions-active-certificate
+  copy_probe:
+    answer: *baseline_answer
+    derivation: 忽略冻结声明并沿用成本18的旧次优层。
+  hints:
+    schema_name: 有状态操作规划的最优层与次优层证书迁移
+    oracle_mindset: {insight: 删除冻结卡后不能假定旧runner-up仍存在；若该层清空，要继续搜索下一个非空目标层。, when_to_use: 一项门控动作被禁用且可能支撑整个旧次优层时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_certificate_outage:verify_formal_p5_cert_outage_k2_01
+    method: exhaustive-first-hit-path-certificate-under-action-outage
+  provenance: counterfactual outage variant of FORMAL-P5-CERT-L4-01
+  verified: K2 冻结后成本17最优不变，成本18层清空；成本19有三条目标路径。
+
+- id: FORMAL-P5-CERT-OUTAGE-K6-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-操作证书
+  schema_id: stateful-planning-optimality-certificate-edit-v1
+  schema_name: 有状态操作规划的最优层与次优层证书迁移
+  level: 4
+  source: *outage_source
+  target:
+    domain: 十六卡系统的终端冻结审计
+    problem: >-
+      当前为真的登记项构成状态，每张操作卡至多使用一次；“需”全有且“禁”全无时才可执行，执行时先清除再置位。
+      初态=q,v,p;终态必须含=v,x,y;不得含=q,t,w。冻结卡=K6；冻结卡仍列在操作表中，但本题不得使用。操作表：
+      K13[4]:需=y;禁=-;置=v,x;清=-；K5[7]:需=r;禁=-;置=u,x;清=t,v,w；
+      K2[2]:需=q;禁=-;置=w;清=v；K16[5]:需=s;禁=-;置=v,y;清=u,x；
+      K9[2]:需=u;禁=t;置=s;清=w；K7[2]:需=v;禁=-;置=t;清=p；
+      K12[4]:需=x;禁=-;置=v;清=y；K3[1]:需=y;禁=-;置=p;清=-；
+      K11[6]:需=u;禁=t;置=x,y;清=v,w；K1[2]:需=s;禁=-;置=x;清=u；
+      K15[8]:需=q;禁=-;置=r,t;清=p,v；K6[1]:需=x;禁=-;置=y;清=-；
+      K8[7]:需=q;禁=-;置=t,w;清=p；K4[2]:需=r;禁=-;置=u;清=t；
+      K14[5]:需=r;禁=-;置=s;清=q,t,v,w；K10[3]:需=t,w;禁=-;置=r;清=q。
+      路径首次满足完整终态即停止。输出六段：最优成本;唯一最优操作串;更低成本目标路径数;最优层目标路径数;次优成本;次优层目标路径数。操作串内部只能用 >，不能用逗号。
+    answer:
+      parts:
+        - {type: number, value: "18"}
+        - {type: string, value: K7>K2>K10>K4>K9>K16>K1}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "19"}
+        - {type: number, value: "3"}
+  mapping:
+    objects: {冻结动作: S5→K6, 状态节点: 小型标记集→十标记集, 旧最优路径: 成本17且含K6, 新最优路径: 成本18且绕开K6, 次优层: 成本19三条, 路径计数器: 完整有序路径多重性}
+    shared_relations: [冻结卡仍展示但不属于可执行动作集合, 包含冻结卡的路径全部删除, 首次命中完整终态即停止, 等成本不同顺序分别计数, 最优层须唯一, 必须继续到首个非空次优层]
+    removed_relations: [K6 从 x 生成终态所需的 y, 旧成本17唯一最优路径]
+    adaptation_required: [重放旧最优路径发现使用冻结卡, 搜索不含K6的新成本18唯一最优路径, 完整计数成本19的三个runner-up]
+    varied: [冻结直接击中旧最优路径, 最优路径长度从六卡改为七卡且使用K16恢复终态资源]
+  lure:
+    problem: *all_active_target
+    solution: 在十六卡均可使用的版本中，成本17路径唯一；成本18共有三条目标路径。
+    answer: *baseline_answer
+    why_surface_similar: 十六张卡、初态、终态、费用和证书格式完全相同。
+    why_structurally_different: 参考实例允许 K6，目标实例把旧最优路径所需的 K6 从可执行集合中移除。
+    wrong_schema_id: all-actions-active-certificate
+  copy_probe:
+    answer: *baseline_answer
+    derivation: 忽略冻结声明并复制仍含K6的成本17旧证书。
+  hints:
+    schema_name: 有状态操作规划的最优层与次优层证书迁移
+    oracle_mindset: {insight: 若冻结卡位于旧最优路径，先使整条旧路径失效，再从剩余动作重新建立最优与次优两层。, when_to_use: 可用性变化直接破坏基线最优计划时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_certificate_outage:verify_formal_p5_cert_outage_k6_01
+    method: exhaustive-first-hit-path-certificate-under-action-outage
+  provenance: counterfactual outage variant of FORMAL-P5-CERT-L4-01
+  verified: K6 冻结后新唯一最优为成本18的 K7>K2>K10>K4>K9>K16>K1；成本19有三条目标路径。
