@@ -10,13 +10,14 @@
 2. `PLAN-ALL`：显式给出正确码本，只测三问完备规划；
 3. `PLAN-Q1/Q2/Q3`：把每个查询单独运行，测实例难度与完成率。
 
-因此 `data/v1/p5-latent-staged.yaml` 保留原 challenge 不变，新增五个 calibration diagnostics。它们不是降低 L4 的抽象关系，而是隔离误差来源。
+因此 `data/v1/p5-latent-staged.yaml` 保留原 challenge 不变，先新增五个 calibration diagnostics，再加入两个保持同一数学结构的 Q2 参数变体。它们不是降低 L4 的抽象关系，而是隔离误差来源并检验结论能否跨实例成立。
 
 ## 可执行保证
 
 - `DIAG-P5-LATENT-L4-ID-01`：13 项检查；位/集合目录与观测可解析，九选八码本唯一，`T3=G9`、`G4` 未使用，旧码本只在 T3 与未使用项两段不同。
 - `DIAG-P5-LATENT-L4-PLAN-01`：15 项检查；显式新码本下三问唯一最优为 7/11/11，旧码本三计划在真实目标下全部错失目标。
 - 三个单查询 probe：各 15 项检查；分别验证唯一最优、runner-up 成本、旧码本唯一最优及其错误终态。
+- 两个 Q2 参数变体：各 17 项检查；同时更换八个坐标、全部操作名和全部卡名，并保留唯一最优成本 11、runner-up 12/13 以及单关系更新。verifier 对九个操作逐一枚举 256 个状态，证明变体是原题的仿射共轭，而非手工复制答案。
 - 篡改 G9 翻转集合或把显式 `T3=G9` 改回 G4，verifier 都会失败。
 
 ## 逐答案段指标
@@ -72,12 +73,28 @@ ID 三条件全对且 lure 无影响，说明跨表征码本辨识对 GPT-5.5 �
 
 首次 Q2 paired 请求中 lure 遇到 provider HTTP 500，但 with-source trial 已写入 SQLite；用同一 experiment-id 续跑时 runner 跳过已有 source，只补缺失 lure，证明部分结果保存与断点恢复工作正常。
 
+### Q2 参数族与跨模型反证
+
+为排除模型只适应了原始字母、坐标或答案字符串，新增 `V1/V2` 两题。两题分别对八维状态做不同坐标置换，将 `G/T` 全量重命名为 `R/U`、`W/V`，并把初始态、目标态、九个操作及旧码本计划一并共轭变换。两题的正确答案彼此不同，但都保持与原 Q2 相同的搜索几何：唯一最优成本 11，近邻成本 12/13，旧码本唯一最优成本 14。
+
+单样本预筛结果如下。`source` 结果仅比较条件行为；三条件没有在同一个 experiment 中完整配对，因此不能据此估计正式 transfer gain。
+
+| 模型 | 题集/条件 | 正确率 | 完成率 | 诊断 |
+| --- | --- | ---: | ---: | --- |
+| GPT-5.5 | V1/V2 target-only | 0/2 | 2/2 | V1 无法确定；V2 输出成本 9 且重复使用卡片，违反无重复约束 |
+| GPT-5.5 | V1/V2 with-source | 0/2 | 1/2 | V1 在 32K 删失；V2 找到合法成本 19 路径，但漏掉成本 11 真最优 |
+| GPT-5.4 | 原题+V1+V2 target-only | 0/3 | 3/3 | 均快速结束并给出不完整/次优搜索结果，平均 4,259 tokens、48.4s |
+| GPT-5.4 | 原题 with-source | 0/1 | 1/1 | 输出 `14;T4>T6>T7>T5>T2>T3`，未找到成本 11 真最优 |
+| GPT-5.4 | 原题 with-lure | 0/1 | 1/1 | 精确复制陈旧计划 `14;T3>T8>T7>T5>T2`，copy-probe 命中 |
+
+GPT-5.5 的 V2 source 路径经 verifier 使用真实新码本重放，确实无重复、成本 19 并到达目标，因此它是“可达但非全局最优”的搜索失败。两道同构变体在 target-only 和 with-source 下均未答对，说明原 Q2 上观察到的 source 增益没有跨参数实例复现；原先的 +100pp 只能解释为实例级方向性结果，不能上升为稳定的 schema transfer。GPT-5.4 的 lure 精确复制则说明干扰示例能够诱发旧关系沿用，copy-probe 在这里提供了有效负迁移诊断。
+
 ## 结论与下一步
 
 - 保留 formal30 三问 L4 为 challenge/efficiency 轨；常规 16K 不把删失计作推理错误。
 - ID probe 降为 sanity：它验证实现和表征映射，但对 GPT-5.5 缺少难度净空。
-- Q2 单问是当前最有希望的迁移测量 seed：target-only 真实失败、with-source 正确、with-lure 失败，且错误路径可重放。
-- 下一轮应对 Q2 进行至少 3 samples × 2 models 的三条件同 experiment 校准，并测试相同结构的参数变体，避免把单一实例记忆当作 schema transfer。
+- Q2 参数族稳定制造了全局最优性失败，适合保留为高难度规划 challenge；但 source 帮助尚不稳定，当前不能把它当作已经成立的迁移测量题。
+- 暂不直接投入昂贵的 `3 samples × 2 models × 3 conditions` 正式校准。下一轮应先改造 source，使其表达可复用的搜索不变量或界证明，而不是仅提供一个源域实例；通过小样本 family screen 后再扩为完整配对实验。
 - Q1/Q3 可作为能力上界与效率对照，不能与 Q2 简单平均后声称达到接受窗。
 
 ## 复现
@@ -86,6 +103,7 @@ ID 三条件全对且 lure 无影响，说明跨表征码本辨识对 GPT-5.5 �
 .venv/bin/mb validate data/manifests/p5-latent-staged.json --strict-v1
 .venv/bin/mb audit data/manifests/p5-latent-staged.json
 .venv/bin/mb verify all --dataset data/manifests/p5-latent-staged.json
+.venv/bin/mb verify all --dataset data/manifests/p5-latent-staged-q2-family.json
 
 .venv/bin/mb report \
   --database artifacts/runs/p5-latent-staged-gpt55.sqlite \

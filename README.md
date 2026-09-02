@@ -139,15 +139,16 @@ python3 -m venv .venv
 
 新链从 L0 的局部唯一日志逐级增加到 L1 的全局码本消歧、L2 的完整跨域重命名、L3 的单关系编辑和 L4 的“位排列+异或 ↔ 集合取位+对称差”跨表征迁移。GPT-5.5 的 32K 单样本可恢复 L4 唯一码本并答对 Q1，但在 Q2/Q3 选择成本 14 的次优路径而漏掉成本 11 真值；目前仍只适合作为 challenge calibration。完整结果与下一轮 staged 方案见 `docs/formal30-report.md`。
 
-L4 已进一步拆成码本辨识、显式码本三问规划及三个单查询诊断题；原 challenge 题保持不变：
+L4 已进一步拆成码本辨识、显式码本三问规划、三个单查询诊断题，以及两个经 256 状态穷举证明的 Q2 仿射共轭参数变体；原 challenge 题保持不变：
 
 ```bash
 .venv/bin/mb validate data/manifests/p5-latent-staged.json --strict-v1
 .venv/bin/mb audit data/manifests/p5-latent-staged.json
 .venv/bin/mb verify all --dataset data/manifests/p5-latent-staged.json
+.venv/bin/mb verify all --dataset data/manifests/p5-latent-staged-q2-family.json
 ```
 
-实验汇总默认报告逐答案段 micro accuracy/coverage；需要定位具体 Q1/Q2/Q3 时使用 `mb report ... --part-details`。GPT-5.5 单样本中，ID 三条件全对；最难 Q2 为 target-only 次优、with-source 正确、with-lure“无法确定”，形成 +100pp structural selectivity 的方向性证据。详见 `docs/p5-latent-staged-report.md`。
+实验汇总默认报告逐答案段 micro accuracy/coverage；需要定位具体 Q1/Q2/Q3 时使用 `mb report ... --part-details`。GPT-5.5 在原 Q2 的单样本中曾出现 target-only 次优、with-source 正确、with-lure“无法确定”，但两个同构变体的 target-only 与 with-source 均为 0/2；GPT-5.4 对原题和变体 target-only 也为 0/3，并在 lure 条件精确复制旧计划。因此 Q2 的难度已跨实例复现，而 source 增益尚未复现，不能报告为稳定 schema transfer。详见 `docs/p5-latent-staged-report.md`。
 
 真实模型实验通过环境变量传入密钥，不把凭据写进命令参数、配置或结果库：
 

@@ -9,6 +9,7 @@ from mindsetbench.verification.formal_p5_latent import (
     CATALOGUE,
     CHAIN_LEVEL_SPECS,
     L4_CATALOGUE,
+    Q2_CONJUGATE_VARIANTS,
     _parse_problem,
 )
 
@@ -101,8 +102,10 @@ def test_p5_latent_staged_probes_are_strict_audited_and_verified() -> None:
         "DIAG-P5-LATENT-L4-PLAN-Q1-01",
         "DIAG-P5-LATENT-L4-PLAN-Q2-01",
         "DIAG-P5-LATENT-L4-PLAN-Q3-01",
+        "DIAG-P5-LATENT-L4-PLAN-Q2-V1-01",
+        "DIAG-P5-LATENT-L4-PLAN-Q2-V2-01",
     ]
-    expected_checks = [13, 15, 15, 15, 15]
+    expected_checks = [13, 15, 15, 15, 15, 17, 17]
     for case, check_count in zip(cases, expected_checks, strict=True):
         result = verify_case(case)
         assert result.passed, result
@@ -117,10 +120,14 @@ def test_staged_identification_and_planning_match_full_l4_gold() -> None:
     assert planning.target.answer == full.target.answer
     assert planning.copy_probe is not None and full.copy_probe is not None
     assert planning.copy_probe.answer == full.copy_probe.answer
-    assert [case.target.answer.legacy_value() for case in single_queries] == [
+    assert [case.target.answer.legacy_value() for case in single_queries[:3]] == [
         "7;T5>T3>T4>T2",
         "11;T5>T3>T2>T8>T6",
         "11;T8>T3>T2>T5>T6",
+    ]
+    assert [case.target.answer.legacy_value() for case in single_queries[3:]] == [
+        "11;U1>U2>U7>U5>U6",
+        "11;V5>V8>V3>V4>V2",
     ]
 
 
@@ -146,3 +153,40 @@ def test_staged_verifiers_reject_codebook_drift() -> None:
         not check.passed and check.name == "target-explicit-codebook"
         for check in plan_result.checks
     )
+
+
+def test_q2_parameter_variants_are_exhaustively_conjugate_and_answer_distinct() -> None:
+    base_catalogue = dict(L4_CATALOGUE)
+    base_query = CHAIN_LEVEL_SPECS[4].target.queries[1]
+    answers = set()
+    queries = set()
+    for variant in Q2_CONJUGATE_VARIANTS.values():
+        variant_catalogue = dict(variant.problem.catalogue)
+        for index in range(1, 10):
+            base_transform = base_catalogue[f"G{index}"]
+            transformed = variant_catalogue[f"{variant.prefix}{index}"]
+            assert all(
+                transformed.apply(variant.coordinate_map.apply(state))
+                == variant.coordinate_map.apply(base_transform.apply(state))
+                for state in range(256)
+            )
+        assert variant.problem.queries[0] == tuple(
+            variant.coordinate_map.apply(state) for state in base_query
+        )
+        answers.add((variant.expected_plan.cost, variant.expected_plan.codes))
+        queries.add(variant.problem.queries[0])
+    assert len(answers) == 2
+    assert len(queries) == 2
+
+
+def test_q2_variant_verifier_rejects_conjugate_mask_drift() -> None:
+    variant_case = load_cases(STAGED_DATASET)[5].model_copy(deep=True)
+    assert "R9=取(g,e,h,f,b,d,a,c)△{a,c,d,g}" in variant_case.target.problem
+    variant_case.target.problem = variant_case.target.problem.replace(
+        "R9=取(g,e,h,f,b,d,a,c)△{a,c,d,g}",
+        "R9=取(g,e,h,f,b,d,a,c)△{a,c,d,h}",
+        1,
+    )
+    result = verify_case(variant_case)
+    assert not result.passed
+    assert any(not check.passed and check.name == "target-explicit-text" for check in result.checks)

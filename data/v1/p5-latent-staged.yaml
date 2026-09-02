@@ -315,3 +315,101 @@
     method: explicit-codebook-singlequery-uniform-cost-search
   provenance: single-query diagnostic split from DIAG-P5-LATENT-L4-PLAN-01
   verified: 该查询唯一最优成本 11，runner-up 成本 12；旧计划真实终态为 01011111。
+
+- id: DIAG-P5-LATENT-L4-PLAN-Q2-V1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: explicit-set-affine-singlequery-planning-probe-v1
+  schema_name: 已知仿射码本下的单查询完备最低成本规划诊断
+  level: 4
+  source: *explicit_plan_source
+  target:
+    domain: 八站脉冲路由甲型参数变体
+    problem: >-
+      状态是点亮站位集合。X=取(x1,…,x8)△M 表示新 a—h 依次复制旧 x1—x8 的成员关系，再翻转 M。
+      候选路由：R1=取(g,e,f,b,a,d,h,c)△∅；R2=取(e,d,h,f,b,c,a,g)△∅；
+      R3=取(c,d,a,b,f,e,h,g)△∅；R4=取(g,e,h,f,b,d,a,c)△∅；
+      R5=取(a,b,c,d,e,f,g,h)△{a,b,c,f,g}；R6=取(a,b,c,d,e,f,g,h)△{a,d,e,h}；
+      R7=取(b,e,d,f,g,h,a,c)△∅；R8=取(c,g,a,h,b,f,e,d)△{b,e,f,h}；
+      R9=取(g,e,h,f,b,d,a,c)△{a,c,d,g}。正确代码本已给出：
+      代码本：U1=R3；U2=R9；U3=R8；U4=R6；U5=R7；U6=R1；U7=R2；U8=R5。卡成本：
+      U1[2]；U7[1]；U6[2]；U8[2]；U2[2]；U5[4]；U3[5]；U4[6]。
+      每张卡至多一次并按输出顺序作用。Q1:初集={a,d,e,f};目标集={a,b,c,d,f,g}。求唯一最低成本计划。
+      最后一行必须严格写成 ANSWER: 成本;卡1>卡2>...，卡串内部只能用 >，不能用逗号。
+    answer: {parts: [{type: number, value: "11"}, {type: string, value: U1>U2>U7>U5>U6}]}
+  mapping:
+    objects: {源八位状态: 经坐标置换后的点亮集合, F1…F9: R1…R9, S1…S8: U1/U7/U6/U8/U2/U5/U3/U4, 路径代价: U 卡成本之和, 已用卡集合: 单查询内禁止重复}
+    shared_relations: [九项 R 路由是 G 路由在同一坐标置换下的共轭, 初集与目标集使用同一坐标置换, 显式码本和卡成本随卡名重编号保持, 每张卡至多一次且按输出顺序复合, 全局最低成本及 runner-up 间隔在共轭下保持]
+    removed_relations: [U2 使用无翻转共轭路由 R4]
+    added_relations: [U2 显式指定为带 a/c/d/g 翻转的 R9]
+    adaptation_required: [解析新 R/U 代码本而非记忆 T 卡串, 在新初集与目标集上完整搜索, 证明成本 11 五卡计划优于成本 12/13 旁路]
+    varied: [状态坐标、九项候选参数、八张卡名、初集、目标集和答案串同时改变]
+  lure:
+    problem: 对同一甲型实例使用编辑前旧码本 U2=R4，其他卡、成本和规则不变。
+    solution: 旧码本下唯一最低成本计划为 U2>U5>U3>U1>U7，成本 14。
+    answer: {parts: [{type: number, value: "14"}, {type: string, value: U2>U5>U3>U1>U7}]}
+    why_surface_similar: 使用相同甲型坐标、卡名、成本、初集和目标集。
+    why_structurally_different: lure 冻结 U2=R4；该计划在真实 R9 下落到 {a,d,e,g} 而非目标。
+    wrong_schema_id: stale-conjugate-codebook-planning-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "14"}, {type: string, value: U2>U5>U3>U1>U7}]}
+    derivation: 使用共轭后的旧码本而未采用显式 U2=R9。
+  hints:
+    schema_name: 已知仿射码本下的单查询完备最低成本规划诊断
+    oracle_mindset: {insight: 不依赖原题卡名；按题面显式 U/R 代码本在状态×已用卡空间做一致代价搜索。, when_to_use: 同一规划结构经过状态坐标和操作编号双重重参数化时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_diag_p5_latent_l4_plan_q2_v1_01
+    method: exhaustive-conjugacy-check-and-uniform-cost-search
+  provenance: affine-conjugate parameter variant of DIAG-P5-LATENT-L4-PLAN-Q2-01
+  verified: 对九项路由各枚举 256 状态证明共轭；唯一最优成本 11，旧计划真实终集为 {a,d,e,g}。
+
+- id: DIAG-P5-LATENT-L4-PLAN-Q2-V2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: explicit-set-affine-singlequery-planning-probe-v1
+  schema_name: 已知仿射码本下的单查询完备最低成本规划诊断
+  level: 4
+  source: *explicit_plan_source
+  target:
+    domain: 八站脉冲路由乙型参数变体
+    problem: >-
+      状态是点亮站位集合。X=取(x1,…,x8)△M 表示新 a—h 依次复制旧 x1—x8 的成员关系，再翻转 M。
+      候选路由：W1=取(e,f,g,a,c,h,b,d)△∅；W2=取(d,g,e,h,a,b,c,f)△∅；
+      W3=取(e,f,d,c,a,b,h,g)△∅；W4=取(d,g,e,a,c,h,b,f)△∅；
+      W5=取(a,b,c,d,e,f,g,h)△{b,d,e,g,h}；W6=取(a,b,c,d,e,f,g,h)△{a,c,f,g}；
+      W7=取(d,g,b,f,c,h,e,a)△∅；W8=取(f,c,e,d,b,a,h,g)△{c,d,e,f}；
+      W9=取(d,g,e,a,c,h,b,f)△{a,b,g,h}。正确代码本已给出：
+      代码本：V1=W5；V2=W1；V3=W2；V4=W7；V5=W3；V6=W8；V7=W6；V8=W9。卡成本：
+      V5[2]；V3[1]；V2[2]；V1[2]；V8[2]；V4[4]；V6[5]；V7[6]。
+      每张卡至多一次并按输出顺序作用。Q1:初集={a,c,d,g};目标集={a,b,d,e,g,h}。求唯一最低成本计划。
+      最后一行必须严格写成 ANSWER: 成本;卡1>卡2>...，卡串内部只能用 >，不能用逗号。
+    answer: {parts: [{type: number, value: "11"}, {type: string, value: V5>V8>V3>V4>V2}]}
+  mapping:
+    objects: {源八位状态: 经第二坐标置换后的点亮集合, F1…F9: W1…W9, S1…S8: V5/V3/V2/V1/V8/V4/V6/V7, 路径代价: V 卡成本之和, 已用卡集合: 单查询内禁止重复}
+    shared_relations: [九项 W 路由是 G 路由在同一坐标置换下的共轭, 初集与目标集使用同一坐标置换, 显式码本和卡成本随卡名重编号保持, 每张卡至多一次且按输出顺序复合, 全局最低成本及 runner-up 间隔在共轭下保持]
+    removed_relations: [V8 使用无翻转共轭路由 W4]
+    added_relations: [V8 显式指定为带 a/b/g/h 翻转的 W9]
+    adaptation_required: [解析新 W/V 代码本而非记忆 T/U 卡串, 在新初集与目标集上完整搜索, 证明成本 11 五卡计划优于成本 12/13 旁路]
+    varied: [使用不同于甲型的状态坐标、候选参数、卡名、初集、目标集和答案串]
+  lure:
+    problem: 对同一乙型实例使用编辑前旧码本 V8=W4，其他卡、成本和规则不变。
+    solution: 旧码本下唯一最低成本计划为 V8>V4>V6>V5>V3，成本 14。
+    answer: {parts: [{type: number, value: "14"}, {type: string, value: V8>V4>V6>V5>V3}]}
+    why_surface_similar: 使用相同乙型坐标、卡名、成本、初集和目标集。
+    why_structurally_different: lure 冻结 V8=W4；该计划在真实 W9 下落到 {a,b,c,g} 而非目标。
+    wrong_schema_id: stale-conjugate-codebook-planning-01
+  copy_probe:
+    answer: {parts: [{type: number, value: "14"}, {type: string, value: V8>V4>V6>V5>V3}]}
+    derivation: 使用共轭后的旧码本而未采用显式 V8=W9。
+  hints:
+    schema_name: 已知仿射码本下的单查询完备最低成本规划诊断
+    oracle_mindset: {insight: 将题面 W/V 代码本视为独立新实例，以一致代价搜索证明五卡计划的全局最优性。, when_to_use: 多个表面完全不同实例由同一状态空间自同构生成时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_diag_p5_latent_l4_plan_q2_v2_01
+    method: exhaustive-conjugacy-check-and-uniform-cost-search
+  provenance: second affine-conjugate parameter variant of DIAG-P5-LATENT-L4-PLAN-Q2-01
+  verified: 对九项路由各枚举 256 状态证明共轭；唯一最优成本 11，旧计划真实终集为 {a,b,c,g}。

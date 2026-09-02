@@ -67,7 +67,7 @@ L3 的两次 target-only 结果（一条语义正确但格式失败、一条删�
 3. 为规划阶段增加逐查询可判 answer parts，避免 Q1 正确被 Q2/Q3 的错误完全淹没；总分仍保留严格全对指标。
 4. staged 题通过完成率门槛后，再按至少三样本、至少两个能力档模型运行 target/source/lure，不把这轮单样本当作等级定标。
 
-上述 staged 版本现已实现并完成第一轮预筛：码本 ID 三条件 9/9 全对，属于 sanity ceiling；三个显式码本单问在 32K 下为 2/3 全对，其中 Q2 target-only 找到成本 15 的可达次优路径，with-source 找到成本 11 真最优，with-lure 在 32,147 tokens 后回答“无法确定”。逐 part 指标、HTTP 500 断点续跑和详细分析见 `docs/p5-latent-staged-report.md`。
+上述 staged 版本现已实现并完成两轮预筛：码本 ID 三条件 9/9 全对，属于 sanity ceiling；三个显式码本单问在 32K 下为 2/3 全对，其中原 Q2 target-only 找到成本 15 的可达次优路径，with-source 找到成本 11 真最优，with-lure 在 32,147 tokens 后回答“无法确定”。随后构造的两个仿射共轭 Q2 变体在 GPT-5.5 target-only 与 with-source 下均为 0/2，GPT-5.4 对原题加两个变体的 target-only 为 0/3，并在原题 lure 条件精确复制旧计划。由此可见全局最优搜索难度已跨实例复现，但原题的 source 增益没有复现；正式多样本校准前应先重构 source。逐 part 指标、HTTP 500 断点续跑和详细分析见 `docs/p5-latent-staged-report.md`。
 
 ## 复现
 

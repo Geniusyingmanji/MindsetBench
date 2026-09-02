@@ -278,7 +278,7 @@ _TRANSFORM_PATTERN = re.compile(r"(F\d+)=P\(([1-8](?:,[1-8]){7})\)⊕([01]{8})")
 _LOG_PATTERN = re.compile(r"([A-Z]\d+):([01]{8})→([01]{8})")
 _COST_PATTERN = re.compile(r"([A-Z]\d+)\[(\d+)\]")
 _SET_PATTERN = r"\{(?:[a-h](?:,[a-h])*)?\}|∅"
-_SET_TRANSFORM_PATTERN = re.compile(rf"(G\d+)=取\(([a-h](?:,[a-h]){{7}})\)△({_SET_PATTERN})")
+_SET_TRANSFORM_PATTERN = re.compile(rf"([A-Z]\d+)=取\(([a-h](?:,[a-h]){{7}})\)△({_SET_PATTERN})")
 _SET_LOG_PATTERN = re.compile(rf"([A-Z]\d+):({_SET_PATTERN})→({_SET_PATTERN})")
 
 
@@ -338,7 +338,7 @@ def _parse_set_problem(problem: str) -> AffineProblem:
     )
 
 
-_CODEBOOK_PATTERN = re.compile(r"([A-Z]\d+)=(F\d+|G\d+)")
+_CODEBOOK_PATTERN = re.compile(r"([A-Z]\d+)=([A-Z]\d+)")
 
 
 def _parse_observation_problem(problem: str) -> AffineProblem:
@@ -1099,3 +1099,201 @@ def verify_diag_p5_latent_l4_plan_q2_01(case: Case) -> VerificationResult:
 @register("DIAG-P5-LATENT-L4-PLAN-Q3-01")
 def verify_diag_p5_latent_l4_plan_q3_01(case: Case) -> VerificationResult:
     return _verify_single_query_planning_probe(case, 2)
+
+
+@dataclass(frozen=True)
+class ConjugateQ2Variant:
+    prefix: str
+    coordinate_map: AffineTransform
+    card_rename: tuple[tuple[str, str], ...]
+    problem: AffineProblem
+    codebook: tuple[tuple[str, str], ...]
+    codebook_by_card: tuple[tuple[str, str], ...]
+    old_codebook: tuple[tuple[str, str], ...]
+    expected_plan: Plan
+    lure_plan: Plan
+    lure_actual_state: int
+
+
+def _compose_affine(after: AffineTransform, before: AffineTransform) -> AffineTransform:
+    """Return ``after(before(state))`` for permutation-plus-mask maps."""
+
+    order = tuple(before.order[index - 1] for index in after.order)
+    before_mask = f"{before.xor_mask:08b}"
+    permuted_before_mask = int("".join(before_mask[index - 1] for index in after.order), 2)
+    return AffineTransform(order, permuted_before_mask ^ after.xor_mask)
+
+
+def _inverse_coordinate_map(transform: AffineTransform) -> AffineTransform:
+    if transform.xor_mask:
+        raise ValueError("conjugate coordinate maps must be pure permutations")
+    inverse = [0] * 8
+    for output_index, input_index in enumerate(transform.order, 1):
+        inverse[input_index - 1] = output_index
+    return AffineTransform(tuple(inverse), 0)
+
+
+def _conjugate_transform(
+    transform: AffineTransform, coordinate_map: AffineTransform
+) -> AffineTransform:
+    return _compose_affine(
+        _compose_affine(coordinate_map, transform),
+        _inverse_coordinate_map(coordinate_map),
+    )
+
+
+def _build_q2_variant(
+    prefix: str,
+    coordinate_order: tuple[int, ...],
+    card_rename: tuple[tuple[str, str], ...],
+) -> ConjugateQ2Variant:
+    coordinate_map = AffineTransform(coordinate_order, 0)
+    renamed_cards = dict(card_rename)
+    catalogue = tuple(
+        (f"{prefix}{index}", _conjugate_transform(transform, coordinate_map))
+        for index, (_, transform) in enumerate(L4_CATALOGUE, 1)
+    )
+
+    def renamed_transform(name: str) -> str:
+        return f"{prefix}{name[1:]}"
+
+    codebook = tuple(
+        (renamed_cards[code], renamed_transform(transform)) for code, transform in L4_CODEBOOK
+    )
+    old_codebook = tuple(
+        (renamed_cards[code], renamed_transform(transform)) for code, transform in L4_OLD_CODEBOOK
+    )
+    costs = tuple((renamed_cards[code], cost) for code, cost in L4_COSTS)
+    base = _target_l4_problem()
+    initial, goal = base.queries[1]
+    query = (coordinate_map.apply(initial), coordinate_map.apply(goal))
+    gold = CHAIN_LEVEL_SPECS[4].expected_plans[1]
+    lure = CHAIN_LEVEL_SPECS[4].lure_plans[1]
+    expected_plan = Plan(
+        gold.cost,
+        tuple(renamed_cards[code] for code in gold.codes),
+        query[1],
+    )
+    lure_plan = Plan(
+        lure.cost,
+        tuple(renamed_cards[code] for code in lure.codes),
+        query[1],
+    )
+    base_lure_actual = _replay(base, L4_CODEBOOK, lure.codes, 1)
+    return ConjugateQ2Variant(
+        prefix=prefix,
+        coordinate_map=coordinate_map,
+        card_rename=card_rename,
+        problem=AffineProblem(catalogue, (), costs, (query,)),
+        codebook=codebook,
+        codebook_by_card=tuple(sorted(codebook, key=lambda item: int(item[0][1:]))),
+        old_codebook=old_codebook,
+        expected_plan=expected_plan,
+        lure_plan=lure_plan,
+        lure_actual_state=coordinate_map.apply(base_lure_actual),
+    )
+
+
+Q2_CONJUGATE_VARIANTS = {
+    "v1": _build_q2_variant(
+        "R",
+        (3, 1, 6, 8, 2, 7, 4, 5),
+        (
+            ("T1", "U4"),
+            ("T2", "U7"),
+            ("T3", "U2"),
+            ("T4", "U8"),
+            ("T5", "U1"),
+            ("T6", "U6"),
+            ("T7", "U3"),
+            ("T8", "U5"),
+        ),
+    ),
+    "v2": _build_q2_variant(
+        "W",
+        (8, 4, 2, 7, 1, 5, 3, 6),
+        (
+            ("T1", "V7"),
+            ("T2", "V3"),
+            ("T3", "V8"),
+            ("T4", "V1"),
+            ("T5", "V5"),
+            ("T6", "V2"),
+            ("T7", "V6"),
+            ("T8", "V4"),
+        ),
+    ),
+}
+
+
+def _verify_q2_conjugate_variant(case: Case, variant_name: str) -> VerificationResult:
+    variant = Q2_CONJUGATE_VARIANTS[variant_name]
+    source = _source_three_query_problem()
+    parsed_source, parsed_source_codebook = _parse_explicit_planning_problem(case.source.problem)
+    parsed_target, parsed_target_codebook = _parse_explicit_planning_problem(case.target.problem)
+    source_q2 = Plan(14, ("S5", "S6", "S7", "S1", "S2"), 0b10110111)
+    source_best = _plans(source, SOURCE_CODEBOOK, 1)
+    target_best = _plans(variant.problem, variant.codebook, 0)
+    target_near = _plans(variant.problem, variant.codebook, 0, max_extra_cost=2)
+    lure_best = _plans(variant.problem, variant.old_codebook, 0)
+    lure_actual = _replay(variant.problem, variant.codebook, variant.lure_plan.codes, 0)
+    base_catalogue = dict(L4_CATALOGUE)
+    variant_catalogue = dict(variant.problem.catalogue)
+    conjugacy = tuple(
+        all(
+            variant_catalogue[f"{variant.prefix}{index}"].apply(variant.coordinate_map.apply(state))
+            == variant.coordinate_map.apply(base_catalogue[f"G{index}"].apply(state))
+            for state in range(256)
+        )
+        for index in range(1, 10)
+    )
+    old = dict(variant.old_codebook)
+    current = dict(variant.codebook)
+    broken = {code: (old[code], current[code]) for code in old if old[code] != current[code]}
+    changed_card = dict(variant.card_rename)["T3"]
+    checks = [
+        _check("source-explicit-text", parsed_source, source),
+        _check("target-explicit-text", parsed_target, variant.problem),
+        _check("source-explicit-codebook", parsed_source_codebook, SOURCE_CODEBOOK),
+        _check(
+            "target-explicit-codebook",
+            parsed_target_codebook,
+            variant.codebook_by_card,
+        ),
+        _check("all-nine-transform-conjugacies", conjugacy, (True,) * 9),
+        _check("source-query-optimum", source_best, (source_q2,)),
+        _check("target-query-optimum", target_best, (variant.expected_plan,)),
+        _check(
+            "target-runner-up-costs",
+            tuple(sorted({plan.cost for plan in target_near})),
+            (11, 12, 13),
+        ),
+        _check("stale-codebook-optimum", lure_best, (variant.lure_plan,)),
+        _check(
+            "single-renamed-codebook-edit",
+            broken,
+            {changed_card: (f"{variant.prefix}4", f"{variant.prefix}9")},
+        ),
+        _check("stale-plan-actual-state", lure_actual, variant.lure_actual_state),
+        _check("stale-plan-misses-goal", lure_actual != variant.problem.queries[0][1], True),
+        _check(
+            "stored-source-answer",
+            case.source.answer,
+            "12;S3>S7>S2>S4>S5;14;S5>S6>S7>S1>S2;10;S2>S5>S7>S1",
+        ),
+        _check("stored-target", _gold(case), _format_plans((variant.expected_plan,))),
+        _check("stored-lure", _lure(case), _format_plans((variant.lure_plan,))),
+        _check("copy-equals-lure", _copy(case), _lure(case)),
+        _check("copy-differs-from-target", _copy(case) != _gold(case), True),
+    ]
+    return VerificationResult(case_id=case.id, checks=checks, verifier=__name__)
+
+
+@register("DIAG-P5-LATENT-L4-PLAN-Q2-V1-01")
+def verify_diag_p5_latent_l4_plan_q2_v1_01(case: Case) -> VerificationResult:
+    return _verify_q2_conjugate_variant(case, "v1")
+
+
+@register("DIAG-P5-LATENT-L4-PLAN-Q2-V2-01")
+def verify_diag_p5_latent_l4_plan_q2_v2_01(case: Case) -> VerificationResult:
+    return _verify_q2_conjugate_variant(case, "v2")

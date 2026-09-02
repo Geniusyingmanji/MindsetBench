@@ -1,0 +1,10 @@
+{
+  "name": "p5-latent-l4-q2-new-conjugate-variants",
+  "datasets": [
+    "../v1/p5-latent-staged.yaml"
+  ],
+  "case_ids": [
+    "DIAG-P5-LATENT-L4-PLAN-Q2-V1-01",
+    "DIAG-P5-LATENT-L4-PLAN-Q2-V2-01"
+  ]
+}
