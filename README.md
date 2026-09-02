@@ -38,6 +38,12 @@ MindsetBench 用于测量 LLM/agent 能否把一个问题中的认知图式迁�
 
 它们目前都是 calibration/challenge 数据，用于定位失败模式，不代表已经得到稳定的正迁移结论。
 
+## 下一目标：Humanities/Social-20
+
+现有正式题仍偏系数计算、组合枚举和路径搜索。下一批将构造四条人文社科 L0–L4 链，共 20 题：规范与判例、论证与证据、历史类比、制度机制。L3/L4 的 source 与 target 必须同时跨学科、跨文体和跨表征，不能只是替换名词；至少 16/20 使用标签、集合、排序、三值或角色映射作答，全部保留可执行 verifier。
+
+难度将主要来自“从自然语言材料恢复关系—判断哪些关系可迁移—适配一条被改变的核心关系”，而不是增加算术长度。完整目标、候选题对和代码交付计划见 [`docs/HUMANITIES_SOCIAL_EXPANSION.md`](docs/HUMANITIES_SOCIAL_EXPANSION.md)。
+
 ## 题目示例
 
 **Case 1：线性因果总效应（P3/L1）**
