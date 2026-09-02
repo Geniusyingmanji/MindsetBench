@@ -49,6 +49,15 @@ def summarize_transfer(records: Sequence[TrialRecord]) -> dict[str, object]:
         "oracle_mindset_part_gain": paired_part_condition_difference(
             records, Condition.H3_ORACLE_MINDSET, Condition.TARGET_ONLY
         ),
+        "oracle_mindset_selectivity": paired_condition_difference(
+            records, Condition.H3_ORACLE_MINDSET, Condition.H3_FALSE_MINDSET
+        ),
+        "completed_oracle_mindset_selectivity": paired_completed_condition_difference(
+            records, Condition.H3_ORACLE_MINDSET, Condition.H3_FALSE_MINDSET
+        ),
+        "oracle_mindset_part_selectivity": paired_part_condition_difference(
+            records, Condition.H3_ORACLE_MINDSET, Condition.H3_FALSE_MINDSET
+        ),
         "context_adjusted_gain": paired_condition_difference(
             records, Condition.WITH_SOURCE, Condition.RANDOM_SOURCE
         ),
@@ -77,6 +86,9 @@ def summarize_transfer(records: Sequence[TrialRecord]) -> dict[str, object]:
         ),
         "oracle_mindset_vs_target_pairs": paired_outcome_counts(
             records, Condition.H3_ORACLE_MINDSET, Condition.TARGET_ONLY
+        ),
+        "oracle_mindset_vs_false_pairs": paired_outcome_counts(
+            records, Condition.H3_ORACLE_MINDSET, Condition.H3_FALSE_MINDSET
         ),
     }
 
@@ -125,6 +137,62 @@ def part_accuracy_by_condition(
             "expected_parts": expected_parts,
             "accuracy": correct_parts / expected_parts if expected_parts else None,
             "coverage": observed_parts / expected_parts if expected_parts else None,
+        }
+    return summaries
+
+
+def part_group_accuracy_by_condition(
+    records: Sequence[TrialRecord],
+    group_size: int,
+) -> dict[str, dict[str, float | int | None]]:
+    """Micro-average exact accuracy and coverage over fixed-size answer blocks.
+
+    A group is correct only when all of its parts are correct, and observed only
+    when every part has a prediction. Records whose expected part count is not a
+    multiple of ``group_size`` are reported as incompatible and excluded.
+    """
+
+    if group_size < 1:
+        raise ValueError("part group size must be positive")
+    grouped: dict[str, list[TrialRecord]] = defaultdict(list)
+    for record in records:
+        grouped[record.condition.value].append(record)
+    summaries: dict[str, dict[str, float | int | None]] = {}
+    for condition, condition_records in sorted(grouped.items()):
+        expected_groups = 0
+        observed_groups = 0
+        correct_groups = 0
+        scored_trials = 0
+        incompatible_trials = 0
+        for record in condition_records:
+            expected = getattr(record.grade, "expected_part_count", None)
+            if expected is None:
+                continue
+            if expected == 0 or expected % group_size:
+                incompatible_trials += 1
+                continue
+            scored_trials += 1
+            group_count = expected // group_size
+            expected_groups += group_count
+            by_index = {part.index: part for part in record.grade.part_results}
+            for group_index in range(group_count):
+                indexes = range(group_index * group_size, (group_index + 1) * group_size)
+                parts = [by_index.get(index) for index in indexes]
+                if all(part is not None and part.predicted is not None for part in parts):
+                    observed_groups += 1
+                if all(part is not None and part.correct for part in parts):
+                    correct_groups += 1
+        summaries[condition] = {
+            "trials": len(condition_records),
+            "scored_trials": scored_trials,
+            "unscored_trials": len(condition_records) - scored_trials - incompatible_trials,
+            "incompatible_trials": incompatible_trials,
+            "group_size": group_size,
+            "correct_groups": correct_groups,
+            "observed_groups": observed_groups,
+            "expected_groups": expected_groups,
+            "accuracy": correct_groups / expected_groups if expected_groups else None,
+            "coverage": observed_groups / expected_groups if expected_groups else None,
         }
     return summaries
 
@@ -387,6 +455,38 @@ def paired_part_condition_difference(
         by_index = {part.index: part for part in record.grade.part_results}
         correct = sum(by_index[index].correct for index in range(expected) if index in by_index)
         indexed[record.condition][(record.case_id, record.sample_index)] = correct / expected
+    common = set(indexed[left]) & set(indexed[right])
+    if not common:
+        return None
+    differences = [indexed[left][key] - indexed[right][key] for key in common]
+    return sum(differences) / len(differences)
+
+
+def paired_part_group_condition_difference(
+    records: Sequence[TrialRecord],
+    left: Condition,
+    right: Condition,
+    group_size: int,
+) -> float | None:
+    """Mean paired difference in per-trial fixed-size answer-block accuracy."""
+
+    if group_size < 1:
+        raise ValueError("part group size must be positive")
+    indexed: dict[Condition, dict[tuple[str, int], float]] = defaultdict(dict)
+    for record in records:
+        expected = getattr(record.grade, "expected_part_count", None)
+        if expected is None or expected == 0 or expected % group_size:
+            continue
+        by_index = {part.index: part for part in record.grade.part_results}
+        group_count = expected // group_size
+        correct_groups = 0
+        for group_index in range(group_count):
+            indexes = range(group_index * group_size, (group_index + 1) * group_size)
+            if all((part := by_index.get(index)) is not None and part.correct for index in indexes):
+                correct_groups += 1
+        indexed[record.condition][(record.case_id, record.sample_index)] = (
+            correct_groups / group_count
+        )
     common = set(indexed[left]) & set(indexed[right])
     if not common:
         return None

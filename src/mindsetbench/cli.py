@@ -22,6 +22,8 @@ from mindsetbench.data.loader import DEFAULT_DATASET, index_cases
 from mindsetbench.grading import grade_response
 from mindsetbench.metrics import (
     assess_calibration,
+    paired_part_group_condition_difference,
+    part_group_accuracy_by_condition,
     part_scores_by_case_condition,
     summarize_slices,
     summarize_transfer,
@@ -116,6 +118,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--part-details",
         action="store_true",
         help="include answer-part scores grouped by case and condition",
+    )
+    report.add_argument(
+        "--part-group-size",
+        type=int,
+        help="also score consecutive answer parts as exact fixed-size blocks",
     )
 
     plan_run = subcommands.add_parser(
@@ -341,6 +348,9 @@ def _cmd_report(args: argparse.Namespace) -> int:
     if not records:
         print(f"no trials found for experiment: {args.experiment_id}", file=sys.stderr)
         return 1
+    if args.part_group_size is not None and args.part_group_size < 1:
+        print("part-group-size must be positive", file=sys.stderr)
+        return 2
     output: dict[str, object] = {
         **summarize_transfer(records),
         **summarize_slices(records),
@@ -352,6 +362,33 @@ def _cmd_report(args: argparse.Namespace) -> int:
         )
     if args.part_details:
         output["part_details"] = part_scores_by_case_condition(records)
+    if args.part_group_size is not None:
+        group_size = args.part_group_size
+        output["part_group_accuracy"] = part_group_accuracy_by_condition(records, group_size)
+        output["part_group_transfer_gain"] = paired_part_group_condition_difference(
+            records,
+            Condition.WITH_SOURCE,
+            Condition.TARGET_ONLY,
+            group_size,
+        )
+        output["oracle_mindset_part_group_gain"] = paired_part_group_condition_difference(
+            records,
+            Condition.H3_ORACLE_MINDSET,
+            Condition.TARGET_ONLY,
+            group_size,
+        )
+        output["oracle_mindset_part_group_selectivity"] = paired_part_group_condition_difference(
+            records,
+            Condition.H3_ORACLE_MINDSET,
+            Condition.H3_FALSE_MINDSET,
+            group_size,
+        )
+        output["part_group_structural_selectivity"] = paired_part_group_condition_difference(
+            records,
+            Condition.WITH_SOURCE,
+            Condition.WITH_LURE,
+            group_size,
+        )
     print(json.dumps(output, ensure_ascii=False, indent=2))
     return 0
 

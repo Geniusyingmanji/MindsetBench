@@ -1,0 +1,142 @@
+- id: FORMAL-P5-CERT-POLICY-JOINT-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-操作证书
+  schema_id: stateful-planning-optimality-certificate-edit-v1
+  schema_name: 有状态操作规划的最优层与次优层证书迁移
+  level: 4
+  source:
+    domain: 属性谓词冻结后的路径证书
+    problem: >-
+      状态是当前标记集合，每项操作至多使用一次；“需”全有且“禁”全无时才可执行，执行时先清除再置位。
+      记正目标集合G+={z}。维护谓词为 δ:费用=1，需={c}，置=G+，且禁=清=∅；表中恰有一张卡匹配，匹配卡被冻结、不得使用。
+      初态=a;终态必须含=z;不得含=-。操作表：
+      S1[1]:需=a;禁=-;置=b;清=-；S2[1]:需=b;禁=-;置=z;清=-；
+      S3[3]:需=a;禁=-;置=z;清=-；S4[2]:需=a;禁=-;置=c;清=-；
+      S5[1]:需=c;禁=-;置=z;清=-。
+      路径首次满足终态即停止。先输出匹配卡号，再输出六段：最优成本;唯一最优操作串;更低成本目标路径数;最优层目标路径数;次优成本;次优层目标路径数。操作串内部只能用 >，不能用逗号。
+    solution: >-
+      逐项计算谓词可知只有 S5 同时满足费用1、需c、置G+且无禁/清，所以先从可执行集合删除 S5。
+      S1>S2 是唯一成本2目标路径；成本3只剩 S3，原来的 S4>S5 已被删除。
+      匹配卡=S5。证书：C*=2；P*=S1>S2；N<C*=0；N=C*=1；Cnext=3；Nnext=1。
+    answer: S5;2;S1>S2;0;1;3;1
+  target:
+    domain: 三策略关系谓词维护审计
+    problem: >-
+      当前为真的登记项构成状态，每张操作卡至多使用一次；“需”全有且“禁”全无时才可执行，执行时先清除再置位。
+      记 I={q,v,p}，正目标 G+={v,x,y}，负目标 G-={q,t,w}。下面三个维护策略彼此独立：每个策略都从十六卡全可用基线重新开始，找出唯一匹配其关系谓词的卡并冻结该卡；三个策略的冻结不叠加。
+      α:费用=4，|需|=1，需⊆G+，置=G+\需，且禁=清=∅；
+      β:费用=2，需=I∩G-，|置|=1且置⊆G-，|清|=1且清⊆G+；
+      γ:费用=1，|需|=|置|=1，需∪置⊆G+，且禁=清=∅。
+      初态=q,v,p;终态必须含=v,x,y;不得含=q,t,w。操作表：
+      K13[4]:需=y;禁=-;置=v,x;清=-；K5[7]:需=r;禁=-;置=u,x;清=t,v,w；
+      K2[2]:需=q;禁=-;置=w;清=v；K16[5]:需=s;禁=-;置=v,y;清=u,x；
+      K9[2]:需=u;禁=t;置=s;清=w；K7[2]:需=v;禁=-;置=t;清=p；
+      K12[4]:需=x;禁=-;置=v;清=y；K3[1]:需=y;禁=-;置=p;清=-；
+      K11[6]:需=u;禁=t;置=x,y;清=v,w；K1[2]:需=s;禁=-;置=x;清=u；
+      K15[8]:需=q;禁=-;置=r,t;清=p,v；K6[1]:需=x;禁=-;置=y;清=-；
+      K8[7]:需=q;禁=-;置=t,w;清=p；K4[2]:需=r;禁=-;置=u;清=t；
+      K14[5]:需=r;禁=-;置=s;清=q,t,v,w；K10[3]:需=t,w;禁=-;置=r;清=q。
+      按 α、β、γ 顺序，每组先输出匹配卡号，再输出该独立冻结情形的六段证书：最优成本;唯一最优卡串;更低成本目标路径数;最优层目标路径数;次优成本;次优层目标路径数。共21段，卡串内部只能用 >，不能用逗号。
+    answer:
+      parts:
+        - {type: string, value: K13}
+        - {type: number, value: "17"}
+        - {type: string, value: K8>K10>K4>K9>K1>K6}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "18"}
+        - {type: number, value: "2"}
+        - {type: string, value: K2}
+        - {type: number, value: "17"}
+        - {type: string, value: K8>K10>K4>K9>K1>K6}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "19"}
+        - {type: number, value: "3"}
+        - {type: string, value: K6}
+        - {type: number, value: "18"}
+        - {type: string, value: K7>K2>K10>K4>K9>K16>K1}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "19"}
+        - {type: number, value: "3"}
+  mapping:
+    objects: {属性谓词: δ→α/β/γ, 唯一匹配卡: S5→K13/K2/K6, 有效动作集: 删除一张→三个独立删除查询, 状态节点: 三标记→十标记, 证书: 七段→三组七段}
+    shared_relations: [先在完整表上求属性谓词的唯一匹配, 匹配卡从可执行集合删除但仍展示在表中, 每个策略独立回到全启用基线, 路径首次满足完整正负目标即停止, 等成本不同顺序分别计数, 继续枚举到首个非空次优层]
+    removed_relations: [显式给出冻结卡号, 三个反事实分题求解]
+    added_relations: [以集合关系谓词间接确定冻结位置, 在同一道题联合输出三个独立反事实证书]
+    adaptation_required: [先求K13/K2/K6三个唯一匹配, 分别构造三个15卡有效动作集, 独立计算17/18与19成本层, 严格保持21段顺序]
+    varied: [目标扩大到三个异质冻结影响, 卡号定位与规划证书形成串联任务, 输出由六段扩为二十一段]
+  lure:
+    problem: >-
+      一个审计系统也先用三个属性谓词标记唯一操作，再分别输出卡号与六段证书；但“标记”只决定审计标签，所有操作仍保持可用，三个查询都在完整动作表上求解。
+      初态=m;终态必须含=o;不得含=-。操作表：
+      R4[3]:需=m;禁=-;置=p;清=-；R1[2]:需=m;禁=-;置=n;清=-；
+      R5[3]:需=p;禁=-;置=o;清=-；R3[5]:需=m;禁=-;置=o;清=-；
+      R2[2]:需=n;禁=-;置=o;清=-。
+      三个谓词依次唯一标记 R5、R1、R3。路径首次满足终态即停止；每组输出卡号与同样的六段证书，卡串内部使用 >。
+    solution: >-
+      三个谓词的匹配依次为 R5、R1、R3。审计标记不改变动作可用性，所以三次都在完整五卡系统上枚举；
+      唯一最优为成本4的 R1>R2，首个次优为成本5的 R3，各有一条。
+    answer:
+      parts:
+        - {type: string, value: R5}
+        - {type: number, value: "4"}
+        - {type: string, value: R1>R2}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "5"}
+        - {type: number, value: "1"}
+        - {type: string, value: R1}
+        - {type: number, value: "4"}
+        - {type: string, value: R1>R2}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "5"}
+        - {type: number, value: "1"}
+        - {type: string, value: R3}
+        - {type: number, value: "4"}
+        - {type: string, value: R1>R2}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "5"}
+        - {type: number, value: "1"}
+    why_surface_similar: 两题都从操作属性谓词得到三个卡号，并为每个查询输出七段结果。
+    why_structurally_different: 参考题中的谓词只产生审计标签、不改变可执行集合；目标中的匹配卡会被冻结。
+    wrong_schema_id: predicate-audit-tag-without-outage
+  copy_probe:
+    answer:
+      parts:
+        - {type: string, value: R5}
+        - {type: number, value: "4"}
+        - {type: string, value: R1>R2}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "5"}
+        - {type: number, value: "1"}
+        - {type: string, value: R1}
+        - {type: number, value: "4"}
+        - {type: string, value: R1>R2}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "5"}
+        - {type: number, value: "1"}
+        - {type: string, value: R3}
+        - {type: number, value: "4"}
+        - {type: string, value: R1>R2}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "5"}
+        - {type: number, value: "1"}
+    derivation: 复制路径与数值均已解耦的“谓词只标记、不冻结”三查询证书。
+  hints:
+    schema_name: 有状态操作规划的最优层与次优层证书迁移
+    oracle_mindset: {insight: 把任务拆成谓词唯一匹配、删除匹配卡、独立重算两个目标成本层三步；三个策略不能累积冻结。, when_to_use: 操作变化由关系属性而非显式编号指定，且需批量回答多个反事实时。}
+    false_mindset: {insight: 对每个谓词只报告匹配卡，但仍在完整动作基线上计算证书；三个策略复用同一最优层与次优层。, when_to_use: 属性谓词只产生审计标签而不改变动作可用性时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_certificate_policy:verify_formal_p5_cert_policy_joint_01
+    method: executable-predicate-matching-and-three-independent-outage-certificates
+  provenance: joint predicate-encoded hardening of the three explicit outage ablations
+  verified: α/β/γ 唯一匹配 K13/K2/K6；对应证书分别为 17/18×2、17/19×3、18/19×3。

@@ -1,0 +1,7 @@
+{
+  "name": "formal-p5-certificate-policy-joint",
+  "description": "One L4 case coupling three executable relation predicates to three independent optimality certificates with a path-decoupled control.",
+  "datasets": [
+    "../v1/formal-p5-certificate-policy-joint.yaml"
+  ]
+}

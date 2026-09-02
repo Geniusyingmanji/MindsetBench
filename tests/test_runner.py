@@ -159,11 +159,15 @@ def test_report_command_reloads_saved_trials_and_applies_gates(tmp_path, capsys)
                 "--experiment-id",
                 config.experiment_id,
                 "--calibration-gates",
+                "--part-group-size",
+                "1",
             ]
         )
     assert exit_info.value.code == 0
     report = json.loads(capsys.readouterr().out)
     assert report["trials"] == 9
+    assert report["part_group_accuracy"]["target-only"]["group_size"] == 1
+    assert report["part_group_accuracy"]["target-only"]["incompatible_trials"] == 0
     assert report["calibration"]["P3"]["reasons"] == [
         "target-outside-window",
         "source-gain-below-threshold",

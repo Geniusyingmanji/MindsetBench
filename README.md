@@ -185,6 +185,22 @@ L4 又派生出三个动作冻结反事实：分别只改变 runner-up 数量、
 .venv/bin/mb verify all --dataset data/manifests/formal-p5-certificate-outages.json
 ```
 
+显式冻结形成天花板后，又加入一题更抽象的 21 段联合查询：先从三条集合关系谓词唯一识别 `K13/K2/K6`，再为三个互不叠加的冻结情形分别输出七段“卡号 + 双层证书”。source 只提供一个小型属性谓词示例；lure 与目标的卡号、路径和成本完全解耦；另有不含任何答案数值的 oracle/false mindset 对照：
+
+```bash
+.venv/bin/mb validate data/manifests/formal-p5-certificate-policy-joint.json --strict-v1
+.venv/bin/mb audit data/manifests/formal-p5-certificate-policy-joint.json
+.venv/bin/mb verify all --dataset data/manifests/formal-p5-certificate-policy-joint.json
+
+# 把连续七段视为一个完整反事实 query block
+.venv/bin/mb report \
+  --database artifacts/runs/formal-p5-certificate-policy-gpt56sol.sqlite \
+  --experiment-id EXPERIMENT_ID \
+  --part-group-size 7
+```
+
+GPT-5.6-sol 三样本 target-only 为 exact 0/3、逐段 50/63、完整 query block 1/9；三次都正确识别谓词对应卡号，主要失败是把“最优路径已经首次命中目标后再追加 K3”误算成成本 18 runner-up。procedure-only oracle 没有带来整题 exact，但在配对 target/oracle 三样本中把逐段正确率从 50.8% 提至 87.3%、完整 block 从 1/9 提至 4/9；同实验 oracle-vs-false 对照另得到 +12.7pp part selectivity 和 +22.2pp block selectivity。由于 solved source 没有稳定增益，当前只能报告程序性提示的局部收益，不能报告稳定 schema transfer。详见[属性谓词联合证书报告](docs/p5-certificate-policy-joint-report.md)。
+
 真实模型实验通过环境变量传入密钥，不把凭据写进命令参数、配置或结果库：
 
 ```bash

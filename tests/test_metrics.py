@@ -7,7 +7,9 @@ from mindsetbench.metrics import (
     paired_condition_difference,
     paired_outcome_counts,
     paired_part_condition_difference,
+    paired_part_group_condition_difference,
     part_accuracy_by_condition,
+    part_group_accuracy_by_condition,
     part_scores_by_case_condition,
     summarize_slices,
     summarize_transfer,
@@ -179,6 +181,39 @@ def test_transfer_summary_reports_paired_oracle_mindset_gain() -> None:
     }
 
 
+def test_transfer_summary_reports_oracle_vs_false_mindset_selectivity() -> None:
+    def part(index: int, correct: bool):
+        return SimpleNamespace(index=index, correct=correct, predicted="x")
+
+    records = [
+        _record(
+            "a",
+            Condition.H3_ORACLE_MINDSET,
+            True,
+            expected_part_count=2,
+            part_results=[part(0, True), part(1, True)],
+        ),
+        _record(
+            "a",
+            Condition.H3_FALSE_MINDSET,
+            False,
+            expected_part_count=2,
+            part_results=[part(0, True), part(1, False)],
+        ),
+    ]
+    summary = summarize_transfer(records)
+    assert summary["oracle_mindset_selectivity"] == 1.0
+    assert summary["completed_oracle_mindset_selectivity"] == 1.0
+    assert summary["oracle_mindset_part_selectivity"] == 0.5
+    assert summary["oracle_mindset_vs_false_pairs"] == {
+        "paired_n": 1,
+        "both": 0,
+        "left_only": 1,
+        "right_only": 0,
+        "neither": 0,
+    }
+
+
 def test_paired_part_difference_ignores_unpaired_and_legacy_unscored_rows() -> None:
     part = SimpleNamespace(index=0, correct=True, predicted="x")
     records = [
@@ -278,6 +313,92 @@ def test_part_accuracy_reports_correctness_and_parse_coverage() -> None:
     assert details["0"]["accuracy"] == 1.0
     assert details["1"]["coverage"] == 0.5
     assert details["2"]["accuracy"] == 0.5
+
+
+def test_part_group_accuracy_requires_all_parts_in_each_block() -> None:
+    def part(index: int, correct: bool, predicted: str | None = "x"):
+        return SimpleNamespace(index=index, correct=correct, predicted=predicted)
+
+    records = [
+        _record(
+            "joint",
+            Condition.TARGET_ONLY,
+            False,
+            expected_part_count=6,
+            part_results=[
+                part(0, True),
+                part(1, True),
+                part(2, True),
+                part(3, True),
+                part(4, False),
+                part(5, True),
+            ],
+        ),
+        _record(
+            "joint",
+            Condition.TARGET_ONLY,
+            False,
+            expected_part_count=6,
+            part_results=[part(0, True), part(1, True), part(2, True)],
+            sample_index=1,
+        ),
+    ]
+    assert part_group_accuracy_by_condition(records, 3)["target-only"] == {
+        "trials": 2,
+        "scored_trials": 2,
+        "unscored_trials": 0,
+        "incompatible_trials": 0,
+        "group_size": 3,
+        "correct_groups": 2,
+        "observed_groups": 3,
+        "expected_groups": 4,
+        "accuracy": 0.5,
+        "coverage": 0.75,
+    }
+
+
+def test_part_group_metrics_exclude_incompatible_records_and_pair_trials() -> None:
+    def parts(outcomes: list[bool]):
+        return [
+            SimpleNamespace(index=index, correct=correct, predicted="x")
+            for index, correct in enumerate(outcomes)
+        ]
+
+    records = [
+        _record(
+            "joint",
+            Condition.TARGET_ONLY,
+            False,
+            expected_part_count=6,
+            part_results=parts([True, True, True, True, False, True]),
+        ),
+        _record(
+            "joint",
+            Condition.WITH_SOURCE,
+            True,
+            expected_part_count=6,
+            part_results=parts([True] * 6),
+        ),
+        _record(
+            "incompatible",
+            Condition.TARGET_ONLY,
+            False,
+            expected_part_count=5,
+            part_results=parts([True] * 5),
+        ),
+    ]
+    target = part_group_accuracy_by_condition(records, 3)["target-only"]
+    assert target["incompatible_trials"] == 1
+    assert target["scored_trials"] == 1
+    assert (
+        paired_part_group_condition_difference(
+            records,
+            Condition.WITH_SOURCE,
+            Condition.TARGET_ONLY,
+            3,
+        )
+        == 0.5
+    )
 
 
 def test_completed_part_accuracy_excludes_censored_trials() -> None:
