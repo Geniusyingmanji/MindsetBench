@@ -1,0 +1,7 @@
+{
+  "name": "formal-p5-certificate-chain",
+  "description": "A complete L0-L4 stateful planning optimality-certificate chain with monotone and stale-edit controls.",
+  "datasets": [
+    "../v1/formal-p5-certificate-chain.yaml"
+  ]
+}

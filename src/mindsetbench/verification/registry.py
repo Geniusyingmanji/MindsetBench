@@ -40,6 +40,7 @@ def _load_builtin_verifiers() -> None:
         formal_p2_chain,
         formal_p3_chain,
         formal_p4_chain,
+        formal_p5_certificate,
         formal_p5_chain,
         formal_p5_latent,
         formal_p6_chain,

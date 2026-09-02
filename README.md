@@ -160,6 +160,23 @@ Q2 又扩展为三道六段最优性证书题，以及三道 target 完全相同
 .venv/bin/mb verify all --dataset data/manifests/p5-latent-certificate-source-ablation.json
 ```
 
+## Formal35：有状态规划最优性证书
+
+在 formal30 上新增第七条完整 L0—L4 链：要求同时回答最优成本、唯一最优有序路径、低成本零命中、最优层多重性、runner-up 成本和 runner-up 多重性。L3 是十状态十六操作的完整同构，L4 只编辑一项操作效果并使旧证书整体失效：
+
+```bash
+.venv/bin/mb validate data/v1/formal-p5-certificate-chain.yaml --strict-v1
+.venv/bin/mb audit data/v1/formal-p5-certificate-chain.yaml --require-complete-chains
+.venv/bin/mb verify all --dataset data/v1/formal-p5-certificate-chain.yaml
+
+.venv/bin/mb validate data/manifests/formal35.json --strict-v1
+.venv/bin/mb validate-cards data/manifests/formal35-cards.json data/manifests/formal35.json
+.venv/bin/mb audit data/manifests/formal35.json --require-complete-chains
+.venv/bin/mb verify all --dataset data/manifests/formal35.json
+```
+
+GPT-5.6-sol 单样本预筛在修复路径分隔符契约后为 target-only exact 4/5、逐段 29/30；L4 只错 runner-up 路径数。盲化的 L3/L4 paired 运行中 source 没有提升正确率，lure 则把 L4 从 5/6 段降至 1/6。该结果只用于难度诊断，尚不能估计稳定迁移增益。构造保证、泄露修复和逐条件结果见 `docs/formal35-report.md`。
+
 真实模型实验通过环境变量传入密钥，不把凭据写进命令参数、配置或结果库：
 
 ```bash

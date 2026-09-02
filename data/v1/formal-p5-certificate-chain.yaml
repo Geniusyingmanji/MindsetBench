@@ -1,0 +1,294 @@
+- id: FORMAL-P5-CERT-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-操作证书
+  schema_id: stateful-planning-optimality-certificate-edit-v1
+  schema_name: 有状态操作规划的最优层与次优层证书迁移
+  chain: p5-stateful-planning-certificate-v1
+  level: 0
+  source: &p5_certificate_source
+    domain: 十标记工艺的完整搜索证书
+    problem: >-
+      一个状态是当前为真的标记集合。每项操作至多执行一次；仅当“需”中的标记全为真且“禁”中的标记全为假时才可执行。
+      执行时先删除“清”中的标记，再加入“置”中的标记，各效果同时生效。“-”表示空集。
+      初态=A,B,C;终态必须含=B,I,J;不得含=A,D,E。操作表：
+      S1[2]:需=B;禁=-;置=D;清=C；S2[2]:需=A;禁=-;置=E;清=B；
+      S3[3]:需=D,E;禁=-;置=F;清=A；S4[2]:需=F;禁=-;置=G;清=D；
+      S5[2]:需=G;禁=D;置=H;清=E；S6[2]:需=H;禁=-;置=I;清=G；
+      S7[1]:需=I;禁=-;置=J;清=-；S8[1]:需=J;禁=-;置=B;清=-；
+      S9[7]:需=A;禁=-;置=D,E;清=C；S10[7]:需=F;禁=-;置=G,I;清=B,D,E；
+      S11[6]:需=G;禁=D;置=I,J;清=B,E；S12[4]:需=I;禁=-;置=B;清=J；
+      S13[4]:需=J;禁=-;置=B,I;清=-；S14[5]:需=F;禁=-;置=H;清=A,B,D,E；
+      S15[8]:需=A;禁=-;置=F,D;清=B,C；S16[5]:需=H;禁=-;置=B,J;清=G,I。
+      计划首次满足完整终态即停止。输出六段：最优成本;唯一最优操作串;更低成本目标路径数;最优层目标路径数;次优成本;次优层目标路径数。操作串内部只能用 >，不能用逗号。
+    solution: >-
+      在状态、已用操作集合与完整有序路径上做正成本一致代价枚举。不能只按状态去重；即使状态和已用集合相同，
+      等成本的不同有序路径必须分别保留并计数。路径首次满足正负终态即停止。完整处理成本 15 及 16 两层：
+      成本 15 前没有目标路径，成本 15 唯一，成本 16 有三条。
+      证书：C*=15；P*=S1>S2>S3>S4>S5>S6>S7>S8；N<C*=0；N=C*=1；Cnext=16；Nnext=3。
+    answer: 15;S1>S2>S3>S4>S5>S6>S7>S8;0;1;16;3
+  target:
+    domain: 三标记封装流程证书
+    problem: >-
+      状态规则与源题相同，每项操作至多一次，“-”为空集。初态=x;终态必须含=z;不得含=-。操作表：
+      A1[1]:需=x;禁=-;置=y;清=-；A2[1]:需=y;禁=-;置=z;清=-；A3[3]:需=x;禁=-;置=z;清=-。
+      计划首次满足完整终态即停止。输出六段：最优成本;唯一最优操作串;更低成本目标路径数;最优层目标路径数;次优成本;次优层目标路径数。操作串内部只能用 >，不能用逗号。
+    answer:
+      parts:
+        - {type: number, value: "2"}
+        - {type: string, value: A1>A2}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "3"}
+        - {type: number, value: "1"}
+  mapping:
+    objects: {状态标记: x/y/z, 操作: A1/A2/A3, 搜索节点: 状态×已用操作×完整路径, 成本层证书: 最优层与首个次优层的路径数}
+    shared_relations: [正负前置条件决定操作是否可执行, 清除与置位共同改变状态, 每项至多一次, 首次满足完整终态即停止, 正成本一致代价枚举按成本层证明最优性, 等成本不同路径分别计数]
+    varied: [目标缩为三操作两步依赖链, 最优层和次优层各只有一条路径]
+  lure:
+    problem: 使用相同初态、目标、操作与成本，但把操作当作无前置、无清除的独立置位集合；同样输出六段集合覆盖证书。
+    solution: 在独立置位模型中，A2 可单独置 z，成本 1 唯一；成本 2 的首个次优集合为 A1,A2。
+    answer: {parts: [{type: number, value: "1"}, {type: string, value: A2}, {type: number, value: "0"}, {type: number, value: "1"}, {type: number, value: "2"}, {type: number, value: "1"}]}
+    why_surface_similar: 初态、目标、三项操作、成本和六段证书格式完全相同。
+    why_structurally_different: lure 删除 A2 对 y 的前置条件，把有序状态计划降为独立集合覆盖。
+    wrong_schema_id: monotone-cover
+  copy_probe:
+    answer: {parts: [{type: number, value: "1"}, {type: string, value: A2}, {type: number, value: "0"}, {type: number, value: "1"}, {type: number, value: "2"}, {type: number, value: "1"}]}
+    derivation: 忽略执行条件后直接选择 A2，并在错误模型内计算成本层。
+  hints:
+    schema_name: 有状态操作规划的最优层与次优层证书迁移
+    oracle_mindset: {insight: 按成本层枚举可执行有序路径，首次到达目标即停止，并继续到首个次优目标层。, when_to_use: 需要同时证明最优值、唯一性和 runner-up 间隔时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_certificate:verify_formal_p5_cert_l0_01
+    method: exhaustive-stateful-and-monotone-certificate-enumeration
+  provenance: certificate reformulation of FORMAL-P5-PLAN-L0-01
+  verified: 真实证书 2;A1>A2;0;1;3;1；独立覆盖错误证书 1;A2;0;1;2;1。
+
+- id: FORMAL-P5-CERT-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-操作证书
+  schema_id: stateful-planning-optimality-certificate-edit-v1
+  schema_name: 有状态操作规划的最优层与次优层证书迁移
+  chain: p5-stateful-planning-certificate-v1
+  level: 1
+  source: *p5_certificate_source
+  target:
+    domain: 封签恢复流程证书
+    problem: >-
+      每项操作至多一次；“需”全真且“禁”全假才可执行，执行时先清除再置位。初态=a,b;终态必须含=b,e;不得含=-。操作表：
+      B3[2]:需=e;禁=-;置=b;清=-；B1[1]:需=a;禁=-;置=c;清=b；
+      B4[5]:需=a;禁=-;置=e;清=-；B2[1]:需=c;禁=-;置=e;清=-。
+      计划首次满足完整终态即停止。输出六段：最优成本;唯一最优操作串;更低成本目标路径数;最优层目标路径数;次优成本;次优层目标路径数。操作串内部只能用 >，不能用逗号。
+    answer:
+      parts:
+        - {type: number, value: "4"}
+        - {type: string, value: B1>B2>B3}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "5"}
+        - {type: number, value: "1"}
+  mapping:
+    objects: {初始资源: a/b, 中间与目标标记: c/e, 推进与恢复: B1/B2/B3, 直达旁路: B4, 成本层证书: 完整有序路径计数}
+    shared_relations: [B1 推进时清除终态仍要求的 b, B2 依赖 c 且产生 e, B3 依赖 e 并恢复 b, 所有路径首次满足终态即停止, 最优与次优层必须分别完整枚举]
+    varied: [加入必须修复的清除副作用和成本 5 的直达 runner-up]
+  lure:
+    problem: 使用相同实例，但把操作当作无前置、无清除的独立置位集合；输出六段集合覆盖证书。
+    solution: 在独立置位模型中初态已有 b，以 B2 单独置 e，成本 1；加入 B1 得成本 2 的唯一首个次优集合。
+    answer: {parts: [{type: number, value: "1"}, {type: string, value: B2}, {type: number, value: "0"}, {type: number, value: "1"}, {type: number, value: "2"}, {type: number, value: "1"}]}
+    why_surface_similar: 四项操作、成本、初态、目标和证书格式完全相同。
+    why_structurally_different: lure 允许无 c 时执行 B2，且忽略 B1 对 b 的清除。
+    wrong_schema_id: monotone-cover
+  copy_probe:
+    answer: {parts: [{type: number, value: "1"}, {type: string, value: B2}, {type: number, value: "0"}, {type: number, value: "1"}, {type: number, value: "2"}, {type: number, value: "1"}]}
+    derivation: 将 B2 视为独立置位并在错误模型内计算成本层。
+  hints:
+    schema_name: 有状态操作规划的最优层与次优层证书迁移
+    oracle_mindset: {insight: 重放 B1 的清除副作用，比较修复链 B1>B2>B3 与成本 5 的直达 B4。, when_to_use: 推进操作会破坏终态仍要求的资源时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_certificate:verify_formal_p5_cert_l1_01
+    method: exhaustive-stateful-and-monotone-certificate-enumeration
+  provenance: certificate reformulation of FORMAL-P5-PLAN-L1-01
+  verified: 真实证书 4;B1>B2>B3;0;1;5;1；错误覆盖证书 1;B2;0;1;2;1。
+
+- id: FORMAL-P5-CERT-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-操作证书
+  schema_id: stateful-planning-optimality-certificate-edit-v1
+  schema_name: 有状态操作规划的最优层与次优层证书迁移
+  chain: p5-stateful-planning-certificate-v1
+  level: 2
+  source: *p5_certificate_source
+  target:
+    domain: 九操作状态修复证书
+    problem: >-
+      每项操作至多一次；“需”全真且“禁”全假才可执行，执行时先清除再置位。初态=a,b;终态必须含=b,g,h;不得含=a,d。操作表：
+      C8[4]:需=g;禁=-;置=b;清=-；C2[2]:需=b;禁=-;置=d;清=-；
+      C5[2]:需=f;禁=d;置=g;清=-；C1[2]:需=a;禁=-;置=c;清=b；
+      C7[1]:需=h;禁=-;置=b;清=-；C4[1]:需=e;禁=-;置=f;清=d；
+      C9[7]:需=a;禁=-;置=c,d;清=-；C6[1]:需=g;禁=-;置=h;清=-；
+      C3[2]:需=c,d;禁=-;置=e;清=a。
+      计划首次满足完整正负终态即停止。输出六段：最优成本;唯一最优操作串;更低成本目标路径数;最优层目标路径数;次优成本;次优层目标路径数。操作串内部只能用 >，不能用逗号。
+    answer:
+      parts:
+        - {type: number, value: "11"}
+        - {type: string, value: C2>C1>C3>C4>C5>C6>C7}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "13"}
+        - {type: number, value: "1"}
+  mapping:
+    objects: {持久目标: b/g/h, 临时门控: c/d/e/f, 推进链: C2/C1/C3/C4/C5/C6, 修复操作: C7/C8, 成本层证书: 正负终态下的有序路径计数}
+    shared_relations: [C2 必须在 C1 清除 b 前执行, C3 同时需要 c/d 并清除禁项 a, C4 清除 d 后 C5 的否定前置才成立, C6 与恢复操作依序依赖, 目标命中必须同时满足正目标与负目标, runner-up 与最优相差 2]
+    varied: [扩为九操作、正负前置、正负终态和不同修复分支]
+  lure:
+    problem: 使用相同实例，但只做忽略前置、清除与负目标的独立加法覆盖；输出六段集合覆盖证书。
+    solution: 在独立置位模型中以 C5,C6 覆盖 g,h，成本 3；成本 4 有加入 C4 或 C7 的两个集合。
+    answer: {parts: [{type: number, value: "3"}, {type: string, value: C5>C6}, {type: number, value: "0"}, {type: number, value: "1"}, {type: number, value: "4"}, {type: number, value: "2"}]}
+    why_surface_similar: 九项操作、成本、初态、正目标和证书格式相同。
+    why_structurally_different: lure 不生成 f、不清除 d，也忽略终态禁有 a/d。
+    wrong_schema_id: monotone-cover
+  copy_probe:
+    answer: {parts: [{type: number, value: "3"}, {type: string, value: C5>C6}, {type: number, value: "0"}, {type: number, value: "1"}, {type: number, value: "4"}, {type: number, value: "2"}]}
+    derivation: 对 adds 做独立集合覆盖并忽略状态转换。
+  hints:
+    schema_name: 有状态操作规划的最优层与次优层证书迁移
+    oracle_mindset: {insight: 在状态×已用操作×路径空间处理正负前置和终态，继续搜索到成本 13 的首个次优层。, when_to_use: 计划同时含门控、删除副作用和负目标时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_certificate:verify_formal_p5_cert_l2_01
+    method: exhaustive-stateful-and-monotone-certificate-enumeration
+  provenance: certificate reformulation of FORMAL-P5-PLAN-L2-01
+  verified: 真实证书 11;C2>C1>C3>C4>C5>C6>C7;0;1;13;1；错误覆盖证书 3;C5>C6;0;1;4;2。
+
+- id: FORMAL-P5-CERT-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-操作证书
+  schema_id: stateful-planning-optimality-certificate-edit-v1
+  schema_name: 有状态操作规划的最优层与次优层证书迁移
+  chain: p5-stateful-planning-certificate-v1
+  level: 3
+  source: *p5_certificate_source
+  target:
+    domain: 重编号状态操作网证书
+    problem: &certificate_full_target >-
+      当前登记项构成系统状态，每张操作卡最多使用一次。要求项必须已登记、阻断项必须未登记；使用时先注销再登记，“无”为空集。
+      初始登记=q,v,p;验收须有=v,x,y;须无=q,t,w。操作卡：
+      K13（费用4）只有 y 都已登记且 无 均未登记时可用；用后登记 v,x，并注销 无。
+      K5（费用7）只有 r 都已登记且 无 均未登记时可用；用后登记 u,x，并注销 v,t,w。
+      K2（费用2）只有 q 都已登记且 无 均未登记时可用；用后登记 w，并注销 v。
+      K16（费用5）只有 s 都已登记且 无 均未登记时可用；用后登记 v,y，并注销 u,x。
+      K9（费用2）只有 u 都已登记且 t 均未登记时可用；用后登记 s，并注销 w。
+      K7（费用2）只有 v 都已登记且 无 均未登记时可用；用后登记 t，并注销 p。
+      K12（费用4）只有 x 都已登记且 无 均未登记时可用；用后登记 v，并注销 y。
+      K3（费用1）只有 y 都已登记且 无 均未登记时可用；用后登记 v，并注销 无。
+      K11（费用6）只有 u 都已登记且 t 均未登记时可用；用后登记 x,y，并注销 v,w。
+      K1（费用2）只有 s 都已登记且 无 均未登记时可用；用后登记 x，并注销 u。
+      K15（费用8）只有 q 都已登记且 无 均未登记时可用；用后登记 r,t，并注销 v,p。
+      K6（费用1）只有 x 都已登记且 无 均未登记时可用；用后登记 y，并注销 无。
+      K8（费用7）只有 q 都已登记且 无 均未登记时可用；用后登记 t,w，并注销 p。
+      K4（费用2）只有 r 都已登记且 无 均未登记时可用；用后登记 u，并注销 t。
+      K14（费用5）只有 r 都已登记且 无 均未登记时可用；用后登记 s，并注销 q,v,t,w。
+      K10（费用3）只有 t,w 都已登记且 无 均未登记时可用；用后登记 r，并注销 q。
+      计划首次满足完整验收即停止。输出六段：最优成本;唯一最优卡串;更低成本目标路径数;最优层目标路径数;次优成本;次优层目标路径数。卡串内部只能用 >，不能用逗号。
+    answer:
+      parts:
+        - {type: number, value: "15"}
+        - {type: string, value: K7>K2>K10>K4>K9>K1>K6>K3}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "16"}
+        - {type: number, value: "3"}
+  mapping:
+    objects: {A/B/C/D/E: q/v/p/t/w, F/G/H/I/J: r/u/s/x/y, S1…S8: K7/K2/K10/K4/K9/K1/K6/K3, S9…S16: K8/K5/K11/K12/K13/K14/K15/K16, 成本层证书: 重命名后有序目标路径的成本与多重性}
+    shared_relations: [十个状态标记一一重命名, 十六项操作的成本、正负前置和副作用逐项保持, 初态与正负终态保持, 完整最优卡序保持, 成本 16 的三条 runner-up 保持, 操作表顺序不承载语义]
+    varied: [状态名、操作编号和表顺序同时置换, 题面改写为叙述式操作卡]
+  lure:
+    problem: 使用同一重编号实例，但忽略所有前置、注销和负目标，只按登记效果做独立加法覆盖；输出六段集合覆盖证书。
+    solution: 初态已有 v，以 K1,K6 覆盖 x,y，成本 3；加入成本 1 的 K3 得唯一成本 4 次优集合。
+    answer: {parts: [{type: number, value: "3"}, {type: string, value: K1>K6}, {type: number, value: "0"}, {type: number, value: "1"}, {type: number, value: "4"}, {type: number, value: "1"}]}
+    why_surface_similar: 初态、目标、十六张卡、费用和证书格式完全相同。
+    why_structurally_different: lure 将有序、有删除副作用的状态转换压缩成无前置集合覆盖。
+    wrong_schema_id: monotone-cover
+  copy_probe:
+    answer: {parts: [{type: number, value: "3"}, {type: string, value: K1>K6}, {type: number, value: "0"}, {type: number, value: "1"}, {type: number, value: "4"}, {type: number, value: "1"}]}
+    derivation: 只选覆盖 x/y 的最低成本登记效果，并在错误模型中数成本层。
+  hints:
+    schema_name: 有状态操作规划的最优层与次优层证书迁移
+    oracle_mindset: {insight: 先对齐十六项状态转换，再迁移完整成本层；不能把操作表顺序或卡号当作路径顺序。, when_to_use: 状态和操作同时重命名但转换结构完整保持时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_certificate:verify_formal_p5_cert_l3_01
+    method: exhaustive-certificate-and-complete-operation-isomorphism
+  provenance: certificate reformulation of FORMAL-P5-PLAN-L3-01
+  verified: 完整同构；真实证书 15/唯一/16/三条，错误覆盖证书 3;K1>K6;0;1;4;1。
+
+- id: FORMAL-P5-CERT-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-操作证书
+  schema_id: stateful-planning-optimality-certificate-edit-v1
+  schema_name: 有状态操作规划的最优层与次优层证书迁移
+  chain: p5-stateful-planning-certificate-v1
+  level: 4
+  source: *p5_certificate_source
+  target:
+    domain: 单效果改版操作网证书
+    problem: >-
+      当前登记项构成系统状态，每张操作卡最多使用一次。要求项必须已登记、阻断项必须未登记；使用时先注销再登记，“无”为空集。
+      初始登记=q,v,p;验收须有=v,x,y;须无=q,t,w。操作卡：
+      K13（费用4）只有 y 都已登记且 无 均未登记时可用；用后登记 v,x，并注销 无。
+      K5（费用7）只有 r 都已登记且 无 均未登记时可用；用后登记 u,x，并注销 v,t,w。
+      K2（费用2）只有 q 都已登记且 无 均未登记时可用；用后登记 w，并注销 v。
+      K16（费用5）只有 s 都已登记且 无 均未登记时可用；用后登记 v,y，并注销 u,x。
+      K9（费用2）只有 u 都已登记且 t 均未登记时可用；用后登记 s，并注销 w。
+      K7（费用2）只有 v 都已登记且 无 均未登记时可用；用后登记 t，并注销 p。
+      K12（费用4）只有 x 都已登记且 无 均未登记时可用；用后登记 v，并注销 y。
+      K3（费用1）只有 y 都已登记且 无 均未登记时可用；用后登记 p，并注销 无。
+      K11（费用6）只有 u 都已登记且 t 均未登记时可用；用后登记 x,y，并注销 v,w。
+      K1（费用2）只有 s 都已登记且 无 均未登记时可用；用后登记 x，并注销 u。
+      K15（费用8）只有 q 都已登记且 无 均未登记时可用；用后登记 r,t，并注销 v,p。
+      K6（费用1）只有 x 都已登记且 无 均未登记时可用；用后登记 y，并注销 无。
+      K8（费用7）只有 q 都已登记且 无 均未登记时可用；用后登记 t,w，并注销 p。
+      K4（费用2）只有 r 都已登记且 无 均未登记时可用；用后登记 u，并注销 t。
+      K14（费用5）只有 r 都已登记且 无 均未登记时可用；用后登记 s，并注销 q,v,t,w。
+      K10（费用3）只有 t,w 都已登记且 无 均未登记时可用；用后登记 r，并注销 q。
+      计划首次满足完整验收即停止。输出六段：最优成本;唯一最优卡串;更低成本目标路径数;最优层目标路径数;次优成本;次优层目标路径数。卡串内部只能用 >，不能用逗号。
+    answer:
+      parts:
+        - {type: number, value: "17"}
+        - {type: string, value: K8>K10>K4>K9>K1>K6}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "18"}
+        - {type: number, value: "3"}
+  mapping:
+    objects: {A/B/C/D/E: q/v/p/t/w, F/G/H/I/J: r/u/s/x/y, S1…S8: K7/K2/K10/K4/K9/K1/K6/K3, S9…S16: K8/K5/K11/K12/K13/K14/K15/K16, 旧证书: 编辑前成本 15/16 的目标路径层, 新证书: 编辑后成本 17/18 的目标路径层}
+    shared_relations: [十个状态标记和十六项操作重命名保持, K3 以外的成本、前置和效果保持, 初态与正负终态保持, 路径首次满足验收即停止, 等成本不同路径分别计数]
+    removed_relations: [K3 在 y 成立后恢复终态所需的 v]
+    added_relations: [K3 在 y 成立后重复登记 p]
+    adaptation_required: [重放旧成本 15 计划发现最终缺 v, 放弃旧 15/16 成本层证书, 完整枚举新版成本 17 与 18 目标层]
+    varied: [完整重命名后只编辑一个操作效果, 最优路径与 runner-up 三重性同时切换]
+  lure:
+    problem: 使用相同重编号和费用，但冻结编辑前 K3 登记 v 的关系，并沿用编辑前完整成本层证书。
+    solution: 在 K3 登记 v 的版本中，唯一成本 15 路径以 K3 恢复 v；成本 16 有三条。
+    answer: {parts: [{type: number, value: "15"}, {type: string, value: K7>K2>K10>K4>K9>K1>K6>K3}, {type: number, value: "0"}, {type: number, value: "1"}, {type: number, value: "16"}, {type: number, value: "3"}]}
+    why_surface_similar: 状态名、卡号、费用、初态、目标和十五张未编辑卡完全相同。
+    why_structurally_different: lure 冻结 K3 登记 v；真实 K3 登记 p，使整个旧证书不再是目标路径证书。
+    wrong_schema_id: stale-pre-edit-certificate
+  copy_probe:
+    answer: {parts: [{type: number, value: "15"}, {type: string, value: K7>K2>K10>K4>K9>K1>K6>K3}, {type: number, value: "0"}, {type: number, value: "1"}, {type: number, value: "16"}, {type: number, value: "3"}]}
+    derivation: 直接复制 source 经重命名后的编辑前最优层和次优层。
+  hints:
+    schema_name: 有状态操作规划的最优层与次优层证书迁移
+    oracle_mindset: {insight: 先重放旧证书识别 K3 单效果变化，再在新版状态空间重新枚举最优与首个次优目标层。, when_to_use: 已解规划结构发生一个局部关系编辑且可能改变整层最优路径时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_certificate:verify_formal_p5_cert_l4_01
+    method: exhaustive-certificate-single-effect-diff-and-stale-replay
+  provenance: certificate reformulation of FORMAL-P5-PLAN-L4-01 with an edit-specific stale control
+  verified: 仅 K3 adds 从 v 变 p；旧证书失效；新版证书为 17;K8>K10>K4>K9>K1>K6;0;1;18;3。
