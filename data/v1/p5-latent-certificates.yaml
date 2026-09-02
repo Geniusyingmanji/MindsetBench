@@ -1,0 +1,288 @@
+- id: DIAG-P5-LATENT-L4-PLAN-Q2-CERT-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: explicit-affine-planning-optimality-certificate-v1
+  schema_name: 已知仿射码本下的完备规划与最优性证书
+  level: 4
+  source: &certificate_source
+    domain: 八位基因开关最优性证书示例
+    problem: >-
+      状态是 b1…b8 的八位串，F=P(...)⊕m。候选变换：
+      F1=P(2,3,4,5,6,7,8,1)⊕00000000；F2=P(8,1,2,3,4,5,6,7)⊕00000000；
+      F3=P(8,7,6,5,4,3,2,1)⊕00000000；F4=P(2,1,4,3,6,5,8,7)⊕00000000；
+      F5=P(1,2,3,4,5,6,7,8)⊕10110110；F6=P(1,2,3,4,5,6,7,8)⊕01101001；
+      F7=P(2,4,1,3,6,8,5,7)⊕00000000；F8=P(4,1,6,2,8,3,7,5)⊕11001010。
+      代码本：S1=F3；S2=F2；S3=F1；S4=F5；S5=F4；S6=F7；S7=F8；S8=F6。卡成本：
+      S1[2]；S2[1]；S3[2]；S4[2]；S5[2]；S6[4]；S7[5]；S8[6]。
+      每张卡至多一次，计划首次到达目标即终止。Q1:初态=01100011;目标=10110111。
+      输出六段：唯一最优成本;卡串;低于最优成本的到达计划数;最优成本的到达计划数;次优成本;次优成本的到达计划数。
+    solution: >-
+      使用正成本一致代价枚举。搜索节点记录状态、已用卡集合和完整有序路径；不能只按状态去重，
+      同一状态但已用卡不同会有不同后继。即使状态与已用卡集合都相同，等成本的不同有序路径必须分别保留并计数，
+      否则无法证明最优路径唯一。每条路径首次到达目标即终止该路径。按总代价非降序枚举，直到完整处理首个目标成本
+      和下一个出现目标的成本层。成本 14 以前没有目标；成本 14 恰有一条；成本 15 有七条。
+      证书：C*=14；P*=S5>S6>S7>S1>S2；N<C*=0；N=C*=1；Cnext=15；Nnext=7。
+    answer: 14;S5>S6>S7>S1>S2;0;1;15;7
+  target: &base_certificate_target
+    domain: 八站信号编织机最优性证书
+    problem: >-
+      状态是点亮站位集合。G=取(x1,…,x8)△M 表示新 a—h 依次复制旧 x1—x8 的成员关系，再翻转 M。
+      候选路由：G1=取(b,c,d,e,f,g,h,a)△∅；G2=取(h,a,b,c,d,e,f,g)△∅；
+      G3=取(h,g,f,e,d,c,b,a)△∅；G4=取(b,a,d,c,f,e,h,g)△∅；
+      G5=取(a,b,c,d,e,f,g,h)△{a,c,d,f,g}；G6=取(a,b,c,d,e,f,g,h)△{b,c,e,h}；
+      G7=取(b,d,a,c,f,h,e,g)△∅；G8=取(d,a,f,b,h,c,g,e)△{a,b,e,g}；
+      G9=取(b,a,d,c,f,e,h,g)△{c,d,f,h}。正确代码本已给出：
+      代码本：T1=G6；T2=G2；T3=G9；T4=G5；T5=G3；T6=G1；T7=G8；T8=G7。卡成本：
+      T5[2]；T2[1]；T6[2]；T4[2]；T3[2]；T8[4]；T7[5]；T1[6]。
+      每张卡至多一次，计划首次到达目标即终止。Q1:初集={b,c,g,h};目标集={a,c,d,f,g,h}。
+      求唯一最低成本计划并给出可核验的完整搜索证书。最后一行严格输出六段：
+      最优成本;卡串;低于最优成本的到达计划数;最优成本的到达计划数;次优成本;次优成本的到达计划数。
+    answer:
+      parts:
+        - {type: number, value: "11"}
+        - {type: string, value: T5>T3>T2>T8>T6}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "12"}
+        - {type: number, value: "1"}
+  mapping: &certificate_mapping
+    objects: {源八位状态: 目标点亮集合, F1…F9: G1…G9, S1…S8: T5/T2/T6/T4/T3/T8/T7/T1, 搜索节点: 状态×已用卡集合×完整有序路径, 成本层证书: 最优层与首个次优层的目标路径计数}
+    shared_relations: [所有卡成本为正且每张至多一次, 位排列异或与集合取位对称差等价, 一致代价枚举必须保留等成本的不同有序路径, 首次到达目标后该路径终止, 最优性由更低成本零命中与最优层唯一命中共同证明, 次优层给出可检查的搜索边界]
+    removed_relations: [T3 使用旧的无翻转 G4]
+    added_relations: [T3 显式指定为带 c/d/f/h 翻转的 G9]
+    adaptation_required: [迁移完整路径计数而非只找第一条可达路径, 在新码本上枚举到首个次优成本层, 同时报告最优路径与六段证书]
+    varied: [跨位串与集合表示, 关系编辑, 初态目标态, 输出从单一路径扩为可判最优性证书]
+  lure: &base_certificate_lure
+    problem: 使用目标题相同的 G/T 路由、成本、初集和目标集，但采用编辑前旧码本 T3=G4；其他规则及六段证书定义不变。
+    solution: >-
+      按总代价非降序完整枚举旧码本。成本 14 以前零条到达；成本 14 恰有旧计划一条；成本 15 有七条。
+      证书：C*=14；P*=T3>T8>T7>T5>T2；N<C*=0；N=C*=1；Cnext=15；Nnext=7。
+    answer:
+      parts: &base_stale_certificate
+        - {type: number, value: "14"}
+        - {type: string, value: T3>T8>T7>T5>T2}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "15"}
+        - {type: number, value: "7"}
+    why_surface_similar: 使用相同目标实例和相同完整搜索证书格式。
+    why_structurally_different: 旧码本冻结 T3=G4；其唯一旧最优计划在真实 G9 下落到错误终态。
+    wrong_schema_id: stale-codebook-optimality-certificate-01
+  copy_probe: &base_certificate_copy
+    answer: {parts: *base_stale_certificate}
+    derivation: 复制旧码本上的完整证书而未采用目标明确给出的 T3=G9。
+  hints: &base_certificate_hints
+    schema_name: 已知仿射码本下的完备规划与最优性证书
+    oracle_mindset: {insight: 用正成本一致代价枚举完整有序路径，处理完最优层和首个次优目标层，以路径计数证明唯一最优。, when_to_use: 找到一条可达计划不足以证明全局最优或唯一性时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_diag_p5_latent_l4_plan_q2_cert_01
+    method: exhaustive-first-hit-path-counting-certificate
+  provenance: certificate extension of DIAG-P5-LATENT-L4-PLAN-Q2-01
+  verified: 真实码本六段证书为 11/唯一计划/0/1/12/1；旧码本证书为 14/唯一计划/0/1/15/7 且旧计划真实错失目标。
+
+- id: DIAG-P5-LATENT-L4-PLAN-Q2-V1-CERT-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: explicit-affine-planning-optimality-certificate-v1
+  schema_name: 已知仿射码本下的完备规划与最优性证书
+  level: 4
+  source: *certificate_source
+  target: &v1_certificate_target
+    domain: 八站脉冲路由甲型最优性证书
+    problem: >-
+      状态是点亮站位集合。X=取(x1,…,x8)△M 表示新 a—h 依次复制旧 x1—x8 的成员关系，再翻转 M。
+      候选路由：R1=取(g,e,f,b,a,d,h,c)△∅；R2=取(e,d,h,f,b,c,a,g)△∅；
+      R3=取(c,d,a,b,f,e,h,g)△∅；R4=取(g,e,h,f,b,d,a,c)△∅；
+      R5=取(a,b,c,d,e,f,g,h)△{a,b,c,f,g}；R6=取(a,b,c,d,e,f,g,h)△{a,d,e,h}；
+      R7=取(b,e,d,f,g,h,a,c)△∅；R8=取(c,g,a,h,b,f,e,d)△{b,e,f,h}；
+      R9=取(g,e,h,f,b,d,a,c)△{a,c,d,g}。正确代码本已给出：
+      代码本：U1=R3；U2=R9；U3=R8；U4=R6；U5=R7；U6=R1；U7=R2；U8=R5。卡成本：
+      U1[2]；U7[1]；U6[2]；U8[2]；U2[2]；U5[4]；U3[5]；U4[6]。
+      每张卡至多一次，计划首次到达目标即终止。Q1:初集={a,d,e,f};目标集={a,b,c,d,f,g}。
+      求唯一最低成本计划并给出可核验的完整搜索证书。最后一行严格输出六段：
+      最优成本;卡串;低于最优成本的到达计划数;最优成本的到达计划数;次优成本;次优成本的到达计划数。
+    answer:
+      parts:
+        - {type: number, value: "11"}
+        - {type: string, value: U1>U2>U7>U5>U6}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "12"}
+        - {type: number, value: "1"}
+  mapping: &v1_certificate_mapping
+    <<: *certificate_mapping
+    objects: {源八位状态: 经坐标置换后的点亮集合, F1…F9: R1…R9, S1…S8: U1/U7/U6/U8/U2/U5/U3/U4, 搜索节点: 状态×已用卡集合×完整有序路径, 成本层证书: 最优层与首个次优层的目标路径计数}
+    varied: [八维坐标、九项操作参数、八张卡名、初集、目标集和计划串全部变化, 输出六段可判最优性证书]
+  lure: &v1_certificate_lure
+    problem: 使用甲型目标题相同的 R/U 路由、成本、初集和目标集，但采用编辑前旧码本 U2=R4；其他规则及六段证书定义不变。
+    solution: >-
+      按总代价非降序完整枚举旧码本。成本 14 以前零条到达；成本 14 恰有旧计划一条；成本 15 有七条。
+      证书：C*=14；P*=U2>U5>U3>U1>U7；N<C*=0；N=C*=1；Cnext=15；Nnext=7。
+    answer:
+      parts: &v1_stale_certificate
+        - {type: number, value: "14"}
+        - {type: string, value: U2>U5>U3>U1>U7}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "15"}
+        - {type: number, value: "7"}
+    why_surface_similar: 使用相同甲型目标实例和相同完整搜索证书格式。
+    why_structurally_different: 旧码本冻结 U2=R4；旧最优计划在真实 R9 下落到 {a,d,e,g}。
+    wrong_schema_id: stale-conjugate-codebook-optimality-certificate-01
+  copy_probe: &v1_certificate_copy
+    answer: {parts: *v1_stale_certificate}
+    derivation: 复制甲型旧码本证书而未采用 U2=R9。
+  hints: &v1_certificate_hints
+    schema_name: 已知仿射码本下的完备规划与最优性证书
+    oracle_mindset: {insight: 不依赖原题符号；逐成本层枚举新 R/U 实例的完整有序路径并统计目标命中。, when_to_use: 状态空间经自同构重参数化但最优性证明义务保持时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_diag_p5_latent_l4_plan_q2_v1_cert_01
+    method: exhaustive-conjugacy-and-first-hit-path-counting-certificate
+  provenance: certificate extension of DIAG-P5-LATENT-L4-PLAN-Q2-V1-01
+  verified: 九项操作逐状态共轭；真实证书 11/唯一计划/0/1/12/1，旧证书 14/唯一计划/0/1/15/7。
+
+- id: DIAG-P5-LATENT-L4-PLAN-Q2-V2-CERT-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: explicit-affine-planning-optimality-certificate-v1
+  schema_name: 已知仿射码本下的完备规划与最优性证书
+  level: 4
+  source: *certificate_source
+  target: &v2_certificate_target
+    domain: 八站脉冲路由乙型最优性证书
+    problem: >-
+      状态是点亮站位集合。X=取(x1,…,x8)△M 表示新 a—h 依次复制旧 x1—x8 的成员关系，再翻转 M。
+      候选路由：W1=取(e,f,g,a,c,h,b,d)△∅；W2=取(d,g,e,h,a,b,c,f)△∅；
+      W3=取(e,f,d,c,a,b,h,g)△∅；W4=取(d,g,e,a,c,h,b,f)△∅；
+      W5=取(a,b,c,d,e,f,g,h)△{b,d,e,g,h}；W6=取(a,b,c,d,e,f,g,h)△{a,c,f,g}；
+      W7=取(d,g,b,f,c,h,e,a)△∅；W8=取(f,c,e,d,b,a,h,g)△{c,d,e,f}；
+      W9=取(d,g,e,a,c,h,b,f)△{a,b,g,h}。正确代码本已给出：
+      代码本：V1=W5；V2=W1；V3=W2；V4=W7；V5=W3；V6=W8；V7=W6；V8=W9。卡成本：
+      V5[2]；V3[1]；V2[2]；V1[2]；V8[2]；V4[4]；V6[5]；V7[6]。
+      每张卡至多一次，计划首次到达目标即终止。Q1:初集={a,c,d,g};目标集={a,b,d,e,g,h}。
+      求唯一最低成本计划并给出可核验的完整搜索证书。最后一行严格输出六段：
+      最优成本;卡串;低于最优成本的到达计划数;最优成本的到达计划数;次优成本;次优成本的到达计划数。
+    answer:
+      parts:
+        - {type: number, value: "11"}
+        - {type: string, value: V5>V8>V3>V4>V2}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "12"}
+        - {type: number, value: "1"}
+  mapping: &v2_certificate_mapping
+    <<: *certificate_mapping
+    objects: {源八位状态: 经第二坐标置换后的点亮集合, F1…F9: W1…W9, S1…S8: V5/V3/V2/V1/V8/V4/V6/V7, 搜索节点: 状态×已用卡集合×完整有序路径, 成本层证书: 最优层与首个次优层的目标路径计数}
+    varied: [采用不同于甲型的坐标、候选参数、卡名、初集、目标集和计划串, 输出六段可判最优性证书]
+  lure: &v2_certificate_lure
+    problem: 使用乙型目标题相同的 W/V 路由、成本、初集和目标集，但采用编辑前旧码本 V8=W4；其他规则及六段证书定义不变。
+    solution: >-
+      按总代价非降序完整枚举旧码本。成本 14 以前零条到达；成本 14 恰有旧计划一条；成本 15 有七条。
+      证书：C*=14；P*=V8>V4>V6>V5>V3；N<C*=0；N=C*=1；Cnext=15；Nnext=7。
+    answer:
+      parts: &v2_stale_certificate
+        - {type: number, value: "14"}
+        - {type: string, value: V8>V4>V6>V5>V3}
+        - {type: number, value: "0"}
+        - {type: number, value: "1"}
+        - {type: number, value: "15"}
+        - {type: number, value: "7"}
+    why_surface_similar: 使用相同乙型目标实例和相同完整搜索证书格式。
+    why_structurally_different: 旧码本冻结 V8=W4；旧最优计划在真实 W9 下落到 {a,b,c,g}。
+    wrong_schema_id: stale-conjugate-codebook-optimality-certificate-01
+  copy_probe: &v2_certificate_copy
+    answer: {parts: *v2_stale_certificate}
+    derivation: 复制乙型旧码本证书而未采用 V8=W9。
+  hints: &v2_certificate_hints
+    schema_name: 已知仿射码本下的完备规划与最优性证书
+    oracle_mindset: {insight: 将 W/V 视为独立实例，保留等成本路径多重性并枚举到首个次优目标层。, when_to_use: 需要同时证明最优值、唯一性和次优间隔时。}
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_diag_p5_latent_l4_plan_q2_v2_cert_01
+    method: exhaustive-conjugacy-and-first-hit-path-counting-certificate
+  provenance: certificate extension of DIAG-P5-LATENT-L4-PLAN-Q2-V2-01
+  verified: 九项操作逐状态共轭；真实证书 11/唯一计划/0/1/12/1，旧证书 14/唯一计划/0/1/15/7。
+
+- id: DIAG-P5-LATENT-L4-PLAN-Q2-CERT-DQ-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: explicit-affine-planning-optimality-certificate-decoupled-source-v1
+  schema_name: 已知仿射码本下的完备规划与路径解耦证书迁移
+  level: 4
+  source: &decoupled_certificate_source
+    domain: 八位基因开关异查询最优性证书示例
+    problem: >-
+      状态是 b1…b8 的八位串，F=P(...)⊕m。候选变换：
+      F1=P(2,3,4,5,6,7,8,1)⊕00000000；F2=P(8,1,2,3,4,5,6,7)⊕00000000；
+      F3=P(8,7,6,5,4,3,2,1)⊕00000000；F4=P(2,1,4,3,6,5,8,7)⊕00000000；
+      F5=P(1,2,3,4,5,6,7,8)⊕10110110；F6=P(1,2,3,4,5,6,7,8)⊕01101001；
+      F7=P(2,4,1,3,6,8,5,7)⊕00000000；F8=P(4,1,6,2,8,3,7,5)⊕11001010。
+      代码本：S1=F3；S2=F2；S3=F1；S4=F5；S5=F4；S6=F7；S7=F8；S8=F6。卡成本：
+      S1[2]；S2[1]；S3[2]；S4[2]；S5[2]；S6[4]；S7[5]；S8[6]。
+      每张卡至多一次，计划首次到达目标即终止。Q1:初态=00000001;目标=11100001。
+      输出六段：唯一最优成本;卡串;低于最优成本的到达计划数;最优成本的到达计划数;次优成本;次优成本的到达计划数。
+    solution: >-
+      使用正成本一致代价枚举。搜索节点记录状态、已用卡集合和完整有序路径；不能只按状态去重，
+      同一状态但已用卡不同会有不同后继。即使状态与已用卡集合都相同，等成本的不同有序路径必须分别保留并计数，
+      否则无法证明最优路径唯一。每条路径首次到达目标即终止该路径。按总代价非降序枚举，直到完整处理首个目标成本
+      和下一个出现目标的成本层。成本 12 以前没有目标；成本 12 恰有一条；成本 13 有五条。
+      该源查询与目标题的初态、目标态及最优卡序均不同，只迁移搜索与证书方法，不迁移答案路径。
+      证书：C*=12；P*=S3>S7>S2>S4>S5；N<C*=0；N=C*=1；Cnext=13；Nnext=5。
+    answer: 12;S3>S7>S2>S4>S5;0;1;13;5
+  target: *base_certificate_target
+  mapping: *certificate_mapping
+  lure: *base_certificate_lure
+  copy_probe: *base_certificate_copy
+  hints: *base_certificate_hints
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_diag_p5_latent_l4_plan_q2_cert_dq_01
+    method: decoupled-source-and-exhaustive-first-hit-path-counting-certificate
+  provenance: source-query ablation of DIAG-P5-LATENT-L4-PLAN-Q2-CERT-01
+  verified: source 使用不同查询且证书为 12/唯一计划/0/1/13/5；目标题和真值与对应 CERT 题完全相同。
+
+- id: DIAG-P5-LATENT-L4-PLAN-Q2-V1-CERT-DQ-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: explicit-affine-planning-optimality-certificate-decoupled-source-v1
+  schema_name: 已知仿射码本下的完备规划与路径解耦证书迁移
+  level: 4
+  source: *decoupled_certificate_source
+  target: *v1_certificate_target
+  mapping: *v1_certificate_mapping
+  lure: *v1_certificate_lure
+  copy_probe: *v1_certificate_copy
+  hints: *v1_certificate_hints
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_diag_p5_latent_l4_plan_q2_v1_cert_dq_01
+    method: decoupled-source-conjugacy-and-first-hit-path-counting-certificate
+  provenance: source-query ablation of DIAG-P5-LATENT-L4-PLAN-Q2-V1-CERT-01
+  verified: source 最优卡序不映射为甲型陈旧 Q2 计划；目标证书仍为 11/唯一计划/0/1/12/1。
+
+- id: DIAG-P5-LATENT-L4-PLAN-Q2-V2-CERT-DQ-01
+  version: "1.0"
+  split: calibration
+  paradigm: P5
+  thread: J-潜在操作
+  schema_id: explicit-affine-planning-optimality-certificate-decoupled-source-v1
+  schema_name: 已知仿射码本下的完备规划与路径解耦证书迁移
+  level: 4
+  source: *decoupled_certificate_source
+  target: *v2_certificate_target
+  mapping: *v2_certificate_mapping
+  lure: *v2_certificate_lure
+  copy_probe: *v2_certificate_copy
+  hints: *v2_certificate_hints
+  verification:
+    entrypoint: mindsetbench.verification.formal_p5_latent:verify_diag_p5_latent_l4_plan_q2_v2_cert_dq_01
+    method: decoupled-source-conjugacy-and-first-hit-path-counting-certificate
+  provenance: source-query ablation of DIAG-P5-LATENT-L4-PLAN-Q2-V2-CERT-01
+  verified: source 最优卡序不映射为乙型陈旧 Q2 计划；目标证书仍为 11/唯一计划/0/1/12/1。

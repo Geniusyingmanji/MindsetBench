@@ -21,6 +21,7 @@ def _record(
     *,
     level: int = 0,
     paradigm: str = "P1",
+    schema_id: str = "schema-default",
     finish_reason: str = "stop",
     output_tokens: int | None = 100,
     latency_ms: int = 1000,
@@ -36,6 +37,7 @@ def _record(
         sample_index=sample_index,
         level=level,
         paradigm=paradigm,
+        schema_id=schema_id,
         has_copy_probe=has_copy_probe,
         response=SimpleNamespace(
             finish_reason=finish_reason,
@@ -69,6 +71,38 @@ def test_summarize_slices() -> None:
     summary = summarize_slices(records)
     assert summary["by_level"]["2"]["transfer_gain"] == 1.0
     assert summary["by_paradigm"]["P2"]["structural_selectivity"] == 1.0
+    assert summary["by_schema"]["schema-default"]["part_accuracy"] == {
+        "target-only": {
+            "trials": 1,
+            "scored_trials": 0,
+            "unscored_trials": 1,
+            "correct_parts": 0,
+            "observed_parts": 0,
+            "expected_parts": 0,
+            "accuracy": None,
+            "coverage": None,
+        },
+        "with-lure": {
+            "trials": 1,
+            "scored_trials": 0,
+            "unscored_trials": 1,
+            "correct_parts": 0,
+            "observed_parts": 0,
+            "expected_parts": 0,
+            "accuracy": None,
+            "coverage": None,
+        },
+        "with-source": {
+            "trials": 1,
+            "scored_trials": 0,
+            "unscored_trials": 1,
+            "correct_parts": 0,
+            "observed_parts": 0,
+            "expected_parts": 0,
+            "accuracy": None,
+            "coverage": None,
+        },
+    }
 
 
 def test_transfer_summary_surfaces_truncated_trials() -> None:

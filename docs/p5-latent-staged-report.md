@@ -28,6 +28,7 @@
 - `coverage`：实际解析到的 parts / 预期 parts；
 - `completed_part_accuracy`：排除 `finish_reason=length` 后的逐段指标；
 - `mb report --part-details`：按 case、condition、part index 展开正确率和覆盖率。
+- `by_schema`：自动按 schema/source 设计切片，并在每个切片中报告 part accuracy、coverage、completion 与 copy rate，支持受控 source 消融。
 
 `GradeResult` 新增带默认值的 `expected_part_count` 与 `parsed_part_count`，旧 SQLite 可继续读取。grader 现在真正使用 `AnswerSpec.separator`；默认多段答案只以中英文分号切分，不再把路径内部逗号误当成额外答案段。
 
@@ -96,6 +97,8 @@ GPT-5.5 的 V2 source 路径经 verifier 使用真实新码本重放，确实无
 - Q2 参数族稳定制造了全局最优性失败，适合保留为高难度规划 challenge；但 source 帮助尚不稳定，当前不能把它当作已经成立的迁移测量题。
 - 暂不直接投入昂贵的 `3 samples × 2 models × 3 conditions` 正式校准。下一轮应先改造 source，使其表达可复用的搜索不变量或界证明，而不是仅提供一个源域实例；通过小样本 family screen 后再扩为完整配对实验。
 - Q1/Q3 可作为能力上界与效率对照，不能与 Q2 简单平均后声称达到接受窗。
+
+该 source 改造已进一步实现为六段最优性证书任务和路径对齐/路径解耦 source 消融。GPT-5.6-sol 的结果显示 source 能提升输出覆盖率和效率，但没有提升路径或证书正确率；路径解耦消除了精确 copy，却诱发数值证书形状复制。构造和完整结果见 `docs/p5-latent-certificate-report.md`。
 
 ## 复现
 

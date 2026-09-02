@@ -1,0 +1,16 @@
+{
+  "name": "p5-latent-l4-q2-expanded-family",
+  "description": "Plan-only and optimality-certificate versions of the original Q2 instance and two affine-conjugate variants.",
+  "datasets": [
+    "../v1/p5-latent-staged.yaml",
+    "../v1/p5-latent-certificates.yaml"
+  ],
+  "case_ids": [
+    "DIAG-P5-LATENT-L4-PLAN-Q2-01",
+    "DIAG-P5-LATENT-L4-PLAN-Q2-V1-01",
+    "DIAG-P5-LATENT-L4-PLAN-Q2-V2-01",
+    "DIAG-P5-LATENT-L4-PLAN-Q2-CERT-01",
+    "DIAG-P5-LATENT-L4-PLAN-Q2-V1-CERT-01",
+    "DIAG-P5-LATENT-L4-PLAN-Q2-V2-CERT-01"
+  ]
+}

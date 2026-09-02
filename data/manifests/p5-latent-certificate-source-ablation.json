@@ -1,0 +1,15 @@
+{
+  "name": "p5-latent-l4-q2-certificate-source-ablation",
+  "description": "Matched certificate targets with path-aligned versus path-decoupled solved source demonstrations.",
+  "datasets": [
+    "../v1/p5-latent-certificates.yaml"
+  ],
+  "case_ids": [
+    "DIAG-P5-LATENT-L4-PLAN-Q2-CERT-01",
+    "DIAG-P5-LATENT-L4-PLAN-Q2-CERT-DQ-01",
+    "DIAG-P5-LATENT-L4-PLAN-Q2-V1-CERT-01",
+    "DIAG-P5-LATENT-L4-PLAN-Q2-V1-CERT-DQ-01",
+    "DIAG-P5-LATENT-L4-PLAN-Q2-V2-CERT-01",
+    "DIAG-P5-LATENT-L4-PLAN-Q2-V2-CERT-DQ-01"
+  ]
+}

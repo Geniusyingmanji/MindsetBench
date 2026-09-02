@@ -1,0 +1,12 @@
+{
+  "name": "p5-latent-l4-q2-optimality-certificates",
+  "description": "Three affine-conjugate Q2 planning cases that require a first-hit path-counting optimality certificate.",
+  "datasets": [
+    "../v1/p5-latent-certificates.yaml"
+  ],
+  "case_ids": [
+    "DIAG-P5-LATENT-L4-PLAN-Q2-CERT-01",
+    "DIAG-P5-LATENT-L4-PLAN-Q2-V1-CERT-01",
+    "DIAG-P5-LATENT-L4-PLAN-Q2-V2-CERT-01"
+  ]
+}

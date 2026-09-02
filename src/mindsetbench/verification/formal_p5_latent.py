@@ -1297,3 +1297,246 @@ def verify_diag_p5_latent_l4_plan_q2_v1_01(case: Case) -> VerificationResult:
 @register("DIAG-P5-LATENT-L4-PLAN-Q2-V2-01")
 def verify_diag_p5_latent_l4_plan_q2_v2_01(case: Case) -> VerificationResult:
     return _verify_q2_conjugate_variant(case, "v2")
+
+
+@dataclass(frozen=True)
+class OptimalityCertificate:
+    best_cost: int
+    best_plans: tuple[Plan, ...]
+    lower_goal_count: int
+    runner_up_cost: int
+    runner_up_count: int
+
+
+@dataclass(frozen=True)
+class Q2CertificateSpec:
+    prefix: str
+    coordinate_map: AffineTransform
+    problem: AffineProblem
+    codebook: tuple[tuple[str, str], ...]
+    codebook_by_card: tuple[tuple[str, str], ...]
+    old_codebook: tuple[tuple[str, str], ...]
+    expected_plan: Plan
+    lure_plan: Plan
+    lure_actual_state: int
+
+
+def _single_query(problem: AffineProblem, query_index: int) -> AffineProblem:
+    return AffineProblem(problem.catalogue, (), problem.costs, (problem.queries[query_index],))
+
+
+def _optimality_certificate(
+    problem: AffineProblem,
+    codebook: tuple[tuple[str, str], ...],
+) -> OptimalityCertificate:
+    """Count first-hit goal paths through the first strictly larger goal cost."""
+
+    maximum_gap = sum(cost for _, cost in problem.costs)
+    plans: tuple[Plan, ...] = ()
+    costs: tuple[int, ...] = ()
+    for extra_cost in range(maximum_gap + 1):
+        plans = _plans(problem, codebook, 0, max_extra_cost=extra_cost)
+        costs = tuple(sorted({plan.cost for plan in plans}))
+        if len(costs) >= 2:
+            break
+    if len(costs) < 2:
+        raise ValueError("certificate requires a reachable runner-up plan")
+    best_cost, runner_up_cost = costs[:2]
+    return OptimalityCertificate(
+        best_cost=best_cost,
+        best_plans=tuple(plan for plan in plans if plan.cost == best_cost),
+        lower_goal_count=0,
+        runner_up_cost=runner_up_cost,
+        runner_up_count=sum(plan.cost == runner_up_cost for plan in plans),
+    )
+
+
+def _format_certificate(certificate: OptimalityCertificate) -> str:
+    if len(certificate.best_plans) != 1:
+        raise ValueError("certificate answer format requires a unique optimum")
+    plan = certificate.best_plans[0]
+    return ";".join(
+        (
+            str(certificate.best_cost),
+            ">".join(plan.codes),
+            str(certificate.lower_goal_count),
+            str(len(certificate.best_plans)),
+            str(certificate.runner_up_cost),
+            str(certificate.runner_up_count),
+        )
+    )
+
+
+_SOURCE_CERTIFICATE_PATTERN = re.compile(
+    r"证书：C\*=(\d+)；P\*=([A-Z]\d+(?:>[A-Z]\d+)*)；"
+    r"N<C\*=(\d+)；N=C\*=(\d+)；Cnext=(\d+)；Nnext=(\d+)"
+)
+
+
+def _parse_source_certificate(solution: str) -> tuple[int, str, int, int, int, int]:
+    match = _SOURCE_CERTIFICATE_PATTERN.search(solution)
+    if not match:
+        raise ValueError("source solution is missing its machine-readable certificate")
+    cost, path, lower_count, optimal_count, runner_cost, runner_count = match.groups()
+    return (
+        int(cost),
+        path,
+        int(lower_count),
+        int(optimal_count),
+        int(runner_cost),
+        int(runner_count),
+    )
+
+
+def _base_q2_certificate_spec() -> Q2CertificateSpec:
+    problem = _single_query(_target_l4_problem(), 1)
+    expected = CHAIN_LEVEL_SPECS[4].expected_plans[1]
+    lure = CHAIN_LEVEL_SPECS[4].lure_plans[1]
+    return Q2CertificateSpec(
+        prefix="G",
+        coordinate_map=AffineTransform((1, 2, 3, 4, 5, 6, 7, 8), 0),
+        problem=problem,
+        codebook=L4_CODEBOOK,
+        codebook_by_card=L4_CODEBOOK_BY_CARD,
+        old_codebook=L4_OLD_CODEBOOK,
+        expected_plan=expected,
+        lure_plan=lure,
+        lure_actual_state=_replay(problem, L4_CODEBOOK, lure.codes, 0),
+    )
+
+
+def _variant_q2_certificate_spec(variant: ConjugateQ2Variant) -> Q2CertificateSpec:
+    return Q2CertificateSpec(
+        prefix=variant.prefix,
+        coordinate_map=variant.coordinate_map,
+        problem=variant.problem,
+        codebook=variant.codebook,
+        codebook_by_card=variant.codebook_by_card,
+        old_codebook=variant.old_codebook,
+        expected_plan=variant.expected_plan,
+        lure_plan=variant.lure_plan,
+        lure_actual_state=variant.lure_actual_state,
+    )
+
+
+Q2_CERTIFICATE_SPECS = {
+    "base": _base_q2_certificate_spec(),
+    "v1": _variant_q2_certificate_spec(Q2_CONJUGATE_VARIANTS["v1"]),
+    "v2": _variant_q2_certificate_spec(Q2_CONJUGATE_VARIANTS["v2"]),
+}
+
+
+def _verify_q2_optimality_certificate(
+    case: Case,
+    variant_name: str,
+    source_query_index: int = 1,
+) -> VerificationResult:
+    spec = Q2_CERTIFICATE_SPECS[variant_name]
+    source = _single_query(_source_three_query_problem(), source_query_index)
+    parsed_source, parsed_source_codebook = _parse_explicit_planning_problem(case.source.problem)
+    parsed_target, parsed_target_codebook = _parse_explicit_planning_problem(case.target.problem)
+    source_certificate = _optimality_certificate(source, SOURCE_CODEBOOK)
+    target_certificate = _optimality_certificate(spec.problem, spec.codebook)
+    lure_certificate = _optimality_certificate(spec.problem, spec.old_codebook)
+    parsed_source_certificate = _parse_source_certificate(case.source.solution)
+    lure_actual = _replay(spec.problem, spec.codebook, spec.lure_plan.codes, 0)
+    base_catalogue = dict(L4_CATALOGUE)
+    target_catalogue = dict(spec.problem.catalogue)
+    conjugacy = tuple(
+        all(
+            target_catalogue[f"{spec.prefix}{index}"].apply(spec.coordinate_map.apply(state))
+            == spec.coordinate_map.apply(base_catalogue[f"G{index}"].apply(state))
+            for state in range(256)
+        )
+        for index in range(1, 10)
+    )
+    source_summary = (
+        source_certificate.best_cost,
+        ">".join(source_certificate.best_plans[0].codes),
+        source_certificate.lower_goal_count,
+        len(source_certificate.best_plans),
+        source_certificate.runner_up_cost,
+        source_certificate.runner_up_count,
+    )
+    checks = [
+        _check("source-explicit-text", parsed_source, source),
+        _check("target-explicit-text", parsed_target, spec.problem),
+        _check("source-explicit-codebook", parsed_source_codebook, SOURCE_CODEBOOK),
+        _check("target-explicit-codebook", parsed_target_codebook, spec.codebook_by_card),
+        _check("all-nine-transform-conjugacies", conjugacy, (True,) * 9),
+        _check("source-machine-readable-certificate", parsed_source_certificate, source_summary),
+        _check(
+            "source-teaches-equal-path-counting",
+            "等成本的不同有序路径必须分别保留并计数" in case.source.solution,
+            True,
+        ),
+        _check(
+            "source-defines-first-hit-termination",
+            "首次到达目标即终止该路径" in case.source.solution,
+            True,
+        ),
+        _check(
+            "source-optimality-certificate",
+            _format_certificate(source_certificate),
+            case.source.answer,
+        ),
+        _check("target-unique-optimum", target_certificate.best_plans, (spec.expected_plan,)),
+        _check(
+            "target-certificate-shape",
+            (
+                target_certificate.lower_goal_count,
+                len(target_certificate.best_plans),
+                target_certificate.runner_up_cost,
+                target_certificate.runner_up_count,
+            ),
+            (0, 1, 12, 1),
+        ),
+        _check("stale-unique-optimum", lure_certificate.best_plans, (spec.lure_plan,)),
+        _check(
+            "stale-certificate-shape",
+            (
+                lure_certificate.lower_goal_count,
+                len(lure_certificate.best_plans),
+                lure_certificate.runner_up_cost,
+                lure_certificate.runner_up_count,
+            ),
+            (0, 1, 15, 7),
+        ),
+        _check("stale-plan-actual-state", lure_actual, spec.lure_actual_state),
+        _check("stale-plan-misses-goal", lure_actual != spec.problem.queries[0][1], True),
+        _check("stored-target", _gold(case), _format_certificate(target_certificate)),
+        _check("stored-lure", _lure(case), _format_certificate(lure_certificate)),
+        _check("copy-equals-lure", _copy(case), _lure(case)),
+        _check("copy-differs-from-target", _copy(case) != _gold(case), True),
+    ]
+    return VerificationResult(case_id=case.id, checks=checks, verifier=__name__)
+
+
+@register("DIAG-P5-LATENT-L4-PLAN-Q2-CERT-01")
+def verify_diag_p5_latent_l4_plan_q2_cert_01(case: Case) -> VerificationResult:
+    return _verify_q2_optimality_certificate(case, "base")
+
+
+@register("DIAG-P5-LATENT-L4-PLAN-Q2-V1-CERT-01")
+def verify_diag_p5_latent_l4_plan_q2_v1_cert_01(case: Case) -> VerificationResult:
+    return _verify_q2_optimality_certificate(case, "v1")
+
+
+@register("DIAG-P5-LATENT-L4-PLAN-Q2-V2-CERT-01")
+def verify_diag_p5_latent_l4_plan_q2_v2_cert_01(case: Case) -> VerificationResult:
+    return _verify_q2_optimality_certificate(case, "v2")
+
+
+@register("DIAG-P5-LATENT-L4-PLAN-Q2-CERT-DQ-01")
+def verify_diag_p5_latent_l4_plan_q2_cert_dq_01(case: Case) -> VerificationResult:
+    return _verify_q2_optimality_certificate(case, "base", source_query_index=0)
+
+
+@register("DIAG-P5-LATENT-L4-PLAN-Q2-V1-CERT-DQ-01")
+def verify_diag_p5_latent_l4_plan_q2_v1_cert_dq_01(case: Case) -> VerificationResult:
+    return _verify_q2_optimality_certificate(case, "v1", source_query_index=0)
+
+
+@register("DIAG-P5-LATENT-L4-PLAN-Q2-V2-CERT-DQ-01")
+def verify_diag_p5_latent_l4_plan_q2_v2_cert_dq_01(case: Case) -> VerificationResult:
+    return _verify_q2_optimality_certificate(case, "v2", source_query_index=0)

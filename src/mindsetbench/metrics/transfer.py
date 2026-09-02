@@ -303,11 +303,12 @@ def completed_efficiency_by_condition(
 
 
 def summarize_slices(records: Sequence[TrialRecord]) -> dict[str, object]:
-    """Condition accuracies and paired gains sliced by level and paradigm."""
+    """Condition outcomes sliced by level, paradigm, and source/schema design."""
 
     return {
         "by_level": _group_summaries(records, lambda record: str(record.level)),
         "by_paradigm": _group_summaries(records, lambda record: record.paradigm),
+        "by_schema": _group_summaries(records, lambda record: record.schema_id),
     }
 
 
@@ -322,6 +323,9 @@ def _group_summaries(
         group: {
             "n": len(group_records),
             "accuracy": accuracy_by_condition(group_records),
+            "part_accuracy": part_accuracy_by_condition(group_records),
+            "completion_rate": _completion_rate_by_condition(group_records),
+            "copy_probe_rate": copy_probe_rate_by_condition(group_records),
             "transfer_gain": paired_condition_difference(
                 group_records, Condition.WITH_SOURCE, Condition.TARGET_ONLY
             ),

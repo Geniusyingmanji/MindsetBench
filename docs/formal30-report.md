@@ -69,6 +69,8 @@ L3 的两次 target-only 结果（一条语义正确但格式失败、一条删�
 
 上述 staged 版本现已实现并完成两轮预筛：码本 ID 三条件 9/9 全对，属于 sanity ceiling；三个显式码本单问在 32K 下为 2/3 全对，其中原 Q2 target-only 找到成本 15 的可达次优路径，with-source 找到成本 11 真最优，with-lure 在 32,147 tokens 后回答“无法确定”。随后构造的两个仿射共轭 Q2 变体在 GPT-5.5 target-only 与 with-source 下均为 0/2，GPT-5.4 对原题加两个变体的 target-only 为 0/3，并在原题 lure 条件精确复制旧计划。由此可见全局最优搜索难度已跨实例复现，但原题的 source 增益没有复现；正式多样本校准前应先重构 source。逐 part 指标、HTTP 500 断点续跑和详细分析见 `docs/p5-latent-staged-report.md`。
 
+后续 source 重构加入了三道六段最优性证书题和三道 source-only 消融题。GPT-5.6-sol 在三条件单样本中均为 0/3；with-source 将 coverage 提升到 100% 并降低 tokens/延迟，但没有 accuracy 增益。把 source 查询与目标 Q2 路径解耦后，精确 copy 从 1/3 降为 0/3，正确 parts 仍为 4/18。完整构造、重放诊断与决策见 `docs/p5-latent-certificate-report.md`。
+
 ## 复现
 
 ```bash

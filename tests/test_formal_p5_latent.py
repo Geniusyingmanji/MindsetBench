@@ -4,18 +4,27 @@ from mindsetbench.data import (
     validate_dataset,
     validate_transfer_design,
 )
+from mindsetbench.models.prompt import Condition
+from mindsetbench.prompting import build_prompt
 from mindsetbench.verification import verify_case
 from mindsetbench.verification.formal_p5_latent import (
     CATALOGUE,
     CHAIN_LEVEL_SPECS,
     L4_CATALOGUE,
+    Q2_CERTIFICATE_SPECS,
     Q2_CONJUGATE_VARIANTS,
+    _format_certificate,
+    _optimality_certificate,
     _parse_problem,
 )
 
 DATASET = PROJECT_ROOT / "data" / "v1" / "p5-latent-seeds.yaml"
 CHAIN_DATASET = PROJECT_ROOT / "data" / "v1" / "formal-p5-latent-chain.yaml"
 STAGED_DATASET = PROJECT_ROOT / "data" / "v1" / "p5-latent-staged.yaml"
+CERTIFICATE_DATASET = PROJECT_ROOT / "data" / "manifests" / "p5-latent-certificates.json"
+DECOUPLED_CERTIFICATE_DATASET = (
+    PROJECT_ROOT / "data" / "manifests" / "p5-latent-certificates-decoupled.json"
+)
 
 
 def test_p5_latent_seed_is_strict_and_verified() -> None:
@@ -190,3 +199,95 @@ def test_q2_variant_verifier_rejects_conjugate_mask_drift() -> None:
     result = verify_case(variant_case)
     assert not result.passed
     assert any(not check.passed and check.name == "target-explicit-text" for check in result.checks)
+
+
+def test_q2_optimality_certificates_are_strict_audited_and_verified() -> None:
+    cases = load_cases(CERTIFICATE_DATASET)
+    report = validate_transfer_design(cases)
+    assert report.ok, report.issues
+    assert [case.id for case in cases] == [
+        "DIAG-P5-LATENT-L4-PLAN-Q2-CERT-01",
+        "DIAG-P5-LATENT-L4-PLAN-Q2-V1-CERT-01",
+        "DIAG-P5-LATENT-L4-PLAN-Q2-V2-CERT-01",
+    ]
+    for case in cases:
+        result = verify_case(case)
+        assert result.passed, result
+        assert len(result.checks) == 19
+        assert len(case.target.answer.parts) == 6
+
+
+def test_q2_certificate_family_has_exact_path_counts() -> None:
+    answers = set()
+    for spec in Q2_CERTIFICATE_SPECS.values():
+        certificate = _optimality_certificate(spec.problem, spec.codebook)
+        assert certificate.best_cost == 11
+        assert certificate.lower_goal_count == 0
+        assert len(certificate.best_plans) == 1
+        assert certificate.runner_up_cost == 12
+        assert certificate.runner_up_count == 1
+        answers.add(_format_certificate(certificate))
+    assert len(answers) == 3
+
+
+def test_q2_certificate_counts_match_independent_bounded_dfs() -> None:
+    def first_hit_counts(spec, codebook, maximum_cost: int) -> dict[int, int]:
+        transforms = dict(spec.problem.catalogue)
+        semantics = dict(codebook)
+        counts: dict[int, int] = {}
+        initial, goal = spec.problem.queries[0]
+
+        def visit(state: int, used: int, cost: int) -> None:
+            if state == goal:
+                counts[cost] = counts.get(cost, 0) + 1
+                return
+            for index, (code, action_cost) in enumerate(spec.problem.costs):
+                next_cost = cost + action_cost
+                if used & (1 << index) or next_cost > maximum_cost:
+                    continue
+                next_state = transforms[semantics[code]].apply(state)
+                visit(next_state, used | (1 << index), next_cost)
+
+        visit(initial, 0, 0)
+        return counts
+
+    for spec in Q2_CERTIFICATE_SPECS.values():
+        assert first_hit_counts(spec, spec.codebook, 12) == {11: 1, 12: 1}
+        assert first_hit_counts(spec, spec.old_codebook, 15) == {14: 1, 15: 7}
+
+
+def test_q2_certificate_source_is_visible_without_target_gold_leakage() -> None:
+    case = load_cases(CERTIFICATE_DATASET)[1]
+    source_prompt = build_prompt(case.prompt_view(), Condition.WITH_SOURCE)
+    target_prompt = build_prompt(case.prompt_view(), Condition.TARGET_ONLY)
+    teaching_rule = "等成本的不同有序路径必须分别保留并计数"
+    assert teaching_rule in source_prompt.user
+    assert case.source.answer in source_prompt.user
+    assert teaching_rule not in target_prompt.user
+    assert case.source.answer not in target_prompt.user
+    assert case.target.answer.legacy_value() not in source_prompt.user
+
+
+def test_q2_certificate_verifier_rejects_runner_up_count_drift() -> None:
+    case = load_cases(CERTIFICATE_DATASET)[2].model_copy(deep=True)
+    case.target.answer.parts[-1].value = "2"
+    result = verify_case(case)
+    assert not result.passed
+    assert any(not check.passed and check.name == "stored-target" for check in result.checks)
+
+
+def test_q2_decoupled_sources_preserve_identical_targets_and_prompts() -> None:
+    aligned_cases = load_cases(CERTIFICATE_DATASET)
+    decoupled_cases = load_cases(DECOUPLED_CERTIFICATE_DATASET)
+    assert len(decoupled_cases) == 3
+    for aligned, decoupled in zip(aligned_cases, decoupled_cases, strict=True):
+        result = verify_case(decoupled)
+        assert result.passed, result
+        assert len(result.checks) == 19
+        assert aligned.target == decoupled.target
+        assert aligned.source.answer != decoupled.source.answer
+        assert decoupled.source.answer == "12;S3>S7>S2>S4>S5;0;1;13;5"
+        aligned_prompt = build_prompt(aligned.prompt_view(), Condition.TARGET_ONLY)
+        decoupled_prompt = build_prompt(decoupled.prompt_view(), Condition.TARGET_ONLY)
+        assert aligned_prompt.user == decoupled_prompt.user
+        assert aligned_prompt.prompt_sha256 == decoupled_prompt.prompt_sha256
