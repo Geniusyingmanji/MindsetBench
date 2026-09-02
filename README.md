@@ -15,13 +15,13 @@ MindsetBench 用于测量 LLM/agent 能否把一个问题中的认知图式迁�
 
 类型化开发集包含以下主要范式：
 
-| 范式 | 测量内容 |
-| --- | --- |
-| P2 | 参数变化与系统响应的灵敏度 |
-| P3 | 因果路径、干预与效应传播 |
-| P4 | 规则闭包和异常传播 |
-| P5 | 有状态操作规划、潜在操作恢复与最优性证明 |
-| P6 | 多对象联合图对齐 |
+| 范式 | 测量内容 | 代表 case |
+| --- | --- | --- |
+| P2 | 参数变化与系统响应的灵敏度 | [`FORMAL-P2-SENS-L1-01`](data/v1/formal-p2-sensitivity-chain.yaml) |
+| P3 | 因果路径、干预与效应传播 | [`FORMAL-P3-CAUSAL-L1-01`](data/v1/formal-p3-causal-chain.yaml) |
+| P4 | 规则闭包和异常传播 | [`FORMAL-P4-CLOSURE-L1-01`](data/v1/formal-p4-closure-chain.yaml) |
+| P5 | 有状态操作规划、潜在操作恢复与最优性证明 | [`FORMAL-P5-CERT-POLICY-JOINT-01`](data/v1/formal-p5-certificate-policy-joint.yaml) |
+| P6 | 多对象联合图对齐 | [`FORMAL-P6-ALIGN-L1-01`](data/v1/formal-p6-alignment-chain.yaml) |
 
 `Formal25/30/35` 是累计校准包名称，数字表示题目数量，并不是三种独立方法：
 
@@ -63,6 +63,14 @@ Y = -2T + 4A + 5B + ε_Y
 ```
 
 三次冻结不能叠加；路径首次满足完整目标就必须停止。最终答案包含 3 个七段 block，共 21 段。完整题面见 [`FORMAL-P5-CERT-POLICY-JOINT-01`](data/v1/formal-p5-certificate-policy-joint.yaml)。
+
+**更多紧凑 case**
+
+| Case | 目标题摘要 | Gold | Lure / 常见错误 |
+| --- | --- | --- | --- |
+| [`P2/L1`](data/v1/formal-p2-sensitivity-chain.yaml) | 四个节点各选一条带权出边，全部最终汇入根，求恰好两条蓝边的方案数 | `500` | 允许内部四环，得到 `548` |
+| [`P4/L1`](data/v1/formal-p4-closure-chain.yaml) | 对四份申请递归应用三层派生规则，再判断未授权违规 | `P2` | 只检查一轮初始事实，误报 `P1;P2;P3` |
+| [`P6/L1`](data/v1/formal-p6-alignment-chain.yaml) | 在含噪声边的两张图间联合恢复节点映射与关系码字典 | `B1;B2;%;@` | 先按出现顺序固定码字典，得到 `B2;B1;@;%` |
 
 ## 评测快照
 
