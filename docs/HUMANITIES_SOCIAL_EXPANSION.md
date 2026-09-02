@@ -18,6 +18,10 @@
 
 首个交付包暂名 `hss20`，包含四条固定源 L0–L4 链，共 20 题。
 
+当前进度（2026-09-03）：第一条 `HN/P4` 已形成可运行的 `hss5` 垂直切片，5/20 题完成；
+严格数据校验、schema-card 校验、迁移设计审计和独立 verifier 均已通过。尚未进行模型难度校准，
+因此不能据此声称题目已经达到 20%–60% 的目标窗口。
+
 | 维度 | 目标 |
 | --- | --- |
 | 人文社科覆盖 | 至少 16/20 个 target 位于法律、历史、公共政策、组织治理、传播或文化分析 |
@@ -40,6 +44,8 @@
 - **目标域候选**：虚构行政复议、劳动申诉、档案开放或文化遗产借展规则。
 - **机器真值**：Datalog/优先规则闭包；输出适用规则、违规对象或决定性区分因子。
 - **L4 变化**：源题给显式规则，目标题只给若干已决案例及理由，需要先恢复规范层级，再处理一个新 defeater。
+- **实现状态**：已完成。L0/L1 为代码访问规则，L2 为虚构博物馆出借，L3 为劳动申诉协议与纪要，
+  L4 为公共档案先例摘要；L4 新增“法院解密令仅覆盖契约封存”的窄关系，机械照搬源题会多拒绝 `U5`。
 
 ### HE：论证图式与证据独立性（P7）
 
@@ -136,6 +142,16 @@ tests/test_hss_*.py
 docs/hss20-report.md
 ```
 
-实施顺序：先各链完成 L0/L1 和 verifier 骨架，再补 L2/L3 的跨域重命名与单关系编辑，最后构造 L4
-跨文体远类比；20 题全部通过 strict validate、schema-card audit、independent verifier 和泄漏扫描后，
-才调用模型进行 calibration。
+实施顺序采用逐链垂直切片：先完成一条链的 L0–L4、schema card、verifier 和负控制，确认整条工具链后再进入
+下一推理家族。当前 `HN/P4` 已完成；下一步依次实现 `HE/P7`、`HA/P6`、`HM/P8`。20 题全部通过
+strict validate、schema-card audit、independent verifier 和泄漏扫描后，再调用模型进行正式 calibration；
+开发阶段可以对单链做小样本冒烟测试，但不得据此筛除负迁移题。
+
+首条链可独立复现：
+
+```bash
+.venv/bin/mb validate data/manifests/hss5.json --strict-v1
+.venv/bin/mb validate-cards data/manifests/hss5-cards.json data/manifests/hss5.json
+.venv/bin/mb audit data/manifests/hss5.json --require-complete-chains
+.venv/bin/mb verify all --dataset data/manifests/hss5.json
+```

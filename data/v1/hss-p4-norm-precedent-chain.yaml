@@ -1,0 +1,258 @@
+- id: HSS-P4-NORM-PRECEDENT-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-规范规则
+  schema_id: defeasible-norm-precedent-v1
+  schema_name: 默认规范、成对例外与先例优先关系迁移
+  chain: hss-p4-norm-precedent-v1
+  level: 0
+  source: &hss_norm_source
+    domain: 代码托管平台权限手册
+    problem: >-
+      评审员按以下手册决定是否开放受限代码库。未被条款准入的请求一律拒绝。
+      正式成员且任务已登记时准入；事故审查条款优先于成员准入条款，事故审查中的请求拒绝；
+      同时取得安全主管书面批准和独立复核完成时构成双重批准例外，
+      双重批准例外优先于事故审查条款；法律保全条款优先于其他全部条款，法律保全中的请求拒绝。
+      请求为 T1【正式成员、任务已登记】；
+      T2【正式成员、任务已登记、事故审查中】；
+      T3【正式成员、任务已登记、事故审查中、安全主管书面批准、独立复核完成】；
+      T4【正式成员、任务已登记、事故审查中、安全主管书面批准、独立复核完成、法律保全中】；
+      T5【正式成员】。输出全部拒绝请求的编号，按编号升序并以分号分隔。
+    solution: >-
+      默认拒绝低于四层明确条款。T1 由成员条款准入；T2 被事故审查条款拒绝；
+      T3 的成对批准覆盖事故审查；T4 又被最高的法律保全条款拒绝；T5 不满足完整成员条款而默认拒绝。
+    answer: T2;T4;T5
+  target:
+    domain: 三项代码访问复核
+    problem: >-
+      未被准入的请求默认拒绝。正式成员且任务已登记时准入；
+      事故审查条款优先于成员准入条款，事故审查中的请求拒绝。
+      A【正式成员、任务已登记】；B【正式成员、任务已登记、事故审查中】；
+      C【正式成员】。输出全部拒绝编号，按字母升序并以分号分隔。
+    answer: {parts: [{type: label, value: B}, {type: label, value: C}]}
+  mapping:
+    objects: {正式成员: 正式成员, 任务已登记: 任务已登记, 事故审查: 事故审查, 默认拒绝: 默认拒绝}
+    shared_relations: [完整双条件触发通常准入, 事故审查拒绝压过通常准入, 没有适用准入理由时默认拒绝]
+    varied: [缩减为三项请求和两层显式冲突]
+  lure:
+    problem: >-
+      事实与条款相同，但成员准入条款优先于事故审查条款。输出全部拒绝编号。
+    solution: A 与 B 都满足优先的成员准入条款；只有不满足完整准入条件的 C 默认拒绝。
+    answer: {parts: [{type: label, value: C}]}
+    why_surface_similar: 请求事实和两条规则逐项相同。
+    why_structurally_different: 两条冲突规范的胜出方向被反转。
+    wrong_schema_id: permission-overrides-incident-bar-01
+  copy_probe:
+    answer: {parts: [{type: label, value: C}]}
+    derivation: 只看具体的成员准入理由，错误地让它覆盖事故审查禁令。
+  hints:
+    schema_name: 默认规范、成对例外与先例优先关系迁移
+    oracle_mindset: {insight: 先列出每项请求触发的准入与拒绝理由，再只保留优先关系中最高的适用理由。, when_to_use: 同一对象同时满足许可与禁止条件时。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_norm_precedent:verify_hss_p4_norm_precedent_l0_01
+    method: executable-defeasible-priority-policy-and-negative-control
+  provenance: original synthetic case; all institutions, records, and holdings are fictional
+  verified: 事故审查压过成员准入，因此 B 拒绝；C 没有完整准入理由而默认拒绝。
+
+- id: HSS-P4-NORM-PRECEDENT-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-规范规则
+  schema_id: defeasible-norm-precedent-v1
+  schema_name: 默认规范、成对例外与先例优先关系迁移
+  chain: hss-p4-norm-precedent-v1
+  level: 1
+  source: *hss_norm_source
+  target:
+    domain: 五项代码访问复核
+    problem: >-
+      未被条款准入的请求一律拒绝。正式成员且任务已登记时准入；
+      事故审查条款优先于成员准入条款，事故审查中的请求拒绝；
+      同时取得安全主管书面批准和独立复核完成时构成双重批准例外，
+      双重批准例外优先于事故审查条款；法律保全条款优先于其他全部条款，法律保全中的请求拒绝。
+      P1【正式成员、任务已登记】；P2【正式成员、任务已登记、事故审查中】；
+      P3【正式成员、任务已登记、事故审查中、安全主管书面批准、独立复核完成】；
+      P4【正式成员、任务已登记、事故审查中、安全主管书面批准、独立复核完成、法律保全中】；
+      P5【正式成员】。输出全部拒绝编号，按编号升序并以分号分隔。
+    answer: {parts: [{type: label, value: P2}, {type: label, value: P4}, {type: label, value: P5}]}
+  mapping:
+    objects: {正式成员: 正式成员, 事故审查: 事故审查, 双重批准: 双重批准, 法律保全: 法律保全, 默认拒绝: 默认拒绝}
+    shared_relations: [完整成员条件给出通常准入, 事故审查压过通常准入, 成对批准压过事故审查, 法律保全压过成对批准, 无准入理由时默认拒绝]
+    varied: [把源题的五种边界剖面重排为新的请求编号]
+  lure:
+    problem: >-
+      事实与条款相同，但把双重批准理解为可以覆盖任何拒绝理由，包括法律保全。输出全部拒绝编号。
+    solution: P3、P4 都被双重批准放行；P2 仍被事故审查拒绝，P5 默认拒绝。
+    answer: {parts: [{type: label, value: P2}, {type: label, value: P5}]}
+    why_surface_similar: 四类条件及请求事实不变。
+    why_structurally_different: lure 把有范围的事故审查例外错误提升成无条件最高例外。
+    wrong_schema_id: unrestricted-exception-escalation-01
+  copy_probe:
+    answer: {parts: [{type: label, value: P2}, {type: label, value: P5}]}
+    derivation: 看到成对批准后停止检查更高位的法律保全条款。
+  hints:
+    schema_name: 默认规范、成对例外与先例优先关系迁移
+    oracle_mindset: {insight: 例外只击败明示位于它下方的理由；命中例外后仍需检查更高位的终局禁止。, when_to_use: 规则出现例外以及例外的例外时。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_norm_precedent:verify_hss_p4_norm_precedent_l1_01
+    method: executable-four-tier-defeasible-priority-policy
+  provenance: original synthetic case; all institutions, records, and holdings are fictional
+  verified: P2 被事故审查拒绝，P4 被最高法律保全拒绝，P5 默认拒绝。
+
+- id: HSS-P4-NORM-PRECEDENT-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-规范规则
+  schema_id: defeasible-norm-precedent-v1
+  schema_name: 默认规范、成对例外与先例优先关系迁移
+  chain: hss-p4-norm-precedent-v1
+  level: 2
+  source: *hss_norm_source
+  target:
+    domain: 虚构博物馆跨境出借委员会
+    problem: >-
+      委员会审议一组虚构藏品。未满足任何出借条款时默认不出借。
+      藏品已编目且保存方案完备时通常出借；权属争议条款优先于常规出借条款；
+      同时具备返还委员会建议和请求方书面同意才构成完整例外，
+      双方完备的返还审查例外优先于权属争议条款；法院保全令优先于其他全部条款。
+      M1【已编目藏品、保存方案完备】；M2【已编目藏品、保存方案完备、来源权属争议】；
+      M3【已编目藏品、保存方案完备、来源权属争议、返还委员会建议、请求方书面同意】；
+      M4【已编目藏品、保存方案完备、来源权属争议、返还委员会建议、请求方书面同意、法院保全令】；
+      M5【已编目藏品】；M6【已编目藏品、保存方案完备、来源权属争议、返还委员会建议】。
+      输出全部不出借编号，按编号升序并以分号分隔。
+    answer: {parts: [{type: label, value: M2}, {type: label, value: M4}, {type: label, value: M5}, {type: label, value: M6}]}
+  mapping:
+    objects: {正式成员与任务登记: 编目与保存方案, 事故审查: 来源权属争议, 双重批准: 返还建议与请求方同意, 法律保全: 法院保全令, 代码准入: 藏品出借}
+    shared_relations: [两个通常条件必须同时满足, 一般风险理由压过通常许可, 成对程序保障压过一般风险, 司法保全压过程序例外, 无许可依据时采用拒绝默认值]
+    varied: [从软件治理迁到文化遗产返还, 从访问许可改为藏品出借, 使用委员会审议语体]
+  lure:
+    problem: >-
+      事实相同，但将完整的返还审查例外视为可以覆盖法院保全令。输出全部不出借编号。
+    solution: M4 因例外被出借；M2、M6 缺少完整例外而受权属争议阻却，M5 默认不出借。
+    answer: {parts: [{type: label, value: M2}, {type: label, value: M5}, {type: label, value: M6}]}
+    why_surface_similar: 藏品事实和所有触发条件完全相同。
+    why_structurally_different: 法院保全与程序例外之间的胜出方向被反转。
+    wrong_schema_id: committee-exception-over-court-order-01
+  copy_probe:
+    answer: {parts: [{type: label, value: M2}, {type: label, value: M5}, {type: label, value: M6}]}
+    derivation: 把成对例外抽象成最高许可，忽略它只针对普通权属争议。
+  hints:
+    schema_name: 默认规范、成对例外与先例优先关系迁移
+    oracle_mindset: {insight: 不迁移领域词，而迁移“通常许可—普通阻却—成对例外—终局阻却”的关系链。, when_to_use: 源题和目标题实体完全不同但冲突理由的层级同构时。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_norm_precedent:verify_hss_p4_norm_precedent_l2_01
+    method: cross-domain-defeasible-priority-isomorphism
+  provenance: original synthetic case; all institutions, records, and holdings are fictional
+  verified: M2 与 M6 被权属争议阻却，M4 被法院保全阻却，M5 默认不出借。
+
+- id: HSS-P4-NORM-PRECEDENT-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-规范规则
+  schema_id: defeasible-norm-precedent-v1
+  schema_name: 默认规范、成对例外与先例优先关系迁移
+  chain: hss-p4-norm-precedent-v1
+  level: 3
+  source: *hss_norm_source
+  target:
+    domain: 虚构劳动申诉庭的集体协议与书记员纪要
+    problem: >-
+      一份集体协议写道：按期提出且具备申诉资格的申请通常受理。
+      书记员将未获受理依据的申请登记为不受理。庭务纪要补充：
+      保密条款压过通常的受理资格；工会共同签署且劳动者明示同意时可以克服保密条款；
+      即使有该项共同保障，法定期限届满仍然终局阻却受理。
+      本期卷宗为 N1【按期提出、具备申诉资格】；
+      N2【按期提出、具备申诉资格、涉及保密人事材料】；
+      N3【按期提出、具备申诉资格、涉及保密人事材料、工会共同签署、劳动者明示同意】；
+      N4【按期提出、具备申诉资格、涉及保密人事材料、工会共同签署、劳动者明示同意、法定期限届满】；
+      N5【具备申诉资格】；
+      N6【按期提出、具备申诉资格、涉及保密人事材料、工会共同签署】；
+      N7【按期提出、具备申诉资格、法定期限届满】；
+      N8【按期提出、具备申诉资格、涉及保密人事材料、工会共同签署、劳动者明示同意】。
+      输出书记员应登记为不受理的全部编号，按编号升序并以分号分隔。
+    answer: {parts: [{type: label, value: N2}, {type: label, value: N4}, {type: label, value: N5}, {type: label, value: N6}, {type: label, value: N7}]}
+  mapping:
+    objects: {成员资格: 按期提出, 任务登记: 申诉资格, 事故审查: 保密人事材料, 安全主管批准: 工会共同签署, 独立复核: 劳动者明示同意, 法律保全: 法定期限届满}
+    shared_relations: [通常受理要求两个条件合取, 单一普通阻却压过通常受理, 两项保障必须同时存在才能克服普通阻却, 终局期限压过成对保障, 缺少完整受理依据时默认不受理]
+    varied: [跨到劳动制度, 从操作手册变为集体协议与书记员纪要, 从准入决定变为程序受理, 增加重复正例用于检查按编号猜测]
+  lure:
+    problem: >-
+      卷宗不变，但把共同签署与明示同意理解为对所有不受理理由都有效，包括法定期限届满。输出不受理编号。
+    solution: N4 被共同保障受理；其余 N2、N5、N6、N7 仍不受理。
+    answer: {parts: [{type: label, value: N2}, {type: label, value: N5}, {type: label, value: N6}, {type: label, value: N7}]}
+    why_surface_similar: 合同条件、卷宗事实与输出任务完全相同。
+    why_structurally_different: lure 把针对保密性的程序保障扩张为对法定期限的普遍豁免。
+    wrong_schema_id: unrestricted-procedural-waiver-01
+  copy_probe:
+    answer: {parts: [{type: label, value: N2}, {type: label, value: N5}, {type: label, value: N6}, {type: label, value: N7}]}
+    derivation: 只识别“例外比禁止具体”，没有追踪例外实际覆盖的规范范围。
+  hints:
+    schema_name: 默认规范、成对例外与先例优先关系迁移
+    oracle_mindset: {insight: 将分散在协议和纪要中的理由重建为有方向的覆盖关系，再逐卷宗取最高适用理由。, when_to_use: 规则分布在不同文书、且没有统一编号或公式时。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_norm_precedent:verify_hss_p4_norm_precedent_l3_01
+    method: cross-genre-norm-graph-recovery-and-scope-check
+  provenance: original synthetic case; all institutions, records, and holdings are fictional
+  verified: N2、N6 受保密条款阻却，N4、N7 受终局期限阻却，N5 缺少完整受理条件。
+
+- id: HSS-P4-NORM-PRECEDENT-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-规范规则
+  schema_id: defeasible-norm-precedent-v1
+  schema_name: 默认规范、成对例外与先例优先关系迁移
+  chain: hss-p4-norm-precedent-v1
+  level: 4
+  source: *hss_norm_source
+  target:
+    domain: 虚构公共档案委员会先例摘要
+    problem: >-
+      委员会没有给出规则表，只留下五份理由摘要，并要求同类事实采用同一理由；
+      若旧案只解决某一冲突，后案从窄沿用该理由。
+      先例甲：具备研究资质且材料已编目的申请获准公开，理由是两项通常门槛均满足。
+      先例乙：在甲的事实外存在现实安全风险，改判不公开，理由是该风险压过通常门槛。
+      先例丙：在乙的事实外又有公益复核通过和监察员背书，恢复公开，理由是成对监督保障克服普通安全风险。
+      先例丁：在丙的事实外又受捐赠契约封存，仍判不公开，理由是当时该契约对上述保障具有终局效力。
+      先例戊：事实与丁相同但另有法院解密令，改判公开；摘要明确说法院命令改变了旧有的终局封存关系，
+      但并未把法院命令扩张为对其他拒绝理由的一般通行证。没有先例支持公开的申请维持不公开。
+      现有申请为 U1【申请人具备研究资质、材料已编目】；
+      U2【申请人具备研究资质、材料已编目、存在现实安全风险】；
+      U3【申请人具备研究资质、材料已编目、存在现实安全风险、公益复核通过、监察员背书】；
+      U4【申请人具备研究资质、材料已编目、存在现实安全风险、公益复核通过、监察员背书、捐赠契约封存】；
+      U5【申请人具备研究资质、材料已编目、存在现实安全风险、公益复核通过、监察员背书、捐赠契约封存、法院解密令】；
+      U6【申请人具备研究资质】；
+      U7【申请人具备研究资质、材料已编目、捐赠契约封存】；
+      U8【申请人具备研究资质、材料已编目、存在现实安全风险、法院解密令】。
+      输出应维持不公开的全部编号，按编号升序并以分号分隔。
+    answer: {parts: [{type: label, value: U2}, {type: label, value: U4}, {type: label, value: U6}, {type: label, value: U7}, {type: label, value: U8}]}
+  mapping:
+    objects: {成员资格与任务登记: 研究资质与材料编目, 事故审查: 现实安全风险, 双重批准: 公益复核与监察员背书, 法律保全: 捐赠契约封存, 访问准入: 档案公开, 新增最高例外: 法院解密令}
+    shared_relations: [通常公开需要两个门槛, 普通风险压过通常公开, 两项监督保障共同压过普通风险, 契约封存在旧关系中压过监督保障, 无公开理由时保持拒绝默认值]
+    added_relations: [法院解密令仅在捐赠契约封存冲突中推翻旧有终局拒绝]
+    adaptation_required: [从五份裁决结果恢复覆盖顺序, 在源题四层关系上加入法院解密令这一窄范围第五层, 不把新增例外错误扩张到普通安全风险]
+    varied: [跨到公共档案制度, 从显式手册变为先例摘要, 不提供规则编号, 新增一个只针对最高旧禁令的窄例外]
+  lure:
+    problem: >-
+      申请与旧四层关系相同，但机械沿用源手册，仍把捐赠契约封存当作不可被任何理由覆盖的终局拒绝；
+      同时不把法院解密令用于普通安全风险。输出维持不公开的编号。
+    solution: U5 仍受终局封存阻却；U2、U4、U6、U7、U8 也不公开。
+    answer: {parts: [{type: label, value: U2}, {type: label, value: U4}, {type: label, value: U5}, {type: label, value: U6}, {type: label, value: U7}, {type: label, value: U8}]}
+    why_surface_similar: 前四组理由与源手册可逐项对应，且绝大多数申请结论不变。
+    why_structurally_different: lure 忽略先例戊新增的窄范围法院例外，保留了已经被改变的终局关系。
+    wrong_schema_id: stale-absolute-bar-copy-01
+  copy_probe:
+    answer: {parts: [{type: label, value: U2}, {type: label, value: U4}, {type: label, value: U5}, {type: label, value: U6}, {type: label, value: U7}, {type: label, value: U8}]}
+    derivation: 将源题最高拒绝原样复制到目标题，没有用先例戊更新关系；又正确地未将法院命令泛化到 U8。
+  hints:
+    schema_name: 默认规范、成对例外与先例优先关系迁移
+    oracle_mindset: {insight: 用相邻先例的最小事实差恢复理由覆盖图；戊只改变法院命令与契约封存之间的一条边，其他边保持。, when_to_use: 目标题用案例而非条款表达规则，并且新案例局部修订旧关系时。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_norm_precedent:verify_hss_p4_norm_precedent_l4_01
+    method: precedent-contrast-priority-recovery-and-local-relation-update
+  provenance: original synthetic case; all institutions, records, and holdings are fictional
+  verified: U5 由法院解密令窄范围公开；U8 没有契约封存，法院命令不能跨范围覆盖安全风险。

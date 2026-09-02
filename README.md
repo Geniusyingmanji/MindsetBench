@@ -20,6 +20,7 @@ MindsetBench 用于测量 LLM/agent 能否把一个问题中的认知图式迁�
 | P2 | 参数变化与系统响应的灵敏度 | [`FORMAL-P2-SENS-L1-01`](data/v1/formal-p2-sensitivity-chain.yaml) |
 | P3 | 因果路径、干预与效应传播 | [`FORMAL-P3-CAUSAL-L1-01`](data/v1/formal-p3-causal-chain.yaml) |
 | P4 | 规则闭包和异常传播 | [`FORMAL-P4-CLOSURE-L1-01`](data/v1/formal-p4-closure-chain.yaml) |
+| HSS/P4 | 默认规范、成对例外与先例关系恢复 | [`HSS-P4-NORM-PRECEDENT-L4-01`](data/v1/hss-p4-norm-precedent-chain.yaml) |
 | P5 | 有状态操作规划、潜在操作恢复与最优性证明 | [`FORMAL-P5-CERT-POLICY-JOINT-01`](data/v1/formal-p5-certificate-policy-joint.yaml) |
 | P6 | 多对象联合图对齐 | [`FORMAL-P6-ALIGN-L1-01`](data/v1/formal-p6-alignment-chain.yaml) |
 
@@ -40,7 +41,9 @@ MindsetBench 用于测量 LLM/agent 能否把一个问题中的认知图式迁�
 
 ## 下一目标：Humanities/Social-20
 
-现有正式题仍偏系数计算、组合枚举和路径搜索。下一批将构造四条人文社科 L0–L4 链，共 20 题：规范与判例、论证与证据、历史类比、制度机制。L3/L4 的 source 与 target 必须同时跨学科、跨文体和跨表征，不能只是替换名词；至少 16/20 使用标签、集合、排序、三值或角色映射作答，全部保留可执行 verifier。
+现有正式题仍偏系数计算、组合枚举和路径搜索。下一批将构造四条人文社科 L0–L4 链，共 20 题：规范与判例、论证与证据、历史类比、制度机制。首条规范/判例链 `hss5` 已完成 5 题和可执行 verifier；其 L4 从五份公共档案先例恢复规则，并要求只局部加入法院例外。其余三条链尚未实现。
+
+L3/L4 的 source 与 target 必须同时跨学科、跨文体和跨表征，不能只是替换名词；至少 16/20 使用标签、集合、排序、三值或角色映射作答，全部保留可执行 verifier。
 
 难度将主要来自“从自然语言材料恢复关系—判断哪些关系可迁移—适配一条被改变的核心关系”，而不是增加算术长度。完整目标、候选题对和代码交付计划见 [`docs/HUMANITIES_SOCIAL_EXPANSION.md`](docs/HUMANITIES_SOCIAL_EXPANSION.md)。
 

@@ -47,5 +47,6 @@ def _load_builtin_verifiers() -> None:
         formal_p5_latent,
         formal_p6_chain,
         hard_seeds,
+        hss_norm_precedent,
         smoke_cases,
     )

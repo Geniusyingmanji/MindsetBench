@@ -1,0 +1,7 @@
+{
+  "name": "hss5-norm-precedent-calibration",
+  "description": "First humanities/social-science fixed-source L0-L4 chain: defeasible norms and precedent recovery.",
+  "datasets": [
+    "../v1/hss-p4-norm-precedent-chain.yaml"
+  ]
+}

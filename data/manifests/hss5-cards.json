@@ -1,0 +1,6 @@
+{
+  "name": "hss5-norm-precedent-schema-cards",
+  "schema_card_files": [
+    "../schema_cards/hss-p4-norm-precedent-v1.yaml"
+  ]
+}
