@@ -71,10 +71,7 @@ def test_two_stage_policy_can_adapt_the_second_query() -> None:
         policies[0],
         root_observation_order=("RED", "BLUE"),
         second_observation_order=("RED", "BLUE"),
-    ) == (
-        "ROOT=Q1;ON_RED=Q2;ON_RED_RED=A;ON_RED_BLUE=B;"
-        "ON_BLUE=Q3;ON_BLUE_RED=A;ON_BLUE_BLUE=B"
-    )
+    ) == ("ROOT=Q1;ON_RED=Q2;ON_RED_RED=A;ON_RED_BLUE=B;ON_BLUE=Q3;ON_BLUE_RED=A;ON_BLUE_BLUE=B")
 
 
 def test_two_stage_policy_validates_query_costs() -> None:

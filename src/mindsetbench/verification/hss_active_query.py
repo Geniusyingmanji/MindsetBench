@@ -370,8 +370,7 @@ def verify_hss_active_p8_ritual_l4_01(case: Case) -> VerificationResult:
         expected_lure_query="Q2",
         required_phrases=("六种铭文复原", "第五种", "第六种", "Q1", "Q4"),
         source_answer=(
-            "S1=SEPARATING_SIGNAL;S2=CREDIBLE_COMMITMENT;"
-            "S3=POOLING_SIGNAL;S4=NONCREDIBLE"
+            "S1=SEPARATING_SIGNAL;S2=CREDIBLE_COMMITMENT;S3=POOLING_SIGNAL;S4=NONCREDIBLE"
         ),
         source_phrases=("永久删除日后背离选项", "机会主义类型无法承受", "第三方全额补偿"),
     )

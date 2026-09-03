@@ -187,7 +187,5 @@ def surface_document_assessments(
     return result
 
 
-def verdict_parts(
-    assessments: Mapping[str, ClaimAssessment], claims: Sequence[str]
-) -> list[str]:
+def verdict_parts(assessments: Mapping[str, ClaimAssessment], claims: Sequence[str]) -> list[str]:
     return [f"{claim}={assessments[claim].verdict.value}" for claim in claims]

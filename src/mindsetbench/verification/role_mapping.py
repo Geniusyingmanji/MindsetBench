@@ -53,9 +53,7 @@ def evaluate_mapping(
     source_relations = {relation for _, relation, _ in source.edges}
     missing_relation_names = source_relations - relation_map.keys()
     if missing_relation_names:
-        raise ValueError(
-            f"relation map is incomplete: {sorted(missing_relation_names)}"
-        )
+        raise ValueError(f"relation map is incomplete: {sorted(missing_relation_names)}")
 
     expected = frozenset(
         (mapping[subject], relation_map[relation], mapping[object_])
@@ -65,9 +63,7 @@ def evaluate_mapping(
     missing = expected - target.edges
     mapped_nodes = frozenset(mapping.values())
     induced = frozenset(
-        edge
-        for edge in target.edges
-        if edge[0] in mapped_nodes and edge[2] in mapped_nodes
+        edge for edge in target.edges if edge[0] in mapped_nodes and edge[2] in mapped_nodes
     )
     return MappingMatch(mapping, preserved, missing, induced - expected)
 

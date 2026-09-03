@@ -51,9 +51,7 @@ def decide(
     decisions = {rule.decision for rule in winners}
     if len(decisions) != 1:
         names = ", ".join(sorted(rule.name for rule in winners))
-        raise ValueError(
-            f"conflicting decisions at priority {winning_priority}: {names}"
-        )
+        raise ValueError(f"conflicting decisions at priority {winning_priority}: {names}")
     return PolicyDecision(
         decision=next(iter(decisions)),
         winning_priority=winning_priority,
@@ -84,7 +82,5 @@ def denied_record_ids(
 ) -> list[str]:
     decisions = evaluate_policy(records, rules, default=default)
     return [
-        record_id
-        for record_id, result in decisions.items()
-        if result.decision == Decision.DENY
+        record_id for record_id, result in decisions.items() if result.decision == Decision.DENY
     ]

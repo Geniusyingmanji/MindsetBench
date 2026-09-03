@@ -34,9 +34,7 @@ def test_adaptive_policy_seeds_are_strict_audited_and_executable() -> None:
 
 
 def test_adaptive_policy_manifest_matches_direct_dataset() -> None:
-    assert [case.id for case in load_cases(MANIFEST)] == [
-        case.id for case in load_cases(DATASET)
-    ]
+    assert [case.id for case in load_cases(MANIFEST)] == [case.id for case in load_cases(DATASET)]
 
 
 def test_adaptive_policy_answer_contracts_are_nonleaking() -> None:

@@ -121,16 +121,11 @@ def decisive_branches(
     for world in worlds:
         branches[world.observation_for(query_id)].add(world.outcome)
     ambiguous = {
-        observation: outcomes
-        for observation, outcomes in branches.items()
-        if len(outcomes) != 1
+        observation: outcomes for observation, outcomes in branches.items() if len(outcomes) != 1
     }
     if ambiguous:
         raise ValueError(f"query {query_id!r} leaves ambiguous branches: {ambiguous}")
-    return {
-        observation: next(iter(outcomes))
-        for observation, outcomes in sorted(branches.items())
-    }
+    return {observation: next(iter(outcomes)) for observation, outcomes in sorted(branches.items())}
 
 
 def encode_active_answer(
@@ -237,9 +232,7 @@ def best_two_stage_policies(
                 )
             )
             branch_sizes = [len(root_buckets[branch.root_observation]) for branch in branches]
-            path_costs = [
-                query_costs[root_query] + choice.cost for choice in branch_combination
-            ]
+            path_costs = [query_costs[root_query] + choice.cost for choice in branch_combination]
             leaves = [size for choice in branch_combination for size in choice.leaves]
             policies.append(
                 AdaptivePolicy(
@@ -248,8 +241,7 @@ def best_two_stage_policies(
                     worst_total_cost=max(path_costs),
                     expected_total_cost=Fraction(
                         sum(
-                            size * cost
-                            for size, cost in zip(branch_sizes, path_costs, strict=True)
+                            size * cost for size, cost in zip(branch_sizes, path_costs, strict=True)
                         ),
                         len(normalized_worlds),
                     ),
@@ -288,9 +280,7 @@ def encode_two_stage_policy(
         parts.append(f"ON_{root_observation}={branch.second_query}")
         outcomes = dict(branch.outcomes)
         if set(outcomes) != set(second_observation_order):
-            raise ValueError(
-                f"second observation order does not match branch {root_observation!r}"
-            )
+            raise ValueError(f"second observation order does not match branch {root_observation!r}")
         parts.extend(
             f"ON_{root_observation}_{observation}={outcomes[observation]}"
             for observation in second_observation_order
