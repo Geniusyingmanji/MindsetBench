@@ -47,6 +47,8 @@ def _load_builtin_verifiers() -> None:
         formal_p5_latent,
         formal_p6_chain,
         hard_seeds,
+        hss_active_query,
+        hss_adaptive_policy,
         hss_argument_evidence,
         hss_historical_analogy,
         hss_institutional_mechanism,

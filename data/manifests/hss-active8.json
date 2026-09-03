@@ -1,0 +1,8 @@
+{
+  "name": "hss-active-learning8-calibration",
+  "description": "Eight far-domain active-learning calibration tasks: one-step query choice and two-stage adaptive policy.",
+  "datasets": [
+    "hss-active-query4.json",
+    "hss-adaptive-policy4.json"
+  ]
+}

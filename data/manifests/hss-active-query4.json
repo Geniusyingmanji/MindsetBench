@@ -1,0 +1,7 @@
+{
+  "name": "hss-active-query4-l4-seeds",
+  "description": "Four L4 far-domain seeds that turn transferred schemas into active query selection.",
+  "datasets": [
+    "../v1/hss-active-query-seeds.yaml"
+  ]
+}

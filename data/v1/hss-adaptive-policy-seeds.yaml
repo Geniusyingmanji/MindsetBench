@@ -1,0 +1,367 @@
+- id: HSS-ADAPTIVE-P4-PERFORMANCE-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-自适应规范判别
+  schema_id: defeasible-norm-adaptive-policy-v1
+  schema_name: 从例外边界迁移到演出档案的条件查验策略
+  level: 4
+  source:
+    domain: 代码托管平台权限手册
+    problem: >-
+      未被条款准入的请求一律拒绝。正式成员且任务已登记时准入；事故审查拒绝优先；
+      安全主管批准与独立复核必须同时存在，才能作为只克服事故审查的例外；
+      法律保全又优先于该例外，只有与法律保全同时出现的专项解封令才恢复准入。
+      T1【成员、登记】；T2【成员、登记、事故审查】；
+      T3【成员、登记、事故审查、批准、复核】；
+      T4【成员、登记、事故审查、批准、复核、法律保全】；
+      T5【成员】。输出拒绝编号。
+    solution: T1 准入；T2 拒绝；T3 由完整窄例外准入；T4 被更高位保全拒绝；T5 默认拒绝。
+    answer: T2;T4;T5
+  target:
+    domain: 虚构木偶戏复演季的散佚节目单与条件调阅
+    problem: >-
+      策展人从旧评议恢复出以下做法：剧目同时有地方谱系印与完整唱本时通常入选；
+      禁演朱线会使它落选；艺师联署与祭台许可必须成对出现，且只足以克服禁演朱线；
+      王室服丧记号又压过这组成对理由；服丧记号旁另有复演敕签时才恢复入选；
+      没有完整入选依据时落选。
+      八份复排提案为：甲【谱系印、唱本、朱线、联署、祭台许可】；
+      乙【谱系印、唱本、朱线】；丙【谱系印、唱本、朱线、联署、祭台许可、服丧记号】；
+      丁【谱系印、唱本】；戊【谱系印、唱本、朱线、联署、祭台许可、服丧记号、复演敕签】；
+      己【只有谱系印】；庚【谱系印、唱本、朱线、服丧记号】；
+      辛【谱系印、唱本、朱线、只有艺师联署】。最终结论只用 ALLOW 或 DENY。
+
+      最多两次调阅，且第二次可依第一次返回自适应选择；同一路径不能重复查询。
+      查询成本为 Q1成本2、Q2成本3、Q3成本4、Q4成本5、Q5成本6、Q6成本7。
+      各提案在查询下的确定回复为：
+      甲 Q1R/Q2B/Q3B/Q4R/Q5B/Q6R；乙 Q1R/Q2B/Q3R/Q4R/Q5R/Q6R；
+      丙 Q1R/Q2R/Q3B/Q4B/Q5B/Q6R；丁 Q1R/Q2R/Q3B/Q4R/Q5B/Q6R；
+      戊 Q1B/Q2B/Q3R/Q4B/Q5B/Q6R；己 Q1R/Q2B/Q3R/Q4R/Q5B/Q6B；
+      庚 Q1B/Q2B/Q3R/Q4R/Q5R/Q6B；辛 Q1B/Q2R/Q3B/Q4B/Q5B/Q6R。
+      策略必须使每个最终 R/B 路径只剩一种 ALLOW/DENY 结论。在所有可行策略中，依次最小化：
+      最坏路径总成本、八种提案等可能时的平均总成本、最坏叶节点候选数、平均叶节点候选数。
+      输出首查；第一次为 R 或 B 时的第二查；再输出两个回复组成的每条路径的最终结论。
+    answer_format: ROOT=<Q>;ON_R=<Q>;ON_R_R=<ALLOW|DENY>;ON_R_B=<ALLOW|DENY>;ON_B=<Q>;ON_B_R=<ALLOW|DENY>;ON_B_B=<ALLOW|DENY>
+    answer: ROOT=Q4;ON_R=Q3;ON_R_R=DENY;ON_R_B=ALLOW;ON_B=Q2;ON_B_R=DENY;ON_B_B=ALLOW
+  mapping:
+    objects:
+      通常准入条件: 谱系印与完整唱本
+      事故审查: 禁演朱线
+      双重批准: 艺师联署与祭台许可
+      法律保全: 王室服丧记号
+      专项解封: 复演敕签
+      访问结果: 复演季入选结果
+    shared_relations:
+      - 通常许可需要两个条件合取
+      - 普通禁令优先于通常许可
+      - 成对例外只克服普通禁令
+      - 更高位禁令压过成对例外
+      - 专属解除只修正更高位禁令
+      - 查询策略按最终决策等价类而非候选名称优化
+    added_relations:
+      - 第二次调阅取决于第一次回复
+      - 查询具有不同保存成本并按最坏成本优先
+    removed_relations:
+      - 不再直接输出八份提案的逐项结论
+    adaptation_required:
+      - 先恢复八份提案的规范结论，再搜索低成本条件策略树
+      - 不把识别具体节目单当作决策充分性的必要条件
+    varied: [跨到表演史策展, 从批量分类改为带成本的两阶段自适应调阅]
+  lure:
+    problem: >-
+      保留八份提案、查询回复和成本，但把艺师联署与祭台许可的成对理由误当作可以克服服丧记号。
+      按同一四级目标选择最多两次的条件调阅策略。
+    solution: 该误读只改变丙的结论；重算策略后首查 Q3，R 分支查 Q4，B 分支查 Q1。
+    answer: ROOT=Q3;ON_R=Q4;ON_R_R=DENY;ON_R_B=ALLOW;ON_B=Q1;ON_B_R=ALLOW;ON_B_B=DENY
+    why_surface_similar: 提案、查询树规则、回复矩阵和成本完全相同。
+    why_structurally_different: 将有明确冲突对象的例外提升为无范围限制的最高许可。
+    wrong_schema_id: unrestricted-exception-adaptive-policy-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: string, value: ROOT=Q3}
+        - {type: string, value: ON_R=Q4}
+        - {type: string, value: ON_R_R=DENY}
+        - {type: string, value: ON_R_B=ALLOW}
+        - {type: string, value: ON_B=Q1}
+        - {type: string, value: ON_B_R=ALLOW}
+        - {type: string, value: ON_B_B=DENY}
+    derivation: 先用错误的无范围例外给提案分组，再在该错误版本空间上求最优策略。
+  hints:
+    schema_name: 从例外边界迁移到演出档案的条件查验策略
+    oracle_mindset: {insight: 先按最高适用理由压缩为决策等价类，再对这些类设计低成本条件查询树。, when_to_use: 潜在事实多于最终行动种类且取证允许依据早期结果调整时。}
+    false_mindset: {insight: 把醒目的成对例外推广到所有禁令，再优化由此得到的错误分类。, when_to_use: 忽略例外只解决特定冲突时容易误用。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_adaptive_policy:verify_hss_adaptive_p4_performance_l4_01
+    method: executable-costed-two-stage-policy-over-defeasible-outcomes
+  provenance: original synthetic case; all performances, archives, and rulings are fictional
+  verified: 正确决策等价类下唯一最优首查为 Q4；无范围例外捷径改选 Q3。
+
+- id: HSS-ADAPTIVE-P6-EXHIBITION-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: H-自适应结构判别
+  schema_id: relational-alignment-adaptive-policy-v1
+  schema_name: 从治理功能迁移到装置艺术策展复原
+  level: 4
+  source:
+    domain: 流域治理结构
+    problem: >-
+      巡查员 O 向委员会 G 报告；G 约束开发商 P；P 损害林地 R；R 维系村庄 B；G 保护 R。
+      若另一制度保留这五条有方向的功能关系则输出 NONE；若 P 反而取得任免、撤换或解散 G 的权力，
+      输出 P-CONTROLS-G。单纯资助不自动等于正式控制。
+    solution: 判断重点是约束和控制的方向，而不是哪个角色更富有或名称更显眼。
+    answer: O=巡查员;G=委员会;P=开发商;R=林地;B=村庄;FATAL=NONE
+  target:
+    domain: 虚构制度寓言装置的策展复原与材料检测
+    problem: >-
+      一件散佚装置的稳定功能链是：记录者把材料交给遴选会；遴选会约束赞助商；
+      赞助商的行为伤害见证人；见证人维系公共记忆；遴选会保护见证人。
+      八种策展复原只在遴选会与赞助商之间不同：甲为遴选会可逐出赞助商代表；
+      乙为赞助商任命遴选会多数席位；丙为赞助商可撤换委员；丁为独立遴选会有否决权；
+      戊为赞助商支付灯光费但独立遴选会保留否决与逐出权；己为赞助商可解散遴选会；
+      庚为赞助商拥有展馆但不可干预遴选，遴选会仍可逐出代表；辛为赞助商可随时更换主席。
+      单纯出资或拥有场地不等于正式控制。功能链完好记 NONE，控制方向反转记 P-CONTROLS-G。
+
+      最多两次材料检测，第二次可依第一次回复改变；成本为 Q1成本2、Q2成本3、Q3成本4、
+      Q4成本5、Q5成本6、Q6成本7。回复矩阵为：
+      甲 Q1R/Q2R/Q3R/Q4R/Q5R/Q6B；乙 Q1B/Q2B/Q3B/Q4B/Q5B/Q6B；
+      丙 Q1B/Q2R/Q3R/Q4R/Q5B/Q6R；丁 Q1B/Q2R/Q3B/Q4R/Q5B/Q6B；
+      戊 Q1B/Q2R/Q3R/Q4B/Q5R/Q6B；己 Q1B/Q2B/Q3R/Q4B/Q5B/Q6B；
+      庚 Q1R/Q2B/Q3R/Q4B/Q5B/Q6B；辛 Q1R/Q2R/Q3B/Q4B/Q5B/Q6R。
+      每个最终回复路径必须唯一确定 NONE 或 P-CONTROLS-G；然后依次最小化最坏总成本、
+      八种复原等可能时的平均总成本、最坏叶节点候选数、平均叶节点候选数。
+      输出首查、R/B 后的第二次动作，以及每条二次回复路径的最终结论；若第一次后已唯一，直接输出结论。
+    answer_format: ROOT=<Q>;ON_R=<Q或结论>;ON_R_R=<结论>;ON_R_B=<结论>;ON_B=<Q或结论>;ON_B_R=<结论>;ON_B_B=<结论>
+    answer: ROOT=Q2;ON_R=Q6;ON_R_R=P-CONTROLS-G;ON_R_B=NONE;ON_B=Q1;ON_B_R=NONE;ON_B_B=P-CONTROLS-G
+  mapping:
+    objects:
+      巡查员: 装置中的记录者
+      委员会: 遴选会
+      开发商: 赞助商
+      林地: 见证人
+      村庄: 公共记忆
+      治理制度: 制度寓言装置
+    shared_relations:
+      - 信息由观察者流向治理者
+      - 治理者约束强势行动者
+      - 强势行动者伤害脆弱中介
+      - 脆弱中介维系受益对象
+      - 治理者保护脆弱中介
+      - 查询树只需辨认核心控制方向是否反转
+    added_relations:
+      - 出资与场地所有权是接近控制但不等价的干扰边
+      - 检测成本不同且第二次检测按回复分支
+    removed_relations:
+      - 不再要求输出完整角色字典
+    adaptation_required:
+      - 将任命撤换解散和普通资源关系分开，再规划条件检测
+      - 若第一次已经确定控制结论则停止而不支付第二次成本
+    varied: [跨到当代艺术策展, 从静态对应改为成本敏感的材料检测树]
+  lure:
+    problem: >-
+      保留八种复原、检测和成本，但把赞助商出资或拥有场地都当作实际控制遴选会，
+      因而戊和庚也记 P-CONTROLS-G。按同一目标求策略。
+    solution: 错误分组下首查 Q4；R 分支再查 Q6，B 分支已全为 P-CONTROLS-G 而停止。
+    answer: ROOT=Q4;ON_R=Q6;ON_R_R=P-CONTROLS-G;ON_R_B=NONE;ON_B=P-CONTROLS-G
+    why_surface_similar: 八种策展复原和材料检测数据完全不变。
+    why_structurally_different: 把资源依赖替换成正式任免控制，改变了应该区分的决策等价类。
+    wrong_schema_id: resource-means-control-adaptive-policy-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: string, value: ROOT=Q4}
+        - {type: string, value: ON_R=Q6}
+        - {type: string, value: ON_R_R=P-CONTROLS-G}
+        - {type: string, value: ON_R_B=NONE}
+        - {type: string, value: ON_B=P-CONTROLS-G}
+    derivation: 将所有赞助关系都判作控制后，错误版本空间允许 B 分支提前停止。
+  hints:
+    schema_name: 从治理功能迁移到装置艺术策展复原
+    oracle_mindset: {insight: 类比的关键是有方向的功能边；相邻但不等价的资源边不应触发致命反转。, when_to_use: 角色名称和权势表象变化而控制结构可能保持时。}
+    false_mindset: {insight: 谁提供资金或场地谁就控制治理节点。, when_to_use: 把相关性或依赖关系直接当成正式控制权时容易误用。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_adaptive_policy:verify_hss_adaptive_p6_exhibition_l4_01
+    method: executable-costed-policy-over-relational-alignment
+  provenance: original synthetic case; all artworks, institutions, and records are fictional
+  verified: 甲丁戊庚结构完好，其余反转；唯一最优首查为 Q2，表面资源捷径改选 Q4。
+
+- id: HSS-ADAPTIVE-P7-ORAL-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P7
+  thread: E-自适应证据判别
+  schema_id: provenance-adaptive-policy-v1
+  schema_name: 从证据谱系迁移到口传史的条件访谈策略
+  level: 4
+  source:
+    domain: 工程报告复核
+    problem: >-
+      支持或反对一项判断都至少要两个独立一手来源；转引同一底本的多份报告只算一个来源。
+      仅支持侧达标为 SUPPORTED，仅反对侧达标为 REJECTED，两侧达标为 CONTESTED，
+      两侧都不达标为 UNCORROBORATED。判断四组报告的标签。
+    solution: 先沿引用追到来源家族，再分别计算支持和反对门槛，不能直接按报告份数投票。
+    answer: A=SUPPORTED;B=REJECTED;C=CONTESTED;D=UNCORROBORATED
+  target:
+    domain: 虚构口传史田野站的访谈路线设计
+    problem: >-
+      八种传唱史候选都涉及“某段叙事早于迁徙”的判断。支持或反对各需至少两个独立传承家族；
+      同一家族的不同歌手或录音只算一个来源。候选按“呈现段数/独立家族数”记为：
+      甲支持3/2、反对0/0；乙支持3/1、反对0/0；丙支持2/2、反对2/2；
+      丁支持3/1、反对2/2；戊支持2/2、反对3/1；己支持3/1、反对3/1；
+      庚支持3/1、反对2/2；辛支持2/2、反对2/2。
+      仅支持达标为 SUPPORTED，仅反对达标为 REJECTED，两侧达标为 CONTESTED，均未达标为 UNCORROBORATED。
+
+      最多两次访谈，第二次路线可依第一次的 R/B 回复选择。Q1成本2、Q2成本3、Q3成本4、
+      Q4成本5、Q5成本6、Q6成本7。回复矩阵为：
+      甲 Q1B/Q2R/Q3R/Q4R/Q5B/Q6B；乙 Q1B/Q2B/Q3B/Q4R/Q5B/Q6R；
+      丙 Q1R/Q2B/Q3B/Q4B/Q5R/Q6B；丁 Q1R/Q2R/Q3R/Q4R/Q5R/Q6R；
+      戊 Q1R/Q2R/Q3B/Q4R/Q5B/Q6B；己 Q1R/Q2R/Q3R/Q4B/Q5B/Q6R；
+      庚 Q1B/Q2R/Q3B/Q4B/Q5R/Q6R；辛 Q1B/Q2B/Q3R/Q4R/Q5R/Q6R。
+      最终每条路径必须只剩一个四类标签；再依次最小化最坏总成本、八种候选等可能时的平均总成本、
+      最坏叶节点候选数、平均叶节点候选数。输出完整条件策略；第一次后已确定标签的分支直接停止。
+    answer_format: ROOT=<Q>;ON_R=<Q或LABEL>;ON_R_R=<LABEL>;ON_R_B=<LABEL>;ON_B=<Q或LABEL>;ON_B_R=<LABEL>;ON_B_B=<LABEL>
+    answer: ROOT=Q5;ON_R=Q2;ON_R_R=REJECTED;ON_R_B=CONTESTED;ON_B=Q6;ON_B_R=UNCORROBORATED;ON_B_B=SUPPORTED
+  mapping:
+    objects:
+      一手记录: 独立传承家族
+      报告转引: 同家族的歌手与录音
+      支持材料: 支持早期年代的唱段
+      反对材料: 反对早期年代的唱段
+      双来源门槛: 两个独立家族门槛
+      报告标签: 口传史判断标签
+    shared_relations:
+      - 多个呈现载体可能共享同一生成来源
+      - 支持和反对分别按独立来源计数
+      - 两侧门槛组合产生四种结论
+      - 表面材料数量不等于有效独立性
+      - 查询价值由最终标签区分能力决定
+      - 第二次查询可针对第一次留下的局部候选集
+    added_relations:
+      - 两个候选可以有相同标签但不同访谈回复
+      - 访谈具有成本且允许一个分支提前停止
+    removed_relations:
+      - 不提供逐份材料的显式引用链
+    adaptation_required:
+      - 从聚合描述恢复家族级结论后再做条件路线规划
+      - 不为区分同标签候选支付无助于决策的访谈成本
+    varied: [跨到口述史和民族音乐学, 从证据评审改为自适应田野路线]
+  lure:
+    problem: >-
+      保留候选、路线回复和成本，但直接按呈现段数判断是否达到两份门槛，不按传承家族去重。
+      按同一策略目标求解。
+    solution: 表面计数下甲乙为 SUPPORTED，其余为 CONTESTED；首查 Q1，R 分支直接停止，B 分支查 Q5。
+    answer: ROOT=Q1;ON_R=CONTESTED;ON_B=Q5;ON_B_R=CONTESTED;ON_B_B=SUPPORTED
+    why_surface_similar: 所有唱段统计、访谈回复与标签名称相同。
+    why_structurally_different: 用呈现唱段数代替独立传承家族数，虚增了证据独立性。
+    wrong_schema_id: performance-count-adaptive-policy-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: string, value: ROOT=Q1}
+        - {type: string, value: ON_R=CONTESTED}
+        - {type: string, value: ON_B=Q5}
+        - {type: string, value: ON_B_R=CONTESTED}
+        - {type: string, value: ON_B_B=SUPPORTED}
+    derivation: 先按唱段份数生成错误标签，再规划能最快区分这些错误标签的访谈树。
+  hints:
+    schema_name: 从证据谱系迁移到口传史的条件访谈策略
+    oracle_mindset: {insight: 独立性属于生成谱系，不属于可见载体；主动取证应服务于家族去重后的判断。, when_to_use: 多位讲述者或多份文本可能来自共同传承源且访谈预算有限时。}
+    false_mindset: {insight: 可见唱段越多就代表独立佐证越多。, when_to_use: 未追问讲述者之间的传承关系时容易误用。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_adaptive_policy:verify_hss_adaptive_p7_oral_l4_01
+    method: executable-costed-policy-over-provenance-aware-verdicts
+  provenance: original synthetic case; all traditions, recordings, and field sites are fictional
+  verified: 家族级四标签下唯一首查为 Q5；按呈现唱段投票会选择 Q1 并错误提前停止。
+
+- id: HSS-ADAPTIVE-P8-DIPLOMACY-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P8
+  thread: J-自适应机制判别
+  schema_id: mechanism-adaptive-policy-v1
+  schema_name: 从激励机制迁移到外交礼物的条件鉴定策略
+  level: 4
+  source:
+    domain: 平台承诺与信号审查
+    problem: >-
+      回应前由行动者自付、承诺型能承担而机会主义类型不能承担的行动为 SEPARATING_SIGNAL；
+      回应前不可逆删除背离选项为 CREDIBLE_COMMITMENT；两类都能采取为 POOLING_SIGNAL；
+      行动太晚、由第三方全额补偿或仍可单方恢复而未改变激励时为 NONCREDIBLE 或相应混同机制。
+      判断四项制度安排。
+    solution: 机制取决于时序、实际成本承担者、类型差异和未来选项，而不是动作名称。
+    answer: S1=SEPARATING_SIGNAL;S2=CREDIBLE_COMMITMENT;S3=POOLING_SIGNAL;S4=NONCREDIBLE
+  target:
+    domain: 虚构海岛外交礼物的修复鉴定与条件取样
+    problem: >-
+      八种使节记录分别描述盟约回应前后的礼物：甲为回应前由使节自付，忠诚型能承担而背约型不能；
+      乙为回应前销毁唯一改约印模且无法恢复；丙为回应前自付但两类都能承担；
+      丁为昂贵礼物在对方回应后才交付；戊表面同甲但由商会全额补偿；
+      己表面同乙但使节保留可单方恢复的母模；庚是另一种由使节自付且只有忠诚型能承担的前置礼物；
+      辛是另一种回应前不可恢复地删除改约路径。
+      标签使用 SEPARATING_SIGNAL、CREDIBLE_COMMITMENT、POOLING_SIGNAL、NONCREDIBLE。
+
+      最多两次微量取样，第二次可依第一次回复选择。Q1成本2、Q2成本3、Q3成本4、
+      Q4成本5、Q5成本6、Q6成本7。回复矩阵为：
+      甲 Q1B/Q2B/Q3R/Q4B/Q5B/Q6R；乙 Q1B/Q2R/Q3B/Q4B/Q5B/Q6R；
+      丙 Q1B/Q2R/Q3R/Q4B/Q5B/Q6B；丁 Q1R/Q2R/Q3B/Q4B/Q5R/Q6B；
+      戊 Q1R/Q2R/Q3R/Q4R/Q5R/Q6R；己 Q1B/Q2B/Q3B/Q4B/Q5R/Q6R；
+      庚 Q1R/Q2B/Q3R/Q4R/Q5R/Q6R；辛 Q1R/Q2R/Q3B/Q4B/Q5B/Q6R。
+      每条最终路径必须唯一确定一个机制标签；可行后依次最小化最坏总成本、八种记录等可能时的平均总成本、
+      最坏叶节点候选数、平均叶节点候选数。输出首查、R/B 后的第二查以及每条最终回复路径的标签。
+    answer_format: ROOT=<Q>;ON_R=<Q>;ON_R_R=<LABEL>;ON_R_B=<LABEL>;ON_B=<Q>;ON_B_R=<LABEL>;ON_B_B=<LABEL>
+    answer: ROOT=Q3;ON_R=Q2;ON_R_R=POOLING_SIGNAL;ON_R_B=SEPARATING_SIGNAL;ON_B=Q5;ON_B_R=NONCREDIBLE;ON_B_B=CREDIBLE_COMMITMENT
+  mapping:
+    objects:
+      平台行动者: 外交使节
+      观察者回应: 盟约方回应
+      昂贵行动: 外交礼物
+      背离选项: 改约印模和路径
+      第三方补偿: 商会全额补偿
+      制度机制: 礼物的战略机制
+    shared_relations:
+      - 前置时序是信号或承诺生效的必要条件
+      - 类型间成本差异形成分离
+      - 两类都能承担形成混同
+      - 不可逆删除未来选项形成承诺
+      - 补偿和恢复路径改变表面相同动作的机制
+      - 取样策略只需区分机制而非具体记录
+    added_relations:
+      - 两组表面重复动作检验机制等价而非文本身份
+      - 取样有成本且必须预先给出条件分支
+    removed_relations:
+      - 不直接逐项提交八种记录的机制表
+    adaptation_required:
+      - 先根据真实激励后果形成机制等价类，再规划两阶段取样
+      - 不按礼物或销毁的可见名称复制机制标签
+    varied: [跨到外交史和文物修复, 从机制分类改为条件实验设计]
+  lure:
+    problem: >-
+      保留八种记录、取样回复和成本，但只看可见动作：戊仍按甲归为 SEPARATING_SIGNAL，
+      己仍按乙归为 CREDIBLE_COMMITMENT，不考虑补偿和恢复母模。按同一目标求策略。
+    solution: 表面机制分组下首查 Q6；R 分支查 Q3，B 分支查 Q1。
+    answer: ROOT=Q6;ON_R=Q3;ON_R_R=SEPARATING_SIGNAL;ON_R_B=CREDIBLE_COMMITMENT;ON_B=Q1;ON_B_R=NONCREDIBLE;ON_B_B=POOLING_SIGNAL
+    why_surface_similar: 八种礼物记录、取样矩阵和成本完全相同。
+    why_structurally_different: 只按动作外观贴标签，忽略谁实际承担成本以及背离路径是否仍可恢复。
+    wrong_schema_id: visible-gift-form-adaptive-policy-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: string, value: ROOT=Q6}
+        - {type: string, value: ON_R=Q3}
+        - {type: string, value: ON_R_R=SEPARATING_SIGNAL}
+        - {type: string, value: ON_R_B=CREDIBLE_COMMITMENT}
+        - {type: string, value: ON_B=Q1}
+        - {type: string, value: ON_B_R=NONCREDIBLE}
+        - {type: string, value: ON_B_B=POOLING_SIGNAL}
+    derivation: 先按礼物或销毁名称套用表面机制，再优化这一错误分组的取样树。
+  hints:
+    schema_name: 从激励机制迁移到外交礼物的条件鉴定策略
+    oracle_mindset: {insight: 可见动作只有通过成本承担、类型差异、时序或不可逆性改变激励时才决定机制。, when_to_use: 相同礼仪形式可能因补偿或恢复权而产生不同战略后果时。}
+    false_mindset: {insight: 昂贵礼物天然是分离信号，销毁物品天然是可信承诺。, when_to_use: 只识别仪式名词而不检查实际可行集合时容易误用。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_adaptive_policy:verify_hss_adaptive_p8_diplomacy_l4_01
+    method: executable-costed-policy-over-incentive-mechanisms
+  provenance: original synthetic case; all diplomatic records, artifacts, and institutions are fictional
+  verified: 真实机制等价类下唯一首查为 Q3；可见动作捷径会改选 Q6。

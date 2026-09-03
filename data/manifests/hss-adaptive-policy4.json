@@ -1,0 +1,7 @@
+{
+  "name": "hss-adaptive-policy4-l4-seeds",
+  "description": "Four far-domain L4 seeds requiring a costed two-stage adaptive query policy.",
+  "datasets": [
+    "../v1/hss-adaptive-policy-seeds.yaml"
+  ]
+}

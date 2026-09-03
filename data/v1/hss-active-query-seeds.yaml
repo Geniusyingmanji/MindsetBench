@@ -1,0 +1,402 @@
+- id: HSS-ACTIVE-P4-NORM-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P4
+  thread: I-主动规范判别
+  schema_id: defeasible-norm-active-query-v1
+  schema_name: 从例外边界迁移到残卷主动查验
+  level: 4
+  source:
+    domain: 代码托管平台权限手册
+    problem: >-
+      评审员按以下手册决定是否开放受限代码库。未被条款准入的请求一律拒绝。
+      正式成员且任务已登记时准入；事故审查条款优先于成员准入条款，事故审查中的请求拒绝；
+      同时取得安全主管书面批准和独立复核完成时构成双重批准例外，
+      双重批准例外优先于事故审查条款；法律保全条款优先于其他全部条款，法律保全中的请求拒绝。
+      请求为 T1【正式成员、任务已登记】；T2【正式成员、任务已登记、事故审查中】；
+      T3【正式成员、任务已登记、事故审查中、安全主管书面批准、独立复核完成】；
+      T4【正式成员、任务已登记、事故审查中、安全主管书面批准、独立复核完成、法律保全中】；
+      T5【正式成员】。输出全部拒绝请求的编号，按编号升序并以分号分隔。
+    solution: >-
+      T1 由通常条款准入；T2 被事故审查阻却；T3 的完整成对例外克服事故审查；
+      T4 又被更高位的法律保全阻却；T5 缺少完整准入条件而默认拒绝。
+    answer: T2;T4;T5
+  target:
+    domain: 虚构中世纪修院庇护权残卷的保护性查验
+    problem: >-
+      古文字学家要判断一名逃亡者是否会被修院接纳，但六种抄本复原中只有一种为真。
+      已能从互相校正的旧案确定：同时持有铜符与见证结时通常开门；黑蜡令能压过通常开门；
+      唱名页与副祭签必须成对出现，才只对黑蜡令构成例外；王玺页又压过这组成对例外；
+      只有王玺页旁同时存在赦免边注时才重新开门；没有完整开门依据时关门。
+
+      六种候选复原如下：松卷【铜符、见证结、黑蜡令、唱名页、副祭签】；
+      苔卷【铜符、见证结、黑蜡令】；
+      潮卷【铜符、见证结、黑蜡令、唱名页、副祭签、王玺页】；
+      灰卷【铜符、见证结】；
+      星卷【铜符、见证结、黑蜡令、唱名页、副祭签、王玺页、赦免边注】；
+      雪卷【只有铜符】。
+
+      为保护残卷，只允许申请一次无损查验。若真实复原是某卷，各申请会返回下表颜色：
+      松卷 Q1红/Q2红/Q3红/Q4红；苔卷 Q1红/Q2蓝/Q3蓝/Q4蓝；
+      潮卷 Q1红/Q2红/Q3蓝/Q4绿；灰卷 Q1蓝/Q2红/Q3红/Q4蓝；
+      星卷 Q1蓝/Q2红/Q3红/Q4绿；雪卷 Q1蓝/Q2蓝/Q3蓝/Q4红。
+      在 Q1、Q2、Q3、Q4 中选择一次查验，使最坏情况下同一颜色分支内仍可能的最终结论种类最少；
+      若某项能让每种可能回复唯一确定“开门或关门”，它优先于不能做到这一点的申请。
+      同时报告所选查验的每种颜色分别意味着 ALLOW 还是 DENY。
+    answer_format: QUERY=<Q1|Q2|Q3|Q4>;IF_RED=<ALLOW|DENY>;IF_BLUE=<ALLOW|DENY>
+    answer: QUERY=Q3;IF_RED=ALLOW;IF_BLUE=DENY
+  mapping:
+    objects:
+      正式成员且任务登记: 铜符与见证结
+      事故审查: 黑蜡令
+      双重批准: 唱名页与副祭签
+      法律保全: 王玺页
+      特定解除: 赦免边注
+      访问结论: 庇护所开门结论
+    shared_relations:
+      - 两项通常条件合取后才产生许可
+      - 普通阻却压过通常许可
+      - 完整成对例外只克服普通阻却
+      - 更高位阻却压过成对例外
+      - 更高位阻却仅由其专属解除条件克服
+      - 查询价值取决于能否区分最终决策而非识别全部抄本
+    added_relations:
+      - 赦免边注构成只针对王玺页的窄解除
+      - 只能主动选择一次返回离散颜色的保护性查验
+    removed_relations:
+      - 不再直接逐项输出全部候选的裁决
+    adaptation_required:
+      - 先迁移理由优先边界并计算六种复原的结论，再按结论而非抄本身份压缩版本空间
+      - 区分“最能识别具体抄本”的查验与“最能决定是否开门”的查验
+    varied:
+      - 从软件权限判定跨到残卷释读
+      - 从批量分类改为一次主动查验及条件策略
+  lure:
+    problem: >-
+      保留六种候选复原和同一颜色表，但将唱名页与副祭签理解为一旦成对出现便能克服任何关门理由，
+      包括王玺页。仍选择使最坏情况下最终结论歧义最小的一次查验，并报告颜色分支。
+    solution: >-
+      该误读会把潮卷也判为开门。此时 Q2 的红色分支全为开门，蓝色分支全为关门，故选 Q2。
+    answer: QUERY=Q2;IF_RED=ALLOW;IF_BLUE=DENY
+    why_surface_similar: 六种卷本、四项查验和颜色返回完全相同。
+    why_structurally_different: 把有冲突对象边界的成对例外误扩张为对王玺页也有效的最高许可。
+    wrong_schema_id: unrestricted-paired-exception-active-query-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: string, value: QUERY=Q2}
+        - {type: string, value: IF_RED=ALLOW}
+        - {type: string, value: IF_BLUE=DENY}
+    derivation: 直接沿用“成对例外总是放行”的表面捷径后优化查询。
+  hints:
+    schema_name: 从例外边界迁移到残卷主动查验
+    oracle_mindset:
+      insight: 主动查询不必识别真实世界本身；只需让每个观测分支内的任务相关结论一致。
+      when_to_use: 查询预算有限，多个潜在世界虽不同却可能导向同一行动时。
+    false_mindset:
+      insight: 选择最均匀切分候选名称、或沿用范围不受限的醒目例外。
+      when_to_use: 只看版本空间大小而未先计算每个版本的最终结论时容易误用。
+  verification:
+    entrypoint: mindsetbench.verification.hss_active_query:verify_hss_active_p4_norm_l4_01
+    method: executable-outcome-aware-version-space-minimax
+  provenance: original synthetic case; all manuscripts, institutions, and findings are fictional
+  verified: Q3 的红色只对应开门结论，蓝色只对应关门结论；Q2 仅在错误扩张成对例外时充分。
+
+- id: HSS-ACTIVE-P7-PROVENANCE-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P7
+  thread: E-主动证据判别
+  schema_id: provenance-active-query-v1
+  schema_name: 从证据谱系迁移到舞谱底本主动定位
+  level: 4
+  source:
+    domain: 工程故障报告审查
+    problem: >-
+      审查四项假设。每份报告先追溯到最初的一手记录；每个方向至少需要两个彼此独立的一手来源；
+      转引同一来源的多份报告只算一个来源。
+      若某一手记录被证明伪造，全部转引失效。仅支持侧达标为 SUPPORTED，仅反对侧达标为 REJECTED，
+      两侧都达标为 CONTESTED，两侧都未达标为 UNCORROBORATED。
+      A 有两个独立支持根且无反对根；B 有三个支持文档但同源，另有两个独立反对根；
+      C 的支持与反对各有两个独立根；D 原有两个支持根，但其中一根被证伪且无反对根。
+      按 A、B、C、D 输出标签。
+    solution: >-
+      A 仅支持达标；B 去重后支持不达标而反对达标；C 两侧达标；D 证伪传播后只剩一个支持根。
+    answer: A=SUPPORTED;B=REJECTED;C=CONTESTED;D=UNCORROBORATED
+  target:
+    domain: 虚构失传舞谱的演出史归属与一次馆藏调阅
+    problem: >-
+      一段无署名舞谱究竟属于哪种传播史仍有六种候选。委员会不按展签、节目册等呈现材料数投票，
+      而按它们最终来自多少个彼此独立的底本家族计数；支持和反对每一侧至少两个家族才达标。
+      仅支持达标记 SUPPORTED，仅反对达标记 REJECTED，两侧达标记 CONTESTED，均未达标记 UNCORROBORATED。
+
+      候选的“呈现材料数/独立底本家族数”为：
+      潮谱：支持3/2、反对0/0；苔谱：支持3/1、反对0/0；
+      星谱：支持2/2、反对2/2；灰谱：支持3/1、反对2/2；
+      岩谱：支持2/2、反对3/1；雪谱：支持3/1、反对3/1。
+
+      预算只允许调阅一次密封馆藏。若真实传播史为某候选，Q1—Q4 会返回：
+      潮谱 Q1红/Q2红/Q3红/Q4红；苔谱 Q1红/Q2红/Q3蓝/Q4蓝；
+      星谱 Q1红/Q2蓝/Q3绿/Q4绿；灰谱 Q1蓝/Q2蓝/Q3金/Q4红；
+      岩谱 Q1蓝/Q2绿/Q3红/Q4蓝；雪谱 Q1蓝/Q2金/Q3蓝/Q4绿。
+      请选择使最坏情况下同一回复内仍可能的四类最终结论种类最少的调阅；
+      若能让每种颜色唯一确定标签则优先。报告查询以及红、蓝、绿、金各自对应的标签。
+    answer_format: QUERY=<Q1|Q2|Q3|Q4>;IF_RED=<LABEL>;IF_BLUE=<LABEL>;IF_GREEN=<LABEL>;IF_GOLD=<LABEL>
+    answer: QUERY=Q3;IF_RED=SUPPORTED;IF_BLUE=UNCORROBORATED;IF_GREEN=CONTESTED;IF_GOLD=REJECTED
+  mapping:
+    objects:
+      一手记录: 舞谱底本家族
+      转引报告: 展签节目册与复排笔记
+      支持证据: 支持某传播史的材料
+      反对证据: 反对某传播史的材料
+      双来源门槛: 两个独立底本家族门槛
+      假设标签: 舞谱传播史标签
+    shared_relations:
+      - 同一底本的多个呈现材料不增加独立性
+      - 支持与反对两侧分别按独立家族计数
+      - 仅支持侧达标产生支持结论
+      - 仅反对侧达标产生否定结论
+      - 两侧同时达标与同时不达标产生不同结论
+      - 主动查询应区分结论类别而非材料数量类别
+    added_relations:
+      - 候选世界同时给出材料层计数与底本家族层计数
+      - 只有一次馆藏调阅预算且需预先提交完整条件策略
+    removed_relations:
+      - 不再直接提供逐条引用链供机械追根
+    adaptation_required:
+      - 把源题的谱系去重原则迁移为对聚合统计的语义选择
+      - 先给六个候选赋予四类结论，再最大化一次调阅的决策信息
+    varied:
+      - 从工程报告跨到舞蹈史与演出档案
+      - 从证据分类改为主动馆藏选择和分支政策
+  lure:
+    problem: >-
+      保留六种候选与查询返回表，但直接按呈现材料数判断两侧是否达到二份门槛，
+      不按独立底本家族数去重。仍选择最坏情况下结论歧义最小的调阅。
+    solution: >-
+      表面计数下，潮谱与苔谱为 SUPPORTED，其余四种两侧材料都达标而为 CONTESTED；
+      Q2 恰好按这两个结论分开。
+    answer: QUERY=Q2;IF_RED=SUPPORTED;IF_BLUE=CONTESTED;IF_GREEN=CONTESTED;IF_GOLD=CONTESTED
+    why_surface_similar: 使用同一批候选、同一材料统计与同一四标签。
+    why_structurally_different: 把可见载体数误当成独立证据家族数，从而改变查询目标的等价类。
+    wrong_schema_id: surface-artifact-count-active-query-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: string, value: QUERY=Q2}
+        - {type: string, value: IF_RED=SUPPORTED}
+        - {type: string, value: IF_BLUE=CONTESTED}
+        - {type: string, value: IF_GREEN=CONTESTED}
+        - {type: string, value: IF_GOLD=CONTESTED}
+    derivation: 对呈现材料直接计票后选择最能分开该错误标签的调阅。
+  hints:
+    schema_name: 从证据谱系迁移到舞谱底本主动定位
+    oracle_mindset:
+      insight: 信息价值相对于最终判断定义；先按生成依赖恢复有效独立单元，再评价查询。
+      when_to_use: 可见材料数与真正独立来源数不同，且只能追加一次取证时。
+    false_mindset:
+      insight: 先数看得见的文档，再选最均衡切分这些表面计数的查询。
+      when_to_use: 多个档案载体看似互相佐证但可能共享底本时容易误用。
+  verification:
+    entrypoint: mindsetbench.verification.hss_active_query:verify_hss_active_p7_provenance_l4_01
+    method: executable-provenance-aware-active-discrimination
+  provenance: original synthetic case; all scores, archives, and findings are fictional
+  verified: 按底本家族分类后 Q3 的四色各自对应唯一标签；按呈现材料数的捷径则错误地偏好 Q2。
+
+- id: HSS-ACTIVE-P6-NARRATIVE-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: H-主动结构复原
+  schema_id: relational-narrative-active-query-v1
+  schema_name: 从功能关系迁移到广播剧复原查验
+  level: 4
+  source:
+    domain: 流域治理结构与历史类比
+    problem: >-
+      一项流域制度中，巡查员 S 向封育委员会 C 报告；委员会 C 限制开发商 D；
+      D 的活动损害林地 F；F 维持下游村庄 V；委员会 C 同时保护林地 F。
+      另一份材料的五个角色为 O、G、P、R、B。若按 O=S、G=C、P=D、R=F、B=V 对齐，
+      检查五条功能关系是否保存；输出角色对应和第一条致命不匹配，完全保存则输出 NONE。
+    solution: >-
+      对齐关注谁向谁报告、谁约束谁、谁伤害谁、谁维持谁以及谁保护谁，而非角色名称。
+      五条关系均保存，因此没有致命不匹配。
+    answer: O=S;G=C;P=D;R=F;B=V;FATAL=NONE
+  target:
+    domain: 虚构被审查广播剧的制度寓言复原
+    problem: >-
+      一部广播剧的完整寓言结构应为：记者把线索交给伦理理事会；理事会能约束发行财团；
+      财团伤害揭密者；揭密者维系听众共同体；理事会同时保护揭密者。
+      现存六个复原本都保存记者、财团、揭密者、听众共同体及其关系，争议只在理事会与财团之间：
+      第一复原本写理事会可罢免财团代表；第二复原本写财团任命理事会多数席位；
+      第三复原本写财团可撤换理事；第四复原本写独立理事会拥有否决权；
+      第五复原本只显示财团提供资助关系，但章程仍把否决和罢免权交给独立理事会；
+      第六复原本写财团可随时解散理事会。
+      资助关系本身不等于任免多数席位、撤换权或解散权。若财团实际控制理事会，
+      输出致命关系 P-CONTROLS-G；若完整功能链仍成立，输出 NONE。
+
+      修复室只允许对一盒母带做一次化学测年。真实版本不同时，查询回复为：
+      第一复原本 Q1红/Q2红/Q3红/Q4红；第二复原本 Q1红/Q2蓝/Q3蓝/Q4蓝；
+      第三复原本 Q1红/Q2蓝/Q3蓝/Q4绿；第四复原本 Q1蓝/Q2红/Q3红/Q4蓝；
+      第五复原本 Q1蓝/Q2蓝/Q3红/Q4绿；第六复原本 Q1蓝/Q2蓝/Q3蓝/Q4红。
+      在 Q1—Q4 中选择使最坏情况下同一回复内仍可能的最终致命关系种类最少的一项；
+      若每种颜色都能唯一决定 NONE 或 P-CONTROLS-G，则优先。报告查询和红蓝分支。
+    answer_format: QUERY=<Q1|Q2|Q3|Q4>;IF_RED=<NONE|P-CONTROLS-G>;IF_BLUE=<NONE|P-CONTROLS-G>
+    answer: QUERY=Q3;IF_RED=NONE;IF_BLUE=P-CONTROLS-G
+  mapping:
+    objects:
+      巡查员: 记者
+      封育委员会: 伦理理事会
+      开发商: 发行财团
+      林地: 揭密者
+      下游村庄: 听众共同体
+      流域制度: 广播剧中的制度寓言
+    shared_relations:
+      - 观察者向治理者提供信息
+      - 治理者约束造成伤害的强势行动者
+      - 强势行动者伤害脆弱中介
+      - 脆弱中介维系受益共同体
+      - 治理者保护脆弱中介
+      - 查询只需分开关系链是否发生致命反转
+    added_relations:
+      - 财团与理事会之间可能存在不等同于控制的资助边
+      - 六种叙事复原通过一次母带测年主动区分
+    removed_relations:
+      - 不要求恢复所有角色名称的显式一一对应输出
+    adaptation_required:
+      - 忽略年代语体和资助表象，只检查约束方向是否被任免或解散权逆转
+      - 把六种复原先压缩为结构完好与结构反转两类，再评估查询
+    varied:
+      - 从生态治理跨到广播剧文本复原
+      - 从静态类比解释改为实验选择及条件诊断
+  lure:
+    problem: >-
+      保留六个复原本和同一测年返回表，但把任何来自财团的资助都视为财团实际控制理事会，
+      即第五复原本也输出 P-CONTROLS-G。仍选择最坏情况下结论歧义最小的一项查询。
+    solution: >-
+      该表面解释只把第一与第四复原本保留为 NONE，其余为控制反转；Q2 正好分开两类。
+    answer: QUERY=Q2;IF_RED=NONE;IF_BLUE=P-CONTROLS-G
+    why_surface_similar: 六种文本复原、全部人物和测年颜色表不变。
+    why_structurally_different: 把资源依赖的表面线索直接等同于正式控制权，忽略否决与罢免方向。
+    wrong_schema_id: financing-implies-control-active-query-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: string, value: QUERY=Q2}
+        - {type: string, value: IF_RED=NONE}
+        - {type: string, value: IF_BLUE=P-CONTROLS-G}
+    derivation: 看到财团资助便判定控制，再优化这个错误二分类的查询。
+  hints:
+    schema_name: 从功能关系迁移到广播剧复原查验
+    oracle_mindset:
+      insight: 类比迁移应保留因果和控制方向；新增的相邻关系只有改变核心边时才构成致命差异。
+      when_to_use: 叙事角色名称和时代语体变化很大，且干扰关系与核心控制关系表面相近时。
+    false_mindset:
+      insight: 把“提供资源”直接替代为“具有控制权”，再据此选择查询。
+      when_to_use: 只按词语联想角色强弱而不检查正式权限方向时容易误用。
+  verification:
+    entrypoint: mindsetbench.verification.hss_active_query:verify_hss_active_p6_narrative_l4_01
+    method: executable-relational-alignment-with-outcome-aware-query
+  provenance: original synthetic case; all broadcasts, institutions, and characters are fictional
+  verified: 第一、四、五复原本保持治理者约束财团，第二、三、六发生控制反转；Q3 精确区分两类。
+
+- id: HSS-ACTIVE-P8-RITUAL-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P8
+  thread: J-主动机制判别
+  schema_id: mechanism-ritual-active-query-v1
+  schema_name: 从制度机制迁移到铭文实验设计
+  level: 4
+  source:
+    domain: 平台治理承诺与信号审查
+    problem: >-
+      判断四项安排的机制。行动发生在观察者回应之前，承诺型能承担而机会主义类型无法承受，
+      且成本由行动者承担时为 SEPARATING_SIGNAL；行动在回应前永久删除日后背离选项时为 CREDIBLE_COMMITMENT；
+      两种类型都能同样承担的可见行动为 POOLING_SIGNAL；行动太晚、不可行或未改变激励时为 NONCREDIBLE。
+      S1 是回应前由本人承担且机会主义类型无法承受的押金；S2 在回应前销毁唯一背离密钥；
+      S3 两类都能承担；S4 在回应后才发生。另规定第三方全额补偿会消除由自付成本产生的分离。
+      输出 S1—S4 的标签。
+    solution: >-
+      S1 以类型差异形成分离；S2 删除背离选择而形成承诺；S3 两类均可采取而混同；S4 太晚而不可信。
+    answer: S1=SEPARATING_SIGNAL;S2=CREDIBLE_COMMITMENT;S3=POOLING_SIGNAL;S4=NONCREDIBLE
+  target:
+    domain: 虚构海港誓约铭文的实验考古
+    problem: >-
+      六种铭文复原描述了商队首领在港城回应之前或之后举行的仪式：
+      第一种是在回应前自付献祭，守约者能承担而逐利背约者无法承担；
+      第二种是在回应前熔毁唯一可用于改换盟约的印模，且无法恢复；
+      第三种是在回应前自付献祭，但守约者和背约者都能同样承担；
+      第四种献祭虽昂贵，却在港城已经回应后才举行；
+      第五种表面同第一种，但商会第三方全额补偿全部献祭成本；
+      第六种表面同第二种，但首领保留可单方面恢复印模的母模。
+      标签为 SEPARATING_SIGNAL、CREDIBLE_COMMITMENT、POOLING_SIGNAL、NONCREDIBLE。
+
+      六种铭文复原只有一种为真，且只能选一种颜料实验。回复表为：
+      第一种 Q1红/Q2红/Q3红/Q4红；第二种 Q1红/Q2蓝/Q3蓝/Q4蓝；
+      第三种 Q1红/Q2绿/Q3绿/Q4绿；第四种 Q1蓝/Q2金/Q3金/Q4绿；
+      第五种 Q1蓝/Q2红/Q3绿/Q4蓝；第六种 Q1蓝/Q2蓝/Q3金/Q4红。
+      在 Q1、Q2、Q3、Q4 中选择使最坏情况下同一颜色分支内仍可能的最终机制标签种类最少的实验；
+      若每种颜色都唯一确定标签则优先。报告实验以及红、蓝、绿、金各对应的标签。
+    answer_format: QUERY=<Q1|Q2|Q3|Q4>;IF_RED=<LABEL>;IF_BLUE=<LABEL>;IF_GREEN=<LABEL>;IF_GOLD=<LABEL>
+    answer: QUERY=Q3;IF_RED=SEPARATING_SIGNAL;IF_BLUE=CREDIBLE_COMMITMENT;IF_GREEN=POOLING_SIGNAL;IF_GOLD=NONCREDIBLE
+  mapping:
+    objects:
+      行动者: 商队首领
+      观察者: 港城议事者
+      昂贵行动: 自付献祭
+      背离选项: 改换盟约的印模
+      第三方补偿者: 商会
+      可见制度安排: 铭文记载的仪式
+    shared_relations:
+      - 行动必须发生在观察者回应之前
+      - 类型间承受能力差异使成本信号产生分离
+      - 两类都能承担的行动形成混同
+      - 不可逆删除背离选项形成可信承诺
+      - 补偿或可逆性会改变表面相同仪式的机制
+      - 主动实验应最大化对机制标签而非铭文编号的信息
+    added_relations:
+      - 第三方全额补偿使原本分离的献祭变为混同
+      - 保留母模使表面销毁不再真正删除背离选项
+      - 颜料实验预算限制为一次
+    removed_relations:
+      - 不再直接要求逐项分类六种仪式
+    adaptation_required:
+      - 先依据时序成本承担类型差异和可逆性判定六种机制，再选择能区分机制的实验
+      - 不把可见形式相同误当成激励后果相同
+    varied:
+      - 从数字平台治理跨到古代港口仪式与实验考古
+      - 从静态机制分类改为一次实验设计和分支决策
+  lure:
+    problem: >-
+      保留六种铭文复原和实验回复表，但只按可见仪式形式分类：
+      第五种仍按第一种视为分离信号，第六种仍按第二种视为可信承诺，不考虑补偿或恢复母模。
+      仍选择最坏情况下机制歧义最小的实验。
+    solution: >-
+      该表面分类使第一与第五种同为分离、第二与第六种同为承诺；Q2 的四色恰好对应四种表面机制。
+    answer: QUERY=Q2;IF_RED=SEPARATING_SIGNAL;IF_BLUE=CREDIBLE_COMMITMENT;IF_GREEN=POOLING_SIGNAL;IF_GOLD=NONCREDIBLE
+    why_surface_similar: 仪式动作、六种复原和颜料结果完全相同。
+    why_structurally_different: 只按可见形式分类，忽略成本由谁承担以及背离选项是否真正不可恢复。
+    wrong_schema_id: visible-ritual-form-active-query-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: string, value: QUERY=Q2}
+        - {type: string, value: IF_RED=SEPARATING_SIGNAL}
+        - {type: string, value: IF_BLUE=CREDIBLE_COMMITMENT}
+        - {type: string, value: IF_GREEN=POOLING_SIGNAL}
+        - {type: string, value: IF_GOLD=NONCREDIBLE}
+    derivation: 将献祭和销毁的名称直接映射到机制标签后选择查询。
+  hints:
+    schema_name: 从制度机制迁移到铭文实验设计
+    oracle_mindset:
+      insight: 机制由行动如何改变不同类型的成本或未来选项决定，不由仪式外观决定；查询价值也应相对于机制计算。
+      when_to_use: 同一种可见动作可能因补偿、时序或可逆性而具有不同战略含义时。
+    false_mindset:
+      insight: 献祭必是分离信号，销毁必是承诺；先按名词分类再优化实验。
+      when_to_use: 忽略隐藏的成本承担者和恢复路径时容易误用。
+  verification:
+    entrypoint: mindsetbench.verification.hss_active_query:verify_hss_active_p8_ritual_l4_01
+    method: executable-mechanism-sensitive-active-experiment-selection
+  provenance: original synthetic case; all inscriptions, rituals, and institutions are fictional
+  verified: Q3 的四色分别唯一对应四种真实机制；只看仪式外观会错误选择 Q2。

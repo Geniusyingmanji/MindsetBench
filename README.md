@@ -24,6 +24,7 @@ MindsetBench 用于测量 LLM/agent 能否把一个问题中的认知图式迁�
 | HSS/P7 | 证据谱系去重、攻击传播与独立性修订 | [`HSS-P7-ARG-EVIDENCE-L4-01`](data/v1/hss-p7-argument-evidence-chain.yaml) |
 | HSS/P6 | 因果角色系统映射与致命关系反转 | [`HSS-P6-HIST-ANALOGY-L4-01`](data/v1/hss-p6-historical-analogy-chain.yaml) |
 | HSS/P8 | 可信承诺、分离信号与成本承担关系 | [`HSS-P8-INST-MECHANISM-L4-01`](data/v1/hss-p8-institutional-mechanism-chain.yaml) |
+| HSS/Active | 决策相关的单步查询与成本敏感条件策略 | [`HSS-ADAPTIVE-P7-ORAL-L4-01`](data/v1/hss-adaptive-policy-seeds.yaml) |
 | P5 | 有状态操作规划、潜在操作恢复与最优性证明 | [`FORMAL-P5-CERT-POLICY-JOINT-01`](data/v1/formal-p5-certificate-policy-joint.yaml) |
 | P6 | 多对象联合图对齐 | [`FORMAL-P6-ALIGN-L1-01`](data/v1/formal-p6-alignment-chain.yaml) |
 
@@ -49,6 +50,11 @@ MindsetBench 用于测量 LLM/agent 能否把一个问题中的认知图式迁�
 L3/L4 的 source 与 target 必须同时跨学科、跨文体和跨表征，不能只是替换名词；至少 16/20 使用标签、集合、排序、三值或角色映射作答，全部保留可执行 verifier。
 
 难度将主要来自“从自然语言材料恢复关系—判断哪些关系可迁移—适配一条被改变的核心关系”，而不是增加算术长度。完整目标、候选题对和代码交付计划见 [`docs/HUMANITIES_SOCIAL_EXPANSION.md`](docs/HUMANITIES_SOCIAL_EXPANSION.md)。
+
+新增 `hss-active8`：4 题把输出改为单次档案/实验选择，4 题要求提交两阶段自适应策略树，覆盖残卷、舞谱、
+广播剧、木偶戏、装置艺术、口传史和外交礼物。每题的正确 mindset 与表面捷径都会导出不同首查；不过
+GPT-5.6-sol 的两轮 target-only 预筛仍全部正确，因此这 8 题也暂归 calibration。完整构造和下一步交互式方向见
+[`docs/active-learning-report.md`](docs/active-learning-report.md)。
 
 ## 题目示例
 
@@ -99,6 +105,8 @@ Y = -2T + 4A + 5B + ε_Y
 | HSS20 L3/L4 v2 | target-only | 8题×3 | 24/24 | 168/168 | — |
 | HSS20 L3/L4 v2 | with-source | 8题×3 | 24/24 | 168/168 | — |
 | HSS20 L3/L4 v2 | with-lure | 8题×3 | 24/24 | 168/168 | — |
+| HSS 单步主动查询 | target-only | 4题×3 | 12/12 | 48/48 | — |
+| HSS 两阶段条件策略 | target-only | 4题×3 | 12/12 | 84/84 | — |
 
 Formal35 的 L0–L3 已接近天花板。HSS20 在修复答案格式契约并扩充关系干扰后仍是 100%，说明纯文本加长不能产生迁移难度。联合题中 solved source 没有稳定增益；procedure-only oracle 相对 false mindset 改善局部搜索，但整题 exact 仍为 0。当前所有结果都不足以声称已实现稳定 schema transfer。
 
@@ -157,11 +165,14 @@ export MINDSETBENCH_API_KEY='...'
 
 - 显式规则题对强模型普遍偏简单，容易出现天花板效应。
 - HSS20 的首轮假低分来自未明示的答案前缀；修复后 72/72 全对，现已明确降为 sanity/calibration。
+- 远域换皮加主动查询仍不足：单步与两阶段策略共 24/24 全对；增加显式矩阵搜索只显著增加 tokens/延迟。
 - 潜在操作题已跨多个同构实例复现难度，但 solved source 的正增益尚不稳定。
 - 最新联合证书题稳定暴露了 first-hit stopping-time 错误：模型会把首次满足目标后的冗余操作误计为新路径。
 - procedure-only oracle 能改善部分字段和答案完整性，但整题 exact 仍未改善，因此暂不声称稳定 schema transfer。
 
-详细结果见[Humanities/Social-20 报告](docs/hss20-report.md)、[潜在操作报告](docs/formal30-report.md)、[最优性证书报告](docs/formal35-report.md)和[属性谓词联合证书报告](docs/p5-certificate-policy-joint-report.md)。
+详细结果见[远域主动学习报告](docs/active-learning-report.md)、[Humanities/Social-20 报告](docs/hss20-report.md)、
+[潜在操作报告](docs/formal30-report.md)、[最优性证书报告](docs/formal35-report.md)和
+[属性谓词联合证书报告](docs/p5-certificate-policy-joint-report.md)。
 
 ## 仓库结构
 
