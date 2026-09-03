@@ -1,0 +1,232 @@
+- id: HSS-P8-INST-MECHANISM-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P8
+  thread: D-元认知控制
+  schema_id: credible-cost-option-mechanism-v1
+  schema_name: 可信承诺、分离信号与成本承担关系迁移
+  chain: hss-p8-institutional-mechanism-v1
+  level: 0
+  source: &hss_mechanism_source
+    domain: 虚构跨港商会入盟手册
+    problem: >-
+      手册按实际约束而非行为名称分类。行动必须在观察者作出回应之前可核验。
+      若行动永久删除日后背离选项，标记 CREDIBLE_COMMITMENT。
+      若行动成本由行动者实际承担且机会主义类型无法承受、守约类型能够承受，标记 SEPARATING_SIGNAL；
+      若两类都能模仿，或第三方全额补偿会让原本不能模仿的类型也能模仿，标记 POOLING_SIGNAL。
+      其余标记 NONCREDIBLE。
+      S1 是回应前公开、由申请商团自付且不补偿的审计押金，守约商团能承受，投机商团不能；
+      S2 是回应前永久销毁可用于另订竞争盟约的唯一契印；
+      S3 是回应前购买的可退会徽，两类商团都能负担；S4 只是回应完成后的承诺声明。
+      按 S1—S4 输出“编号=标签”。
+    solution: >-
+      S1 的有效成本由商团类型区分且投机者不能模仿，是分离信号。S2 在回应前删除另订盟约选项，是可信承诺。
+      S3 两类均可采用，是混同信号。S4 在回应后出现，对先前选择没有约束力。
+    answer: S1=SEPARATING_SIGNAL;S2=CREDIBLE_COMMITMENT;S3=POOLING_SIGNAL;S4=NONCREDIBLE
+  target:
+    domain: 虚构平台商户准入
+    problem: >-
+      按源手册分类。M1 在买家选择前公开缴纳审计保证金；保证金由卖家自己承担且不获补偿，
+      可靠卖家能够承担而机会主义卖家不能。M2 在买家决定前永久删除撤单密钥。
+      M3 只发布质量声明，且声明发布在买家完成选择之后。按 M1—M3 输出标签。
+    answer: {parts: [{type: label, value: M1=SEPARATING_SIGNAL}, {type: label, value: M2=CREDIBLE_COMMITMENT}, {type: label, value: M3=NONCREDIBLE}]}
+  mapping:
+    objects: {申请商团: 平台卖家, 商会观察者: 买家, 商团审计押金: 审计保证金, 竞争盟约契印: 撤单密钥}
+    shared_relations: [行动发生在回应前, 自担成本且类型承受力不同形成分离, 删除未来选项形成承诺, 回应后声明无效]
+    varied: [从跨港商会入盟换成平台商户准入并缩为三个机制]
+  lure:
+    problem: >-
+      M2、M3 不变，但 M1 的保证金由平台保险在准入后全额返还，并为所有卖家垫付。输出标签。
+    solution: M1 的机会主义卖家也能无成本模仿，改为 POOLING_SIGNAL；其余不变。
+    answer: {parts: [{type: label, value: M1=POOLING_SIGNAL}, {type: label, value: M2=CREDIBLE_COMMITMENT}, {type: label, value: M3=NONCREDIBLE}]}
+    why_surface_similar: 同一保证金、相同时点和卖家类型。
+    why_structurally_different: 成本的最终承担者从卖家变为第三方保险。
+    wrong_schema_id: reimbursed-bond-pooling-01
+  copy_probe:
+    answer: {parts: [{type: label, value: M1=POOLING_SIGNAL}, {type: label, value: M2=CREDIBLE_COMMITMENT}, {type: label, value: M3=NONCREDIBLE}]}
+    derivation: 看到保证金后假定存在常见的平台补贴，忽略目标题明确说明不获补偿。
+  hints:
+    schema_name: 可信承诺、分离信号与成本承担关系迁移
+    oracle_mindset: {insight: 分类前逐项检查时点、可观察性、未来选项和成本最终承担者，不按“保证金/声明”名称判断。, when_to_use: 行动声称能传递类型或约束未来行为时。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_institutional_mechanism:verify_hss_p8_inst_mechanism_l0_01
+    method: executable-timing-cost-and-option-classifier
+  provenance: original synthetic case; all platforms and actors are fictional
+  verified: M1 自担且不可模仿，M2 删除撤单选项，M3 晚于买家回应。
+
+- id: HSS-P8-INST-MECHANISM-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P8
+  thread: D-元认知控制
+  schema_id: credible-cost-option-mechanism-v1
+  schema_name: 可信承诺、分离信号与成本承担关系迁移
+  chain: hss-p8-institutional-mechanism-v1
+  level: 1
+  source: *hss_mechanism_source
+  target:
+    domain: 虚构公共采购资格审查
+    problem: >-
+      K1 是投标前公开购买的资格证书，费用由供应商自付，但两类供应商都能轻易购买。
+      K2 是在采购决定前把改单权不可撤销地交给独立托管人。
+      K3 是一次昂贵的质量展示，但高价展示发生在合同已经授予之后。
+      按 K1—K3 输出四分类标签。
+    answer: {parts: [{type: label, value: K1=POOLING_SIGNAL}, {type: label, value: K2=CREDIBLE_COMMITMENT}, {type: label, value: K3=NONCREDIBLE}]}
+  mapping:
+    objects: {可退会徽: 采购资格证书, 销毁竞争契印: 托管改单权, 回应后声明: 授标后展示, 入盟观察者: 采购委员会}
+    shared_relations: [两类都能模仿时不分离, 不可逆移交删除未来行动选项, 回应后成本不能影响已完成选择]
+    varied: [从分布式交易换成公共采购, 改写成本载体和不可逆动作]
+  lure:
+    problem: >-
+      K2、K3 不变；K1 的证书只有守约供应商能承担，机会主义供应商不能，且无补偿。输出标签。
+    solution: K1 改为 SEPARATING_SIGNAL，K2、K3 不变。
+    answer: {parts: [{type: label, value: K1=SEPARATING_SIGNAL}, {type: label, value: K2=CREDIBLE_COMMITMENT}, {type: label, value: K3=NONCREDIBLE}]}
+    why_surface_similar: 同一采购制度、证书和发生时点。
+    why_structurally_different: 两类供应商的承受关系从相同变为不对称。
+    wrong_schema_id: exclusive-certificate-signal-01
+  copy_probe:
+    answer: {parts: [{type: label, value: K1=SEPARATING_SIGNAL}, {type: label, value: K2=CREDIBLE_COMMITMENT}, {type: label, value: K3=NONCREDIBLE}]}
+    derivation: 把“有成本”直接等同于分离，没有检查机会主义类型也能支付。
+  hints:
+    schema_name: 可信承诺、分离信号与成本承担关系迁移
+    oracle_mindset: {insight: 成本本身不够；只有成本在类型之间形成不可模仿差异时才分离。, when_to_use: 证书、仪式或昂贵展示被当作质量信号时。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_institutional_mechanism:verify_hss_p8_inst_mechanism_l1_01
+    method: type-dependent-effective-cost-classification
+  provenance: original synthetic case; all institutions and actors are fictional
+  verified: K1 两类可模仿而混同，K2 删除改单权，K3 晚于采购决定。
+
+- id: HSS-P8-INST-MECHANISM-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P8
+  thread: D-元认知控制
+  schema_id: credible-cost-option-mechanism-v1
+  schema_name: 可信承诺、分离信号与成本承担关系迁移
+  chain: hss-p8-institutional-mechanism-v1
+  level: 2
+  source: *hss_mechanism_source
+  target:
+    domain: 虚构劳资协定与联盟审查
+    problem: >-
+      L1 在成员表决前设立长期救济基金；基金由联盟自己的金库支付且不返还，
+      合作型联盟能够持续而临时套利联盟不能。L2 是企业在表决前把单方关闭权永久交给独立信托。
+      L3 是管理者的口头保障，但口头保障出现在表决完成之后。
+      L4 是表决前公开购买的合规徽章，两类雇主都能购买同一枚合规徽章。
+      按 L1—L4 输出标签。
+    answer: {parts: [{type: label, value: L1=SEPARATING_SIGNAL}, {type: label, value: L2=CREDIBLE_COMMITMENT}, {type: label, value: L3=NONCREDIBLE}, {type: label, value: L4=POOLING_SIGNAL}]}
+  mapping:
+    objects: {守约商团与投机商团: 合作型与套利型联盟, 商团审计押金: 长期救济基金, 竞争盟约契印: 企业单方关闭权, 可退会徽: 合规徽章, 观察者回应: 成员表决}
+    shared_relations: [自担成本造成类型分离, 不可逆移交删除背离选项, 回应后言语不能约束先前决定, 两类可模仿的标记形成混同]
+    varied: [商贸入盟制度跨到劳资制度, 商团动作改为联盟基金企业权利与成员表决]
+  lure:
+    problem: >-
+      L2—L4 不变；L1 的基金在联盟通过审查后由外部基金会全额补回，并提供事前垫款。输出标签。
+    solution: 两类联盟都能采用 L1，故它改为 POOLING_SIGNAL；其余标签不变。
+    answer: {parts: [{type: label, value: L1=POOLING_SIGNAL}, {type: label, value: L2=CREDIBLE_COMMITMENT}, {type: label, value: L3=NONCREDIBLE}, {type: label, value: L4=POOLING_SIGNAL}]}
+    why_surface_similar: 救济基金金额、公开性和表决时点相同。
+    why_structurally_different: 资金最终负担从联盟自身转给外部基金会。
+    wrong_schema_id: sponsored-relief-fund-pooling-01
+  copy_probe:
+    answer: {parts: [{type: label, value: L1=POOLING_SIGNAL}, {type: label, value: L2=CREDIBLE_COMMITMENT}, {type: label, value: L3=NONCREDIBLE}, {type: label, value: L4=POOLING_SIGNAL}]}
+    derivation: 误把救济基金视为第三方资助项目，忽略目标中“自己的金库且不返还”。
+  hints:
+    schema_name: 可信承诺、分离信号与成本承担关系迁移
+    oracle_mindset: {insight: 将制度叙述还原为行动时点、可观察性、选项删除、成本归属和类型可模仿性五个槽位。, when_to_use: 技术机制迁移到劳资、联盟或治理制度时。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_institutional_mechanism:verify_hss_p8_inst_mechanism_l2_01
+    method: cross-domain-mechanism-feature-recovery
+  provenance: original synthetic case; all institutions and actors are fictional
+  verified: L1 为自担分离，L2 为选项删除，L3 时点过晚，L4 两类均可模仿。
+
+- id: HSS-P8-INST-MECHANISM-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P8
+  thread: D-元认知控制
+  schema_id: credible-cost-option-mechanism-v1
+  schema_name: 可信承诺、分离信号与成本承担关系迁移
+  chain: hss-p8-institutional-mechanism-v1
+  level: 3
+  source: *hss_mechanism_source
+  target:
+    domain: 虚构海湾公地治理会议纪要
+    problem: >-
+      纪要 R1 记载，渔业协会在配额决定前把超额捕捞许可证永久交给登记所销毁，其他许可证不变。
+      R2 记载，协会在席位分配前公开缴纳不可返还的审计费，守约协会能承担、掠夺型协会不能承担，且由协会自付。
+      R3 的费用表面相同，但附函写明基金会为所有入选者全额报销，并预先提供过桥资金，掠夺型协会也在保障范围内。
+      R4 是保护公地的演说，但演说发生在席位分配结束后。
+      按 R1—R4 输出标签。
+    answer: {parts: [{type: label, value: R1=CREDIBLE_COMMITMENT}, {type: label, value: R2=SEPARATING_SIGNAL}, {type: label, value: R3=POOLING_SIGNAL}, {type: label, value: R4=NONCREDIBLE}]}
+  mapping:
+    objects: {销毁竞争契印: 销毁超额许可证, 自付审计押金: 协会审计费, 第三方补偿: 基金会报销与过桥资金, 回应后声明: 席位分配后演说, 商团类型: 守约与掠夺型协会}
+    shared_relations: [回应前删除背离选项形成承诺, 自担且不可模仿的成本形成分离, 有保障的机会主义者可以模仿, 回应后行为不影响既有选择]
+    added_relations: [R3 增加基金会事前垫资和事后全额报销]
+    adaptation_required: [从分散在纪要和附函中的事实恢复成本最终归属, 区分名义缴费者和实际承担者]
+    varied: [跨到公共资源治理, 从规则清单变为会议纪要与附函, 两个表面相同的费用机制具有不同成本归宿]
+  lure:
+    problem: >-
+      其他记录不变，但把 R3 的基金会款项解释成不影响协会成本的普通荣誉奖励，仍由协会实际承担审计费。输出标签。
+    solution: 在这一解释下 R3 与 R2 一样由行动者自担且不可模仿，标为 SEPARATING_SIGNAL。
+    answer: {parts: [{type: label, value: R1=CREDIBLE_COMMITMENT}, {type: label, value: R2=SEPARATING_SIGNAL}, {type: label, value: R3=SEPARATING_SIGNAL}, {type: label, value: R4=NONCREDIBLE}]}
+    why_surface_similar: 同一组纪要、费用和基金会参与。
+    why_structurally_different: lure 把明确的事前垫资与全额报销改成不改变成本归属的奖励。
+    wrong_schema_id: nominal-payer-cost-signal-01
+  copy_probe:
+    answer: {parts: [{type: label, value: R1=CREDIBLE_COMMITMENT}, {type: label, value: R2=SEPARATING_SIGNAL}, {type: label, value: R3=SEPARATING_SIGNAL}, {type: label, value: R4=NONCREDIBLE}]}
+    derivation: 只看到协会名义上缴费，未沿附函追踪垫资和报销后的实际成本承担者。
+  hints:
+    schema_name: 可信承诺、分离信号与成本承担关系迁移
+    oracle_mindset: {insight: 对资金流追到最终净承担者；名义付款与先垫后返不能证明行动者付出了区分性成本。, when_to_use: 机制分散在主协议、附函、保险或补贴条款中时。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_institutional_mechanism:verify_hss_p8_inst_mechanism_l3_01
+    method: cross-genre-effective-cost-incidence-reconstruction
+  provenance: original synthetic case; all institutions and actors are fictional
+  verified: R1 删除选项，R2 自担分离，R3 被全额垫付和报销而可模仿，R4 时点过晚。
+
+- id: HSS-P8-INST-MECHANISM-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P8
+  thread: D-元认知控制
+  schema_id: credible-cost-option-mechanism-v1
+  schema_name: 可信承诺、分离信号与成本承担关系迁移
+  chain: hss-p8-institutional-mechanism-v1
+  level: 4
+  source: *hss_mechanism_source
+  target:
+    domain: 虚构城邦联盟的密函、账册与仪式记录
+    problem: >-
+      联盟档案把行动分散在三类材料中。H1 的公开账册显示某派别在接纳投票前缴纳巨额保证金，
+      守约派别能承担而机会主义派别原本不能；但密函证明担保人向任何获准派别全额返还保证金，并为其预先垫资，
+      垫资和返还同样覆盖机会主义派别。H2 的仪式记录显示，该派别在盟友投票前把唯一联络密钥交给中立档案馆并销毁副本，
+      此后无法秘密加入竞争同盟。H3 是一次高成本公开集会，但集会发生在接纳投票以后。
+      H4 是投票前展示的公开印章，两类派别都能取得同一种公开印章。
+      按 H1—H4 输出四分类标签。
+    answer: {parts: [{type: label, value: H1=POOLING_SIGNAL}, {type: label, value: H2=CREDIBLE_COMMITMENT}, {type: label, value: H3=NONCREDIBLE}, {type: label, value: H4=POOLING_SIGNAL}]}
+  mapping:
+    objects: {商团审计押金: 联盟保证金, 外部补偿者: 密函中的担保人, 销毁竞争契印: 托管并销毁联络密钥, 回应后声明: 投票后高成本集会, 可退会徽: 双方可得公开印章}
+    shared_relations: [投票前可观察才可能影响选择, 删除竞争同盟选项形成可信承诺, 两类均可采用的印章不能分离, 投票后成本对先前回应无效]
+    removed_relations: [保证金成本由发出信号的派别最终承担]
+    added_relations: [第三方为包括机会主义者在内的获准派别事前垫资并事后全额返还]
+    adaptation_required: [把公开账册与密函联合起来追踪真实资金流, 用补偿关系更新 H1 而不改变 H2/H3/H4, 不因名义金额巨大就判定分离]
+    varied: [跨到历史联盟档案, 单一规则表变成账册密函仪式记录, 公开材料与隐蔽资金关系给出相反表象]
+  lure:
+    problem: >-
+      忽略密函中的担保人，只按公开账册把 H1 视为派别自付且机会主义者无法承担；其余材料不变。输出标签。
+    solution: H1 被判为 SEPARATING_SIGNAL；H2、H3、H4 分别仍为可信承诺、不可信和混同信号。
+    answer: {parts: [{type: label, value: H1=SEPARATING_SIGNAL}, {type: label, value: H2=CREDIBLE_COMMITMENT}, {type: label, value: H3=NONCREDIBLE}, {type: label, value: H4=POOLING_SIGNAL}]}
+    why_surface_similar: 保留公开账册、保证金金额、类型承受差异和所有其他行动。
+    why_structurally_different: lure 删除了决定实际成本归属的第三方垫资与返还关系。
+    wrong_schema_id: public-ledger-self-funded-signal-01
+  copy_probe:
+    answer: {parts: [{type: label, value: H1=SEPARATING_SIGNAL}, {type: label, value: H2=CREDIBLE_COMMITMENT}, {type: label, value: H3=NONCREDIBLE}, {type: label, value: H4=POOLING_SIGNAL}]}
+    derivation: 将源题“名义缴纳者即最终承担者”的关系照搬到目标题，没有用密函修订成本归宿。
+  hints:
+    schema_name: 可信承诺、分离信号与成本承担关系迁移
+    oracle_mindset: {insight: 跨文书追踪成本归宿；补贴者只改变信号的可模仿性，不会自动改变另一项不可逆选项删除。, when_to_use: 公开仪式看似昂贵，但保险、赞助、返还或垫资可能让坏类型无成本模仿时。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_institutional_mechanism:verify_hss_p8_inst_mechanism_l4_01
+    method: hidden-subsidy-relation-update-and-mechanism-classification
+  provenance: original synthetic case; all polities, actors, and documents are fictional
+  verified: H1 的有效成本被担保人消除而混同；H2 真正删除背离选项；H3 过晚；H4 两类均可模仿。

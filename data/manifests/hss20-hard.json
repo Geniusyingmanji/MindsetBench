@@ -1,0 +1,17 @@
+{
+  "name": "hss20-l3-l4-calibration",
+  "description": "The eight high-distance L3/L4 cases from hss20 for model calibration.",
+  "datasets": [
+    "hss20.json"
+  ],
+  "case_ids": [
+    "HSS-P4-NORM-PRECEDENT-L3-01",
+    "HSS-P4-NORM-PRECEDENT-L4-01",
+    "HSS-P7-ARG-EVIDENCE-L3-01",
+    "HSS-P7-ARG-EVIDENCE-L4-01",
+    "HSS-P6-HIST-ANALOGY-L3-01",
+    "HSS-P6-HIST-ANALOGY-L4-01",
+    "HSS-P8-INST-MECHANISM-L3-01",
+    "HSS-P8-INST-MECHANISM-L4-01"
+  ]
+}

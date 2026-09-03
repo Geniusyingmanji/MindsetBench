@@ -1,0 +1,9 @@
+{
+  "name": "hss20-schema-cards",
+  "schema_card_files": [
+    "../schema_cards/hss-p4-norm-precedent-v1.yaml",
+    "../schema_cards/hss-p7-argument-evidence-v1.yaml",
+    "../schema_cards/hss-p6-historical-analogy-v1.yaml",
+    "../schema_cards/hss-p8-institutional-mechanism-v1.yaml"
+  ]
+}

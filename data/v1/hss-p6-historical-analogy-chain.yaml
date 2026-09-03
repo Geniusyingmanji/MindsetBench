@@ -1,0 +1,227 @@
+- id: HSS-P6-HIST-ANALOGY-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: K-案例区分
+  schema_id: causal-role-mapping-fatal-difference-v1
+  schema_name: 因果角色系统映射与致命关系反转
+  chain: hss-p6-historical-analogy-v1
+  level: 0
+  source: &hss_analogy_source
+    domain: 虚构山区公地治理案例
+    problem: >-
+      一份山区公地治理记录只关注五个功能角色：观察者 O、约束者 G、压力源 P、关键资源 R、受益者 B。
+      巡查员 S 向封育委员会 C 报告；委员会 C 限制盗伐车队 D；盗伐车队 D 破坏幼林带 F；
+      幼林带 F 支撑山麓村 V；委员会 C 同时保护幼林带 F。
+      请输出 O、G、P、R、B 的角色对应；若五条关系都保持，末段输出 FATAL=NONE。
+    solution: >-
+      S 唯一处在“报告给约束者”的位置；C 同时接收报告、限制压力源并保护资源；D 破坏 F；
+      F 支撑 V。因此映射为 O=S、G=C、P=D、R=F、B=V，五条关系完整。
+    answer: O=S;G=C;P=D;R=F;B=V;FATAL=NONE
+  target:
+    domain: 虚构湿地巡护案例
+    problem: >-
+      不按职业名称，而按源案例五条关系映射角色。瞭望员 C 向巡护站 A 报告；
+      巡护站 A 限制偷猎船队 E；偷猎船队 E 破坏繁殖地 B；繁殖地 B 支撑渔村 D；
+      巡护站 A 同时保护繁殖地 B。按 O、G、P、R、B 输出对应字母，最后输出 FATAL=NONE。
+    answer: {parts: [{type: label, value: O=C}, {type: label, value: G=A}, {type: label, value: P=E}, {type: label, value: R=B}, {type: label, value: B=D}, {type: label, value: FATAL=NONE}]}
+  mapping:
+    objects: {公地巡查员 S: 瞭望员 C, 公地委员会 C: 巡护站 A, 盗伐车队 D: 偷猎船队 E, 共有幼林带 F: 繁殖地 B, 山麓村 V: 渔村 D}
+    shared_relations: [观察者报告给约束者, 约束者限制压力源, 压力源破坏关键资源, 关键资源支撑受益者, 约束者保护关键资源]
+    varied: [同属公共资源治理但打乱角色编号并更换具体系统]
+  lure:
+    problem: >-
+      同一组湿地角色的另一版本中，巡护站 A 向瞭望员 C 报告，瞭望员 C 限制偷猎船队 E并保护繁殖地 B；
+      E 破坏 B，B 支撑渔村 D。按同样格式输出。
+    solution: 此版本的关系位置使 A 成为观察者、C 成为约束者，其余三个角色不变。
+    answer: {parts: [{type: label, value: O=A}, {type: label, value: G=C}, {type: label, value: P=E}, {type: label, value: R=B}, {type: label, value: B=D}, {type: label, value: FATAL=NONE}]}
+    why_surface_similar: 演员、湿地语境和五类关系名称不变。
+    why_structurally_different: 报告方向和承担约束/保护功能的角色互换。
+    wrong_schema_id: observer-gatekeeper-role-swap-01
+  copy_probe:
+    answer: {parts: [{type: label, value: O=A}, {type: label, value: G=C}, {type: label, value: P=E}, {type: label, value: R=B}, {type: label, value: B=D}, {type: label, value: FATAL=NONE}]}
+    derivation: 按角色称谓猜测瞭望员是治理中心，没有核对谁接收报告并同时限制压力源、保护资源。
+  hints:
+    schema_name: 因果角色系统映射与致命关系反转
+    oracle_mindset: {insight: 角色由它在关系网中的入边、出边和作用方向共同定义，不能由名称决定。, when_to_use: 两个案例共享干预结构但演员名称和出现顺序不同。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_historical_analogy:verify_hss_p6_hist_analogy_l0_01
+    method: exhaustive-relational-role-mapping
+  provenance: original synthetic case; all communities and events are fictional
+  verified: 五条关系唯一确定 O=C、G=A、P=E、R=B、B=D。
+
+- id: HSS-P6-HIST-ANALOGY-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: K-案例区分
+  schema_id: causal-role-mapping-fatal-difference-v1
+  schema_name: 因果角色系统映射与致命关系反转
+  chain: hss-p6-historical-analogy-v1
+  level: 1
+  source: *hss_analogy_source
+  target:
+    domain: 虚构山火—流域联动处置
+    problem: >-
+      遥感台 K 向火场指挥部 N 预警；指挥部 N 遏制火线 L；火线 L 破坏流域 Q；
+      流域 Q 支撑农镇 M；指挥部 N 同时守护流域 Q。
+      将“预警、遏制、破坏、支撑、守护”分别视为源案例对应关系，输出五个角色和 FATAL=NONE。
+    answer: {parts: [{type: label, value: O=K}, {type: label, value: G=N}, {type: label, value: P=L}, {type: label, value: R=Q}, {type: label, value: B=M}, {type: label, value: FATAL=NONE}]}
+  mapping:
+    objects: {巡查员: 遥感台, 封育委员会: 火场指挥部, 盗伐车队: 火线, 幼林带: 流域, 山麓村: 农镇}
+    shared_relations: [信息进入约束节点, 约束节点抑制压力源, 压力源损害资源, 资源维持受益群体, 约束节点直接保护资源]
+    varied: [从慢性盗伐迁到快速山火, 全部关系使用同义动词并打乱字母]
+  lure:
+    problem: >-
+      同样五个行动者，但由指挥部 N 向遥感台 K 发出预警，K 负责遏制火线 L并守护 Q；L 破坏 Q，Q 支撑 M。
+      输出角色对应和 FATAL=NONE。
+    solution: N 占据观察/预警发出位置，K 占据约束和守护位置，其余不变。
+    answer: {parts: [{type: label, value: O=N}, {type: label, value: G=K}, {type: label, value: P=L}, {type: label, value: R=Q}, {type: label, value: B=M}, {type: label, value: FATAL=NONE}]}
+    why_surface_similar: 山火角色、损害链和受益链完全相同。
+    why_structurally_different: 信息流与约束职责在 K/N 之间反转。
+    wrong_schema_id: command-sensor-role-swap-01
+  copy_probe:
+    answer: {parts: [{type: label, value: O=N}, {type: label, value: G=K}, {type: label, value: P=L}, {type: label, value: R=Q}, {type: label, value: B=M}, {type: label, value: FATAL=NONE}]}
+    derivation: 把“指挥部”表面词直接映为源题信息发出者，忽略实际边方向。
+  hints:
+    schema_name: 因果角色系统映射与致命关系反转
+    oracle_mindset: {insight: 先将跨域动词归并为同一功能关系，再用整组关系联合锁定角色。, when_to_use: 目标使用同义动作而非源题原词时。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_historical_analogy:verify_hss_p6_hist_analogy_l1_01
+    method: relation-renaming-and-exhaustive-role-mapping
+  provenance: original synthetic case; all communities and events are fictional
+  verified: K 只发出预警，N 同时接收信息、遏制火线和守护流域。
+
+- id: HSS-P6-HIST-ANALOGY-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: K-案例区分
+  schema_id: causal-role-mapping-fatal-difference-v1
+  schema_name: 因果角色系统映射与致命关系反转
+  chain: hss-p6-historical-analogy-v1
+  level: 2
+  source: *hss_analogy_source
+  target:
+    domain: 虚构养老金组织治理备忘录
+    problem: >-
+      举报人 W 通知审计委员会 A；委员会 A 约束抽取部门 E；抽取部门 E 消耗养老池 F；
+      养老池 F 支撑退休者 R；委员会 A 同时保护养老池 F。
+      不按“人/机构/资金”类型硬配，而按五条作用关系输出 O、G、P、R、B 和 FATAL=NONE。
+    answer: {parts: [{type: label, value: O=W}, {type: label, value: G=A}, {type: label, value: P=E}, {type: label, value: R=F}, {type: label, value: B=R}, {type: label, value: FATAL=NONE}]}
+  mapping:
+    objects: {生态巡查员: 组织举报人, 封育委员会: 审计委员会, 盗伐压力: 资产抽取部门, 幼林资源: 养老资金池, 山麓村: 退休者}
+    shared_relations: [观察者向治理者提供信息, 治理者约束破坏者, 破坏者消耗关键资源, 资源支撑群体, 治理者保护资源]
+    varied: [生态恢复跨到组织治理, 生物资源改为制度性资产池, 关系动词全部重写]
+  lure:
+    problem: >-
+      同一组织的另一制度中，W 通知抽取部门 E；E 反过来约束审计机构 A并保护养老池 F；
+      A 消耗 F，F 支撑退休者 R。输出同样格式。
+    solution: 在此替代制度中 E 承担约束/保护角色，A 承担资源压力角色。
+    answer: {parts: [{type: label, value: O=W}, {type: label, value: G=E}, {type: label, value: P=A}, {type: label, value: R=F}, {type: label, value: B=R}, {type: label, value: FATAL=NONE}]}
+    why_surface_similar: 使用同一组织演员、同一养老金和同类治理语言。
+    why_structurally_different: 审计委员会与抽取部门在关系网中的约束者/压力源位置互换。
+    wrong_schema_id: institution-name-role-anchoring-01
+  copy_probe:
+    answer: {parts: [{type: label, value: O=W}, {type: label, value: G=E}, {type: label, value: P=A}, {type: label, value: R=F}, {type: label, value: B=R}, {type: label, value: FATAL=NONE}]}
+    derivation: 把组织类型当成功能角色，没有以完整作用链约束映射。
+  hints:
+    schema_name: 因果角色系统映射与致命关系反转
+    oracle_mindset: {insight: 允许“资源”从生态对象迁成制度资产、“压力源”迁成组织部门；只保持关系位置。, when_to_use: 两案例的实体本体类型不同但干预链相同。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_historical_analogy:verify_hss_p6_hist_analogy_l2_01
+    method: cross-domain-typed-role-graph-mapping
+  provenance: original synthetic case; all organizations and events are fictional
+  verified: W/A/E/F/R 依次占据观察、约束、压力、资源、受益角色。
+
+- id: HSS-P6-HIST-ANALOGY-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: K-案例区分
+  schema_id: causal-role-mapping-fatal-difference-v1
+  schema_name: 因果角色系统映射与致命关系反转
+  chain: hss-p6-historical-analogy-v1
+  level: 3
+  source: *hss_analogy_source
+  target:
+    domain: 虚构群岛港盟的外交编年摘录
+    problem: >-
+      编年史没有角色表，只记载：灯塔抄报员 L 把私掠动向送交港盟议事会 C；
+      议事会 C 随后限制私掠团 P；私掠团 P 扰乱谷物航廊 G；航廊 G 维持离岛公社 I；
+      议事会 C 同时护卫航廊 G。另有王室使节 E 向 C 提建议，商团 M 为 P 提供经费，
+      这两条不属于源案例的五角色主链。恢复 O/G/P/R/B，只输出代号并以 FATAL=NONE 结尾。
+    answer: {parts: [{type: label, value: O=L}, {type: label, value: G=C}, {type: label, value: P=P}, {type: label, value: R=G}, {type: label, value: B=I}, {type: label, value: FATAL=NONE}]}
+  mapping:
+    objects: {巡查员: 灯塔抄报员, 封育委员会: 港盟议事会, 盗伐车队: 私掠团, 幼林带: 谷物航廊, 山麓村: 离岛公社, 源题无对应: 王室使节与商团}
+    shared_relations: [信息节点把威胁送给约束者, 约束者限制压力组织, 压力组织损害关键通道, 关键通道维持依赖群体, 约束者直接保护关键通道]
+    added_relations: [使节咨询议事会和商团资助私掠团构成两条域内噪声关系]
+    adaptation_required: [从编年叙事恢复关系而非寻找同类实体, 排除不在五边主链中的政治显著角色]
+    varied: [跨到历史外交叙事, 显式图改为编年摘录, 新增两个具有强表面显著性的干扰角色]
+  lure:
+    problem: >-
+      同一群岛的另一摘录中，王室使节 E 直接把私掠动向警告 C；C 限制 P并护卫 G；
+      P 扰乱 G，G 维持 I。灯塔员 L 只记录天气，M 仍资助 P。输出角色对应。
+    solution: 这个替代摘录中真正占据信息角色的是 E，不是 L；其余主链相同。
+    answer: {parts: [{type: label, value: O=E}, {type: label, value: G=C}, {type: label, value: P=P}, {type: label, value: R=G}, {type: label, value: B=I}, {type: label, value: FATAL=NONE}]}
+    why_surface_similar: 同一演员、同一外交冲突和相同四条后续关系。
+    why_structurally_different: E/L 中只有 E 接入约束主链，目标则只有 L 接入。
+    wrong_schema_id: salient-envoy-as-observer-01
+  copy_probe:
+    answer: {parts: [{type: label, value: O=E}, {type: label, value: G=C}, {type: label, value: P=P}, {type: label, value: R=G}, {type: label, value: B=I}, {type: label, value: FATAL=NONE}]}
+    derivation: 按政治地位选王室使节为观察者，忽略目标摘录中实际送出预警的是灯塔抄报员。
+  hints:
+    schema_name: 因果角色系统映射与致命关系反转
+    oracle_mindset: {insight: 先抽取能连成完整功能链的五条边，再映射角色；孤立的显著人物和额外资助边是噪声。, when_to_use: 历史叙事混入重要人物但只有部分行动属于待迁移机制时。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_historical_analogy:verify_hss_p6_hist_analogy_l3_01
+    method: noisy-cross-genre-relational-subgraph-matching
+  provenance: original synthetic case; all polities, actors, and events are fictional
+  verified: 唯一完整五边子图为 L→C→P→G→I 且 C 同时护卫 G。
+
+- id: HSS-P6-HIST-ANALOGY-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P6
+  thread: K-案例区分
+  schema_id: causal-role-mapping-fatal-difference-v1
+  schema_name: 因果角色系统映射与致命关系反转
+  chain: hss-p6-historical-analogy-v1
+  level: 4
+  source: *hss_analogy_source
+  target:
+    domain: 虚构城市互助运动的多文书重建
+    problem: >-
+      将传单、议会纪要和后来的口述史合读，可恢复以下关系：地下印刷网 P 向调解议会 C 传递镇压预警；
+      但赞助民团 M 反过来控制议会 C，而不是由议会约束民团；民团 M 压制互助网络 N；
+      互助网络 N 支撑街区大会 A；议会 C 仍为互助网络 N 提供有限掩护。
+      编辑 E 只校订传单，税务局 T 只向街区大会征税。
+      找到与源案例最接近的 O/G/P/R/B 角色对应，并报告会使“强化 G 以遏制 P”失效的唯一致命差异。
+      差异代码只能选 NONE 或 P-CONTROLS-G。
+    answer: {parts: [{type: label, value: O=P}, {type: label, value: G=C}, {type: label, value: P=M}, {type: label, value: R=N}, {type: label, value: B=A}, {type: label, value: FATAL=P-CONTROLS-G}]}
+  mapping:
+    objects: {生态巡查员: 地下印刷网, 封育委员会: 调解议会, 盗伐车队: 赞助民团, 幼林带: 互助网络, 山麓村: 街区大会, 噪声角色: 编辑与税务局}
+    shared_relations: [观察网络向治理节点预警, 压力组织破坏关键互助资源, 关键资源维持基层群体, 治理节点仍直接保护资源]
+    removed_relations: [治理节点约束压力组织]
+    added_relations: [压力组织反向控制治理节点]
+    adaptation_required: [用其余四条边恢复角色映射, 比较缺失边和新增反向边, 否决源案例中强化治理节点即可抑制压力源的策略]
+    varied: [跨到社会运动史, 三类文书合并成关系网, 保留四条核心边但反转干预所依赖的控制关系]
+  lure:
+    problem: >-
+      角色和其余关系不变，但旧版纪要写成议会 C 限制民团 M，且不存在 M 控制 C。输出映射和差异代码。
+    solution: P/C/M/N/A 分别对应五角色，全部五条源关系保持，因此没有致命差异。
+    answer: {parts: [{type: label, value: O=P}, {type: label, value: G=C}, {type: label, value: P=M}, {type: label, value: R=N}, {type: label, value: B=A}, {type: label, value: FATAL=NONE}]}
+    why_surface_similar: 角色、文书、压制链、支撑链与保护关系完全相同。
+    why_structurally_different: 约束边的方向正是源干预能否成立的关键；lure 保持，目标反转。
+    wrong_schema_id: uncaptured-gatekeeper-analogy-01
+  copy_probe:
+    answer: {parts: [{type: label, value: O=P}, {type: label, value: G=C}, {type: label, value: P=M}, {type: label, value: R=N}, {type: label, value: B=A}, {type: label, value: FATAL=NONE}]}
+    derivation: 用四条相似边确认角色后，直接照搬源结论，没有核查干预依赖的 G→P 约束边已反成 P→G 控制边。
+  hints:
+    schema_name: 因果角色系统映射与致命关系反转
+    oracle_mindset: {insight: 高相似度不等于策略可迁移；先用多数关系恢复角色，再单独审计源策略所依赖的控制边及其方向。, when_to_use: 历史类比的大部分角色吻合，但行动建议可能因一条制度依赖反转而失效。}
+  verification:
+    entrypoint: mindsetbench.verification.hss_historical_analogy:verify_hss_p6_hist_analogy_l4_01
+    method: maximum-relational-match-and-fatal-edge-reversal
+  provenance: original synthetic case; all organizations, documents, and events are fictional
+  verified: 四条边唯一锁定 P/C/M/N/A；缺失 C→M 的约束并新增 M→C 的控制，致命差异为 P-CONTROLS-G。

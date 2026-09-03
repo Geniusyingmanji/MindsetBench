@@ -48,6 +48,8 @@ def _load_builtin_verifiers() -> None:
         formal_p6_chain,
         hard_seeds,
         hss_argument_evidence,
+        hss_historical_analogy,
+        hss_institutional_mechanism,
         hss_norm_precedent,
         smoke_cases,
     )

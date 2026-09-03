@@ -22,6 +22,8 @@ MindsetBench 用于测量 LLM/agent 能否把一个问题中的认知图式迁�
 | P4 | 规则闭包和异常传播 | [`FORMAL-P4-CLOSURE-L1-01`](data/v1/formal-p4-closure-chain.yaml) |
 | HSS/P4 | 默认规范、成对例外与先例关系恢复 | [`HSS-P4-NORM-PRECEDENT-L4-01`](data/v1/hss-p4-norm-precedent-chain.yaml) |
 | HSS/P7 | 证据谱系去重、攻击传播与独立性修订 | [`HSS-P7-ARG-EVIDENCE-L4-01`](data/v1/hss-p7-argument-evidence-chain.yaml) |
+| HSS/P6 | 因果角色系统映射与致命关系反转 | [`HSS-P6-HIST-ANALOGY-L4-01`](data/v1/hss-p6-historical-analogy-chain.yaml) |
+| HSS/P8 | 可信承诺、分离信号与成本承担关系 | [`HSS-P8-INST-MECHANISM-L4-01`](data/v1/hss-p8-institutional-mechanism-chain.yaml) |
 | P5 | 有状态操作规划、潜在操作恢复与最优性证明 | [`FORMAL-P5-CERT-POLICY-JOINT-01`](data/v1/formal-p5-certificate-policy-joint.yaml) |
 | P6 | 多对象联合图对齐 | [`FORMAL-P6-ALIGN-L1-01`](data/v1/formal-p6-alignment-chain.yaml) |
 
@@ -42,7 +44,7 @@ MindsetBench 用于测量 LLM/agent 能否把一个问题中的认知图式迁�
 
 ## 下一目标：Humanities/Social-20
 
-现有正式题仍偏系数计算、组合枚举和路径搜索。下一批将构造四条人文社科 L0–L4 链，共 20 题：规范与判例、论证与证据、历史类比、制度机制。当前 `hss10` 已完成前两条链：规范链的 L4 从公共档案先例局部恢复法院例外；证据链的 L4 需要把不同一手文本按共同简报或送审过程再次聚类。历史类比和制度机制两条链尚未实现。
+现有正式题仍偏系数计算、组合枚举和路径搜索。`hss20` 已完成四条人文社科 L0–L4 链，共 20 题：规范与判例、论证与证据、历史类比、制度机制。20/20 为非数值结构答案并具有可执行 verifier；8 个 L3/L4 均跨文体、跨表征，其中技术→HSS 与 HSS→HSS 各半。
 
 L3/L4 的 source 与 target 必须同时跨学科、跨文体和跨表征，不能只是替换名词；至少 16/20 使用标签、集合、排序、三值或角色映射作答，全部保留可执行 verifier。
 
@@ -155,7 +157,7 @@ export MINDSETBENCH_API_KEY='...'
 - 最新联合证书题稳定暴露了 first-hit stopping-time 错误：模型会把首次满足目标后的冗余操作误计为新路径。
 - procedure-only oracle 能改善部分字段和答案完整性，但整题 exact 仍未改善，因此暂不声称稳定 schema transfer。
 
-详细结果见[潜在操作报告](docs/formal30-report.md)、[最优性证书报告](docs/formal35-report.md)和[属性谓词联合证书报告](docs/p5-certificate-policy-joint-report.md)。
+详细结果见[Humanities/Social-20 报告](docs/hss20-report.md)、[潜在操作报告](docs/formal30-report.md)、[最优性证书报告](docs/formal35-report.md)和[属性谓词联合证书报告](docs/p5-certificate-policy-joint-report.md)。
 
 ## 仓库结构
 

@@ -1,0 +1,10 @@
+{
+  "name": "hss20-calibration-candidates",
+  "description": "Four humanities/social-science fixed-source L0-L4 chains across norms, evidence, historical analogy, and institutional mechanisms.",
+  "datasets": [
+    "../v1/hss-p4-norm-precedent-chain.yaml",
+    "../v1/hss-p7-argument-evidence-chain.yaml",
+    "../v1/hss-p6-historical-analogy-chain.yaml",
+    "../v1/hss-p8-institutional-mechanism-chain.yaml"
+  ]
+}

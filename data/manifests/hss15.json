@@ -1,0 +1,9 @@
+{
+  "name": "hss15-calibration-candidates",
+  "description": "Three humanities/social-science L0-L4 chains: norms, argument evidence, and historical role analogy.",
+  "datasets": [
+    "../v1/hss-p4-norm-precedent-chain.yaml",
+    "../v1/hss-p7-argument-evidence-chain.yaml",
+    "../v1/hss-p6-historical-analogy-chain.yaml"
+  ]
+}

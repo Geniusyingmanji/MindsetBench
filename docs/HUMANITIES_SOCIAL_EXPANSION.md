@@ -18,7 +18,7 @@
 
 首个交付包暂名 `hss20`，包含四条固定源 L0–L4 链，共 20 题。
 
-当前进度（2026-09-03）：`HN/P4` 与 `HE/P7` 已形成可运行的 `hss10`，10/20 题完成；
+当前进度（2026-09-03）：四条链已形成可运行的 `hss20`，20/20 题完成；
 严格数据校验、schema-card 校验、迁移设计审计和独立 verifier 均已通过。尚未进行模型难度校准，
 因此不能据此声称题目已经达到 20%–60% 的目标窗口。
 
@@ -64,6 +64,8 @@
 - **目标域候选**：联盟形成、外交斡旋、制度改革或社会运动策略。
 - **机器真值**：锚定的类型关系图匹配；输出角色对应、共享关系以及唯一 fatal difference。
 - **L4 变化**：多数角色仍可对应，但目标中一条控制关系方向反转；照搬源行动将得到预注册错误结论。
+- **实现状态**：已完成。L3 从外交编年及显著噪声角色恢复五边主链；L4 保留四条关系，
+  但把治理节点约束压力组织反转为压力组织控制治理节点，使角色相似而行动建议失效。
 
 ### HM：制度机制与战略诊断（P8）
 
@@ -72,6 +74,8 @@
 - **目标域候选**：联盟承诺、劳资谈判、公共资源治理、慈善机构监督或官僚授权。
 - **机器真值**：有限行动/信息结构的约束求解；输出机制标签、缺失条件或方向性后果。
 - **L4 变化**：源题的信号成本可验证，目标题中成本由第三方补贴，导致原来的“可信信号”关系失效。
+- **实现状态**：已完成。L3 从公地会议纪要和附函追踪实际成本，L4 联合公开账册与秘密担保函，
+  识别事前垫资和事后返还使机会主义者也能模仿，但不影响另一项真正删除未来选项的承诺。
 
 P9 叙事/脚本暂列第二阶段探索项。只有当双人标注和程序化事件语法能把一致率稳定到可接受水平后，
 才加入主指标；否则只作为 exploratory split。
@@ -145,15 +149,15 @@ docs/hss20-report.md
 ```
 
 实施顺序采用逐链垂直切片：先完成一条链的 L0–L4、schema card、verifier 和负控制，确认整条工具链后再进入
-下一推理家族。当前 `HN/P4` 与 `HE/P7` 已完成；下一步依次实现 `HA/P6`、`HM/P8`。20 题全部通过
+下一推理家族。当前四条链均已完成。20 题全部通过
 strict validate、schema-card audit、independent verifier 和泄漏扫描后，再调用模型进行正式 calibration；
 开发阶段可以对单链做小样本冒烟测试，但不得据此筛除负迁移题。
 
-当前两条链可独立复现：
+完整数据包可独立复现：
 
 ```bash
-.venv/bin/mb validate data/manifests/hss10.json --strict-v1
-.venv/bin/mb validate-cards data/manifests/hss10-cards.json data/manifests/hss10.json
-.venv/bin/mb audit data/manifests/hss10.json --require-complete-chains
-.venv/bin/mb verify all --dataset data/manifests/hss10.json
+.venv/bin/mb validate data/manifests/hss20.json --strict-v1
+.venv/bin/mb validate-cards data/manifests/hss20-cards.json data/manifests/hss20.json
+.venv/bin/mb audit data/manifests/hss20.json --require-complete-chains
+.venv/bin/mb verify all --dataset data/manifests/hss20.json
 ```
