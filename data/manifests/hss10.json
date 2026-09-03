@@ -1,0 +1,8 @@
+{
+  "name": "hss10-calibration-candidates",
+  "description": "Two humanities/social-science L0-L4 chains: defeasible norms and provenance-aware argument evidence.",
+  "datasets": [
+    "../v1/hss-p4-norm-precedent-chain.yaml",
+    "../v1/hss-p7-argument-evidence-chain.yaml"
+  ]
+}

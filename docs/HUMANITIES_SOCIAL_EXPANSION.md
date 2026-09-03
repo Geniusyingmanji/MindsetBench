@@ -18,7 +18,7 @@
 
 首个交付包暂名 `hss20`，包含四条固定源 L0–L4 链，共 20 题。
 
-当前进度（2026-09-03）：第一条 `HN/P4` 已形成可运行的 `hss5` 垂直切片，5/20 题完成；
+当前进度（2026-09-03）：`HN/P4` 与 `HE/P7` 已形成可运行的 `hss10`，10/20 题完成；
 严格数据校验、schema-card 校验、迁移设计审计和独立 verifier 均已通过。尚未进行模型难度校准，
 因此不能据此声称题目已经达到 20%–60% 的目标窗口。
 
@@ -54,6 +54,8 @@
 - **目标域候选**：匿名史料归属、艺术品来源证明、新闻消息链或公共政策听证。
 - **机器真值**：带类型论证图与 attack/support 关系；输出最关键 CQ、独立证据集合或结论状态。
 - **L4 变化**：从显式“专家意见”迁移到混合档案材料，并加入引用链重合，使简单多数证据失效。
+- **实现状态**：已完成。L2 将工程报告迁到新闻核验，L3 使用艺术品图录、展签和鉴定警报，
+  L4 进一步把不同一手底本按共同编辑简报或送审包二次聚类；只按底本编号去重会误判 `H1/H4`。
 
 ### HA：历史类比与角色系统映射（P6）
 
@@ -143,15 +145,15 @@ docs/hss20-report.md
 ```
 
 实施顺序采用逐链垂直切片：先完成一条链的 L0–L4、schema card、verifier 和负控制，确认整条工具链后再进入
-下一推理家族。当前 `HN/P4` 已完成；下一步依次实现 `HE/P7`、`HA/P6`、`HM/P8`。20 题全部通过
+下一推理家族。当前 `HN/P4` 与 `HE/P7` 已完成；下一步依次实现 `HA/P6`、`HM/P8`。20 题全部通过
 strict validate、schema-card audit、independent verifier 和泄漏扫描后，再调用模型进行正式 calibration；
 开发阶段可以对单链做小样本冒烟测试，但不得据此筛除负迁移题。
 
-首条链可独立复现：
+当前两条链可独立复现：
 
 ```bash
-.venv/bin/mb validate data/manifests/hss5.json --strict-v1
-.venv/bin/mb validate-cards data/manifests/hss5-cards.json data/manifests/hss5.json
-.venv/bin/mb audit data/manifests/hss5.json --require-complete-chains
-.venv/bin/mb verify all --dataset data/manifests/hss5.json
+.venv/bin/mb validate data/manifests/hss10.json --strict-v1
+.venv/bin/mb validate-cards data/manifests/hss10-cards.json data/manifests/hss10.json
+.venv/bin/mb audit data/manifests/hss10.json --require-complete-chains
+.venv/bin/mb verify all --dataset data/manifests/hss10.json
 ```
