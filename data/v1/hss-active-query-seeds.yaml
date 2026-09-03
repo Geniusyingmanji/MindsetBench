@@ -1,6 +1,8 @@
 - id: HSS-ACTIVE-P4-NORM-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：题面给出完整的候选×查询回复矩阵和整理好的规则层级，只剩查询优化计算；GPT-5.6-sol target-only 12/12。
   paradigm: P4
   thread: I-主动规范判别
   schema_id: defeasible-norm-active-query-v1
@@ -104,7 +106,9 @@
 
 - id: HSS-ACTIVE-P7-PROVENANCE-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：题面给出完整的候选×查询回复矩阵和整理好的规则层级，只剩查询优化计算；GPT-5.6-sol target-only 12/12。
   paradigm: P7
   thread: E-主动证据判别
   schema_id: provenance-active-query-v1
@@ -205,7 +209,9 @@
 
 - id: HSS-ACTIVE-P6-NARRATIVE-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：题面给出完整的候选×查询回复矩阵和整理好的规则层级，只剩查询优化计算；GPT-5.6-sol target-only 12/12。
   paradigm: P6
   thread: H-主动结构复原
   schema_id: relational-narrative-active-query-v1
@@ -302,7 +308,9 @@
 
 - id: HSS-ACTIVE-P8-RITUAL-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：题面给出完整的候选×查询回复矩阵和整理好的规则层级，只剩查询优化计算；GPT-5.6-sol target-only 12/12。
   paradigm: P8
   thread: J-主动机制判别
   schema_id: mechanism-ritual-active-query-v1

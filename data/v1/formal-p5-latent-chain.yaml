@@ -1,6 +1,8 @@
 - id: FORMAL-P5-LATENT-L0-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：L0–L2 为同域或重命名的码本恢复，L3 只隐藏一张卡的改动，难度来自日志枚举计算量而非框架识别；mb audit --surface 判定 surface-shared-template。L4 保留为跨表征 challenge。
   paradigm: P5
   thread: J-潜在操作
   schema_id: latent-affine-codebook-planning-v1
@@ -71,7 +73,9 @@
 
 - id: FORMAL-P5-LATENT-L1-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：L0–L2 为同域或重命名的码本恢复，L3 只隐藏一张卡的改动，难度来自日志枚举计算量而非框架识别；mb audit --surface 判定 surface-shared-template。L4 保留为跨表征 challenge。
   paradigm: P5
   thread: J-潜在操作
   schema_id: latent-affine-codebook-planning-v1
@@ -120,7 +124,9 @@
 
 - id: FORMAL-P5-LATENT-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：L0–L2 为同域或重命名的码本恢复，L3 只隐藏一张卡的改动，难度来自日志枚举计算量而非框架识别；mb audit --surface 判定 surface-shared-template。L4 保留为跨表征 challenge。
   paradigm: P5
   thread: J-潜在操作
   schema_id: latent-affine-codebook-planning-v1
@@ -173,7 +179,9 @@
 
 - id: FORMAL-P5-LATENT-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：L0–L2 为同域或重命名的码本恢复，L3 只隐藏一张卡的改动，难度来自日志枚举计算量而非框架识别；mb audit --surface 判定 surface-shared-template。L4 保留为跨表征 challenge。
   paradigm: P5
   thread: J-潜在操作
   schema_id: latent-affine-codebook-planning-v1

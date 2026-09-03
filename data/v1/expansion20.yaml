@@ -3,7 +3,9 @@
 
 - id: V1-P2-L0-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P2
   thread: B-符号约束
   schema_id: exact-one-csp-01
@@ -49,7 +51,9 @@
 
 - id: V1-P2-L1-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P2
   thread: B-符号约束
   schema_id: exact-one-csp-01
@@ -85,7 +89,9 @@
 
 - id: V1-P2-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P2
   thread: B-符号约束
   schema_id: exact-one-csp-01
@@ -130,7 +136,9 @@
 
 - id: V1-P2-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P2
   thread: B-符号约束
   schema_id: exact-one-csp-01
@@ -181,7 +189,9 @@
 
 - id: V1-P2-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P2
   thread: B-符号约束
   schema_id: exact-one-csp-01
@@ -232,7 +242,9 @@
 
 - id: V1-P3-L0-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P3
   thread: H-因果拓扑
   schema_id: noncausal-path-control-01
@@ -277,7 +289,9 @@
 
 - id: V1-P3-L1-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P3
   thread: H-因果拓扑
   schema_id: noncausal-path-control-01
@@ -313,7 +327,9 @@
 
 - id: V1-P3-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P3
   thread: H-因果拓扑
   schema_id: noncausal-path-control-01
@@ -357,7 +373,9 @@
 
 - id: V1-P3-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P3
   thread: H-因果拓扑
   schema_id: noncausal-path-control-01
@@ -406,7 +424,9 @@
 
 - id: V1-P3-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P3
   thread: H-因果拓扑
   schema_id: noncausal-path-control-01
@@ -459,7 +479,9 @@
 
 - id: V1-P4-L0-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P4
   thread: I-规范规则
   schema_id: defeasible-obligation-01
@@ -506,7 +528,9 @@
 
 - id: V1-P4-L1-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P4
   thread: I-规范规则
   schema_id: defeasible-obligation-01
@@ -540,7 +564,9 @@
 
 - id: V1-P4-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P4
   thread: I-规范规则
   schema_id: defeasible-obligation-01
@@ -583,7 +609,9 @@
 
 - id: V1-P4-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P4
   thread: I-规范规则
   schema_id: defeasible-obligation-01
@@ -642,7 +670,9 @@
 
 - id: V1-P4-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P4
   thread: I-规范规则
   schema_id: defeasible-obligation-01
@@ -704,7 +734,9 @@
 
 - id: V1-P6-L0-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P6
   thread: K-角色映射
   schema_id: anchored-role-mapping-01
@@ -751,7 +783,9 @@
 
 - id: V1-P6-L1-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P6
   thread: K-角色映射
   schema_id: anchored-role-mapping-01
@@ -785,7 +819,9 @@
 
 - id: V1-P6-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P6
   thread: K-角色映射
   schema_id: anchored-role-mapping-01
@@ -828,7 +864,9 @@
 
 - id: V1-P6-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P6
   thread: K-角色映射
   schema_id: anchored-role-mapping-01
@@ -878,7 +916,9 @@
 
 - id: V1-P6-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：首批 20 题把 DAG、规则优先级和门控职责直接写进题面，target-only 无净空（见 docs/AR_HARD_CONSTRUCTION.md“为什么首批 20 题不合格”）。仅保留为 runner/grader/verifier 冒烟数据。
   paradigm: P6
   thread: K-角色映射
   schema_id: anchored-role-mapping-01

@@ -10,6 +10,9 @@ class Condition(StrEnum):
     RANDOM_SOURCE = "random-source"
     WITH_LURE = "with-lure"
     WITH_SOURCE = "with-source"
+    # Source and lure are both shown, unlabeled and in a case-determined order: the
+    # model must select the structurally relevant reference under surface competition.
+    WITH_BOTH = "with-both"
     H1_SOURCE_PROBLEM = "h1-source-problem"
     H2_SCHEMA_NAME = "h2-schema-name"
     H3_ORACLE_MINDSET = "h3-oracle-mindset"

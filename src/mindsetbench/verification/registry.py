@@ -37,6 +37,10 @@ def _load_builtin_verifiers() -> None:
     # Import side effects populate the registry. Kept lazy so package imports stay cheap.
     from mindsetbench.verification import (  # noqa: F401
         expansion_cases,
+        far_credible_commitment,
+        far_evidence_independence,
+        far_horizon_exploration,
+        far_negative_evidence,
         formal_p2_chain,
         formal_p3_chain,
         formal_p4_chain,

@@ -12,6 +12,8 @@ from statistics import mean
 
 from mindsetbench.data import (
     PROJECT_ROOT,
+    audit_surface,
+    format_surface_table,
     load_cases,
     load_manifest,
     load_schema_cards,
@@ -61,6 +63,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     audit.add_argument("path")
     audit.add_argument("--require-complete-chains", action="store_true")
+    audit.add_argument(
+        "--surface",
+        action="store_true",
+        help="also gate L2+ calibration/test items on source/target surface distance",
+    )
+    audit.add_argument(
+        "--surface-table",
+        action="store_true",
+        help="print per-case surface-distance metrics (implies --surface)",
+    )
 
     schema = subcommands.add_parser("schema", help="emit the canonical JSON schema")
     schema.add_argument("--output")
@@ -136,6 +148,7 @@ def build_parser() -> argparse.ArgumentParser:
             Condition.TARGET_ONLY.value,
             Condition.WITH_SOURCE.value,
             Condition.WITH_LURE.value,
+            Condition.WITH_BOTH.value,
         ],
         default=[
             Condition.TARGET_ONLY.value,
@@ -196,6 +209,10 @@ def _cmd_audit(args: argparse.Namespace) -> int:
         cases,
         require_complete_chains=args.require_complete_chains,
     )
+    if args.surface or args.surface_table:
+        report.issues.extend(audit_surface(cases).issues)
+    if args.surface_table:
+        print(format_surface_table(cases))
     for issue in report.issues:
         subject = f" [{issue.case_id}]" if issue.case_id else ""
         print(f"{issue.severity.value.upper()} {issue.code}{subject}: {issue.message}")

@@ -1,0 +1,10 @@
+{
+  "name": "far20-transfer-candidates",
+  "description": "Four far-domain fixed-source L0-L4 families built under docs/FAR_TRANSFER_PROTOCOL.md: evidence independence (P7), negative evidence (P2), horizon-dependent exploration (P1), credible commitment (P8). Targets share only the mindset with their source; L2+ pass the surface-distance gate.",
+  "datasets": [
+    "../v1/far-evidence-independence-chain.yaml",
+    "../v1/far-negative-evidence-chain.yaml",
+    "../v1/far-horizon-exploration-chain.yaml",
+    "../v1/far-credible-commitment-chain.yaml"
+  ]
+}

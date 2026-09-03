@@ -1,6 +1,8 @@
 - id: HSS-P6-HIST-ANALOGY-L0-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题以逐句显式关系（预警/压制/支撑/掩护）给出角色图，问句点名答案码（FATAL 只能选 NONE 或 P-CONTROLS-G）；GPT-5.6-sol 三条件 100%。保留为角色映射格式 sanity。
   paradigm: P6
   thread: K-案例区分
   schema_id: causal-role-mapping-fatal-difference-v1
@@ -52,7 +54,9 @@
 
 - id: HSS-P6-HIST-ANALOGY-L1-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题以逐句显式关系（预警/压制/支撑/掩护）给出角色图，问句点名答案码（FATAL 只能选 NONE 或 P-CONTROLS-G）；GPT-5.6-sol 三条件 100%。保留为角色映射格式 sanity。
   paradigm: P6
   thread: K-案例区分
   schema_id: causal-role-mapping-fatal-difference-v1
@@ -94,7 +98,9 @@
 
 - id: HSS-P6-HIST-ANALOGY-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题以逐句显式关系（预警/压制/支撑/掩护）给出角色图，问句点名答案码（FATAL 只能选 NONE 或 P-CONTROLS-G）；GPT-5.6-sol 三条件 100%。保留为角色映射格式 sanity。
   paradigm: P6
   thread: K-案例区分
   schema_id: causal-role-mapping-fatal-difference-v1
@@ -136,7 +142,9 @@
 
 - id: HSS-P6-HIST-ANALOGY-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题以逐句显式关系（预警/压制/支撑/掩护）给出角色图，问句点名答案码（FATAL 只能选 NONE 或 P-CONTROLS-G）；GPT-5.6-sol 三条件 100%。保留为角色映射格式 sanity。
   paradigm: P6
   thread: K-案例区分
   schema_id: causal-role-mapping-fatal-difference-v1
@@ -183,7 +191,9 @@
 
 - id: HSS-P6-HIST-ANALOGY-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题以逐句显式关系（预警/压制/支撑/掩护）给出角色图，问句点名答案码（FATAL 只能选 NONE 或 P-CONTROLS-G）；GPT-5.6-sol 三条件 100%。保留为角色映射格式 sanity。
   paradigm: P6
   thread: K-案例区分
   schema_id: causal-role-mapping-fatal-difference-v1

@@ -63,3 +63,32 @@ L0-A-01、L1-A-01、L1-B-01、L1-E-01、L1-F-01、L2-A-01——保留为 dev spl
 | `hss-adaptive-policy4` | 4 | calibration | target-only 12/12，两阶段策略增加计算量但未产生净空 |
 
 下一批只先构造 4 个自然语言查询生成/交互 seed；达到 20%–60% 冷启动门后再扩量。
+
+## 2026-09-03 降级与远域批次
+
+复盘结论见 [`docs/FAR_TRANSFER_PROTOCOL.md`](../docs/FAR_TRANSFER_PROTOCOL.md) 第 1 节：类型化扩展中的 L2–L4 目标题
+要么是 source 同一形式化系统的重命名（共用边表/规则/操作卡模板），要么把关系图、规则层级或回复矩阵原样写进题面，
+识别步骤为零。按 SPEC 五成分定义它们只翻了 Surface，且 GPT-5.6-sol 上均为天花板。现引入 `split: sanity`，
+以下 82 题降级并写入 `history_note`，仍可运行、仍过 verifier，但不计入迁移距离统计：
+
+| 数据 | 题数 | 降级依据 |
+| --- | ---: | --- |
+| `formal-p2/p3/p4/p5-planning/p5-certificate/p6` 六条链 | 30 | 重命名同构加单参数扰动；`mb audit --surface` 判定共享模板或文字重合超阈 |
+| `formal-p5-latent-chain` L0–L3 | 4 | 同域或重命名码本恢复，难度来自枚举计算量；L4 保留为跨表征 challenge |
+| `expansion20` | 20 | 首批题把 DAG、优先级、门控职责写进题面，target-only 无净空 |
+| `hss20` 四条链 | 20 | 显式关系句与整理后规则，问句点名答案码；三条件 72/72 |
+| `hss-active-query4` + `hss-adaptive-policy4` | 8 | 给出完整回复矩阵，只剩优化计算；target-only 24/24 |
+
+仍为 `calibration` 的类型化资产只剩 P5 潜在操作 L4、latent certificates/staged/seeds 与 certificate outages/policy-joint
+共 19 题；它们是算力型 challenge，用于定位搜索失败，不作为迁移距离证据。
+
+新批次 `far20`（[`docs/far20-report.md`](../docs/far20-report.md)）：四个框架型 mindset 家族各一条 L0–L4 链，
+L2–L4 跨学科、跨文体、跨表征且通过 `mb audit --surface` 闸门，20/20 有可执行 verifier；`far20-hard.json`
+为其中 12 道 L2–L4。状态为 calibration，尚未做模型校准；晋级门见协议第 7 节。
+
+| 状态 | 类型化题数 |
+| --- | ---: |
+| calibration（far20） | 20 |
+| calibration（P5 算力型 challenge） | 19 |
+| sanity | 82 |
+| dev（hard seeds） | 9 |

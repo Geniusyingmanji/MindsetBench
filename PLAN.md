@@ -13,6 +13,14 @@
 两阶段成本策略搜索，并通过全仓 186 项测试。`hss20` 与新增 `hss-active8` 都已完成 GPT-5.6-sol 预筛；
 它们仍是 calibration 资产，尚无足以测量 source transfer gain 的准确率净空。
 
+2026-09-03 复盘更新：上述类型化 L2–L4 的目标题实际上是 source 同一形式化系统的重命名，或把形式结构原样写进
+题面（详见 [`docs/FAR_TRANSFER_PROTOCOL.md`](docs/FAR_TRANSFER_PROTOCOL.md) 第 1 节的症状表与字符 bigram 证据）。
+按 SPEC 五成分定义它们只翻了 Surface，因此 `formal35`、`hss20`、`hss-active8`、`expansion20` 共 82 题降为
+`split: sanity`。主要交付改为**框架型 mindset 的远域家族**：首批 `far20` 覆盖证据独立性（P7）、阴性证据（P2）、
+剩余地平线（P1）、可信承诺（P8），每家族 L0–L4 一条链，L2–L4 目标跨学科、跨文体、跨表征并通过新增的
+`mb audit --surface` 闸门；评测新增 `with-both` 条件与 `selection_loss` 指标。下一步是按协议第 7 节对
+`far20-hard.json` 的 12 道 L2–L4 做 target-only 三样本校准，再决定是否扩到每家族多实例的全对源矩阵。
+
 ## 1. 背景
 
 ### 1.1 项目脉络

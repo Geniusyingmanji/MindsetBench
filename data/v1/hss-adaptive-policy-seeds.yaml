@@ -1,6 +1,8 @@
 - id: HSS-ADAPTIVE-P4-PERFORMANCE-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：题面给出完整回复矩阵与成本表，两阶段策略只增加搜索量；GPT-5.6-sol target-only 12/12，平均输出约 2867 tokens 仍无准确率净空。
   paradigm: P4
   thread: I-自适应规范判别
   schema_id: defeasible-norm-adaptive-policy-v1
@@ -99,7 +101,9 @@
 
 - id: HSS-ADAPTIVE-P6-EXHIBITION-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：题面给出完整回复矩阵与成本表，两阶段策略只增加搜索量；GPT-5.6-sol target-only 12/12，平均输出约 2867 tokens 仍无准确率净空。
   paradigm: P6
   thread: H-自适应结构判别
   schema_id: relational-alignment-adaptive-policy-v1
@@ -189,7 +193,9 @@
 
 - id: HSS-ADAPTIVE-P7-ORAL-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：题面给出完整回复矩阵与成本表，两阶段策略只增加搜索量；GPT-5.6-sol target-only 12/12，平均输出约 2867 tokens 仍无准确率净空。
   paradigm: P7
   thread: E-自适应证据判别
   schema_id: provenance-adaptive-policy-v1
@@ -277,7 +283,9 @@
 
 - id: HSS-ADAPTIVE-P8-DIPLOMACY-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：题面给出完整回复矩阵与成本表，两阶段策略只增加搜索量；GPT-5.6-sol target-only 12/12，平均输出约 2867 tokens 仍无准确率净空。
   paradigm: P8
   thread: J-自适应机制判别
   schema_id: mechanism-adaptive-policy-v1

@@ -1,6 +1,8 @@
 - id: HSS-P4-NORM-PRECEDENT-L0-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题以整理后的规则/理由陈述给出全部规范层级，识别步骤为零；GPT-5.6-sol 三条件三样本 100%（docs/hss20-report.md）。词汇跨域但表征未跨域，不计入迁移距离统计。
   paradigm: P4
   thread: I-规范规则
   schema_id: defeasible-norm-precedent-v1
@@ -57,7 +59,9 @@
 
 - id: HSS-P4-NORM-PRECEDENT-L1-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题以整理后的规则/理由陈述给出全部规范层级，识别步骤为零；GPT-5.6-sol 三条件三样本 100%（docs/hss20-report.md）。词汇跨域但表征未跨域，不计入迁移距离统计。
   paradigm: P4
   thread: I-规范规则
   schema_id: defeasible-norm-precedent-v1
@@ -103,7 +107,9 @@
 
 - id: HSS-P4-NORM-PRECEDENT-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题以整理后的规则/理由陈述给出全部规范层级，识别步骤为零；GPT-5.6-sol 三条件三样本 100%（docs/hss20-report.md）。词汇跨域但表征未跨域，不计入迁移距离统计。
   paradigm: P4
   thread: I-规范规则
   schema_id: defeasible-norm-precedent-v1
@@ -150,7 +156,9 @@
 
 - id: HSS-P4-NORM-PRECEDENT-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题以整理后的规则/理由陈述给出全部规范层级，识别步骤为零；GPT-5.6-sol 三条件三样本 100%（docs/hss20-report.md）。词汇跨域但表征未跨域，不计入迁移距离统计。
   paradigm: P4
   thread: I-规范规则
   schema_id: defeasible-norm-precedent-v1
@@ -208,7 +216,9 @@
 
 - id: HSS-P4-NORM-PRECEDENT-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题以整理后的规则/理由陈述给出全部规范层级，识别步骤为零；GPT-5.6-sol 三条件三样本 100%（docs/hss20-report.md）。词汇跨域但表征未跨域，不计入迁移距离统计。
   paradigm: P4
   thread: I-规范规则
   schema_id: defeasible-norm-precedent-v1

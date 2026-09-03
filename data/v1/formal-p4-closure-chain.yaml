@@ -1,6 +1,8 @@
 - id: FORMAL-P4-CLOSURE-L0-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题以整理好的规则清单给出全部派生规则与例外，L3/L4 为重命名与单规则消融；GPT-5.5 单样本 6/6，mb audit --surface 判定 surface-lexical-overlap。保留为规则闭包执行力 sanity。
   paradigm: P4
   thread: I-规范规则
   schema_id: least-fixed-point-norm-sensitivity-v1
@@ -62,7 +64,9 @@
 
 - id: FORMAL-P4-CLOSURE-L1-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题以整理好的规则清单给出全部派生规则与例外，L3/L4 为重命名与单规则消融；GPT-5.5 单样本 6/6，mb audit --surface 判定 surface-lexical-overlap。保留为规则闭包执行力 sanity。
   paradigm: P4
   thread: I-规范规则
   schema_id: least-fixed-point-norm-sensitivity-v1
@@ -103,7 +107,9 @@
 
 - id: FORMAL-P4-CLOSURE-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题以整理好的规则清单给出全部派生规则与例外，L3/L4 为重命名与单规则消融；GPT-5.5 单样本 6/6，mb audit --surface 判定 surface-lexical-overlap。保留为规则闭包执行力 sanity。
   paradigm: P4
   thread: I-规范规则
   schema_id: least-fixed-point-norm-sensitivity-v1
@@ -147,7 +153,9 @@
 
 - id: FORMAL-P4-CLOSURE-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题以整理好的规则清单给出全部派生规则与例外，L3/L4 为重命名与单规则消融；GPT-5.5 单样本 6/6，mb audit --surface 判定 surface-lexical-overlap。保留为规则闭包执行力 sanity。
   paradigm: P4
   thread: I-规范规则
   schema_id: least-fixed-point-norm-sensitivity-v1
@@ -198,7 +206,9 @@
 
 - id: FORMAL-P4-CLOSURE-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题以整理好的规则清单给出全部派生规则与例外，L3/L4 为重命名与单规则消融；GPT-5.5 单样本 6/6，mb audit --surface 判定 surface-lexical-overlap。保留为规则闭包执行力 sanity。
   paradigm: P4
   thread: I-规范规则
   schema_id: least-fixed-point-norm-sensitivity-v1

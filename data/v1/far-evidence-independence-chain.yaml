@@ -1,0 +1,391 @@
+# Far-transfer family: shared upstream ⇒ agreeing signals are not independent evidence.
+#
+# Construction protocol (docs/FAR_TRANSFER_PROTOCOL.md): the target states a situation in
+# its own genre, never the source's formal representation; the question asks for the
+# domain's natural decision; the preregistered decoy is the domain's standard shortcut
+# (count agreeing signals); execution is small, identification is the difficulty.
+- id: FAR-INDEP-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P7
+  thread: E-证据独立性
+  schema_id: far-evidence-independence-v1
+  schema_name: 共享同一上游的一致信号只构成一份证据
+  chain: far-evidence-independence-v1
+  level: 0
+  source: &far_indep_source
+    domain: 地方志水利年代考订
+    problem: >-
+      县志编修组需确定永丰堰的建成年份。现有六种记载都写康熙十二年：
+      甲、乾隆《县志·水利》。
+      乙、道光《县志·水利》，凡例自述“水利一门悉据乾隆志”。
+      丙、光绪《府志》，卷末小注“县境水利采道光县志”。
+      丁、雍正年间所修《张氏族谱》，记“族祖倡修永丰堰，康熙十二年成”。
+      戊、堰侧残碑，落款康熙十四年，碑文记“堰成于康熙十二年”。
+      己、民国所修《吴氏族谱》，谱序称“水利诸事摘录光绪府志”。
+      考订规程：一条记载须追溯到最初的一手来源才算一个独立见证；凡自述采录、摘录或悉据另一
+      记载者，与被采录者合并为同一见证。同一年份有三个及以上独立见证定为“确证”，两个为“可信”，
+      一个为“孤证”。问：康熙十二年共有几个独立见证？应定为何级？
+    solution: >-
+      乙据甲，丙据乙，己据丙，四者同出乾隆志一个来源，只算一个见证；丁为雍正族谱，早于乾隆志且
+      未引任何书，是第二个见证；戊为康熙十四年碑刻，是第三个见证。六条一致记载只提供三个独立见证，
+      定为确证。计数的对象是来源链的根，而不是记载的条数：沿着“据某书”的自述往上追，落到同一个根的
+      记载不论多少都只增加一份证据。
+    answer: 3;确证
+  target:
+    domain: 地方志桥梁年代考订
+    problem: >-
+      同一编修组又考“通济桥重建年份”，五种记载都写嘉庆六年：
+      甲、光绪《县志·津梁》，凡例称“津梁一门据咸丰志”。
+      乙、咸丰《县志·津梁》。
+      丙、民国所修《李氏族谱》，谱序称“桥梁事迹录自光绪县志”。
+      丁、桥头碑记，落款嘉庆七年，记“桥于嘉庆六年重建告成”。
+      戊、光绪年间乡绅笔记，自称“据县志所载”。
+      规程同前。问：嘉庆六年共有几个独立见证？应定为何级？
+    answer_format: "<独立见证数>;<确证|可信|孤证>"
+    answer:
+      parts:
+        - {type: number, value: "2"}
+        - {type: string, value: 可信}
+  mapping:
+    objects: {乾隆县志: 咸丰县志, 道光县志: 光绪县志, 吴氏族谱: 李氏族谱, 康熙碑: 嘉庆碑}
+    shared_relations: [自述采录者与其来源合并, 见证数按来源链的根计数, 等级由独立见证数决定]
+    varied: [仅更换事件、记载数量与引用链形状]
+  lure:
+    problem: >-
+      同一组五种记载，但改用“凡记载一致者各算一票”的旧规程：五条记载都写嘉庆六年，问见证数与定级。
+    solution: 旧规程不合并来源，五条各算一票，五票定为确证。
+    answer:
+      parts:
+        - {type: number, value: "5"}
+        - {type: string, value: 确证}
+    why_surface_similar: 同一事件、同一批记载、同样的定级词。
+    why_structurally_different: lure 按条数计票，目标按来源根计数。
+    wrong_schema_id: count-agreeing-records-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: number, value: "5"}
+        - {type: string, value: 确证}
+    derivation: 把每条一致记载都当成一个见证。
+  hints:
+    schema_name: 共享同一上游的一致信号只构成一份证据
+    oracle_mindset:
+      insight: 一致的记载只有来源独立时才互相佐证；先沿自述引用追到根，再数根。
+      when_to_use: 多条材料结论一致，但其中一些自述转录、摘引自另一些时。
+    false_mindset:
+      insight: 记载越多越可信，一致的条数就是证据强度。
+      when_to_use: 看到多条一致记载时直接计数。
+  verification:
+    entrypoint: mindsetbench.verification.far_evidence_independence:verify_far_indep_l0_01
+    method: provenance-root-counting
+  provenance: original synthetic case; all gazetteers, clans, and inscriptions are fictional
+  verified: 甲←乙、丙←甲、戊←县志同出咸丰志一根，丁为独立碑记，共 2 根。
+
+- id: FAR-INDEP-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P7
+  thread: E-证据独立性
+  schema_id: far-evidence-independence-v1
+  schema_name: 共享同一上游的一致信号只构成一份证据
+  chain: far-evidence-independence-v1
+  level: 1
+  source: *far_indep_source
+  target:
+    domain: 宗祠始建年代的口述与实物考订
+    problem: >-
+      调查组考订陈氏宗祠的始建年份，收集到六项材料，都指向万历二十年：
+      一、祠内匾额“万历壬辰建”，匾为清代重刻，刻工题记“照旧匾摹刻”。
+      二、族老陈某口述：“祖上传说万历年间建祠，具体年份是我查了族谱才确定的。”
+      三、《陈氏族谱》康熙抄本，载“万历二十年建祠”。
+      四、邻村《林氏族谱》，载“万历二十年陈氏建祠，林氏助工”，谱末注“陈氏事迹据陈氏旧谱”。
+      五、1985 年编印的乡镇文史资料，载同年，注“据陈氏族谱”。
+      六、民国《县志·祠庙》，载同年，凡例称“祠庙沿革采陈、林两谱”。
+      按同一考订规程（转述、摹刻、据某书者与其来源合并），问：万历二十年有几个独立见证？定为何级？
+    answer_format: "<独立见证数>;<确证|可信|孤证>"
+    answer:
+      parts:
+        - {type: number, value: "2"}
+        - {type: string, value: 可信}
+  mapping:
+    objects: {乾隆县志: 陈氏族谱, 采录方志: 林谱与文史资料与县志, 独立碑刻: 旧匾, 自述摘录: 口述与摹刻题记}
+    shared_relations: [转述与摹刻视同采录, 采录者与来源合并, 见证按根计数, 等级由根数决定]
+    varied: [材料从方志文本换成口述、匾额、文史资料，引用关系用口语和题记表达]
+  lure:
+    problem: >-
+      同一批六项材料，但调查组采用“材料类型多样即可确证”的经验法：口述、匾额、族谱、文史资料、县志
+      五类俱全，问见证数与定级。
+    solution: 经验法把六项材料各算一票，类型齐全直接定为确证。
+    answer:
+      parts:
+        - {type: number, value: "6"}
+        - {type: string, value: 确证}
+    why_surface_similar: 同一宗祠、同一批材料、同样的定级词。
+    why_structurally_different: lure 按材料条数与类型计票，目标按来源根计数。
+    wrong_schema_id: count-agreeing-records-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: number, value: "6"}
+        - {type: string, value: 确证}
+    derivation: 六项材料各算一个见证，未合并口述、林谱、文史资料和县志对陈氏族谱的依赖。
+  hints:
+    schema_name: 共享同一上游的一致信号只构成一份证据
+    oracle_mindset:
+      insight: 口述“查了族谱”、题记“摹刻旧匾”、谱注“据某谱”都是引用边；先画出引用链再数根。
+      when_to_use: 材料类型多样但彼此转述时。
+    false_mindset:
+      insight: 材料类型越多样越可信。
+      when_to_use: 看到口述、实物、文献俱全时直接定级。
+  verification:
+    entrypoint: mindsetbench.verification.far_evidence_independence:verify_far_indep_l1_01
+    method: provenance-root-counting
+  provenance: original synthetic case; all clans, plaques, and gazetteers are fictional
+  verified: 旧匾与陈氏族谱为两个根；口述、林谱、文史资料、县志均落到陈氏族谱。
+
+- id: FAR-INDEP-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P7
+  thread: E-证据独立性
+  schema_id: far-evidence-independence-v1
+  schema_name: 共享同一上游的一致信号只构成一份证据
+  chain: far-evidence-independence-v1
+  level: 2
+  source: *far_indep_source
+  target:
+    domain: 代码仓库的自动合并门禁
+    problem: >-
+      仓库 ledger-core 的自动合并门禁（MERGE_POLICY.md）规定：PR 至少需要 4 个相互独立的绿色检查；
+      凡判定结果取决于同一份由本 PR 重新生成的预期文件（fixtures 目录下的快照）的检查，不论有几个，
+      合计只算 1 个绿色检查。
+
+      ci.yml 节选：
+      lint：运行 ruff check src；
+      unit-core：运行 pytest tests/core；
+      snapshot-api：把 out/api.json 与 fixtures/expected_api.json 做 diff；
+      snapshot-cli：把 out/cli.txt 与 fixtures/expected_cli.txt 做 diff；
+      snapshot-docs：把 out/docs.html 与 fixtures/expected_docs.html 做 diff；
+      contract：运行 pytest tests/contract，以 fixtures/expected_api.json 作为 oracle。
+
+      PR #482 描述：“重写序列化层；运行 make snapshots 一次性重新生成 fixtures 目录下全部三个预期文件。”
+      CI 结果：六个检查全部绿色。
+
+      问：(1) 按门禁，该 PR 现在能否自动合并？(2) 下列单项补充中，哪些能单独使其满足门禁
+      （若已满足，则各项均填 NO）：
+      C1 新增 snapshot-perf 检查，对比同一次 make snapshots 生成的 fixtures/expected_perf.json；
+      C2 把 contract 检查改为以 main 分支上的 expected_api.json 为 oracle 运行；
+      C3 重新运行一次 snapshot-api；
+      C4 新增 typecheck 检查，运行 mypy src。
+    answer_format: "MERGE=<YES|NO>;C1=<YES|NO>;C2=<YES|NO>;C3=<YES|NO>;C4=<YES|NO>"
+    answer:
+      parts:
+        - {type: label, value: MERGE=NO}
+        - {type: label, value: C1=NO}
+        - {type: label, value: C2=YES}
+        - {type: label, value: C3=NO}
+        - {type: label, value: C4=YES}
+  mapping:
+    objects: {乾隆县志: 本 PR 重新生成的 fixtures 快照, 采录方志: snapshot 与 contract 检查, 独立碑刻: lint 与 unit-core, 三个见证的门槛: 四个独立检查的门槛, 编修组: 合并门禁}
+    shared_relations: [多个一致信号共享同一上游时只算一份, 独立性由上游根决定而非信号条数, 门槛按独立根计数, 增加同源信号不改变计数, 新增独立根才改变计数]
+    varied: [从史料考订跨到软件工程, 从叙述型记载改为 CI 配置与 PR 描述两份文档的拼接, 引用关系不再自述而要从“检查读取哪份文件”与“PR 重新生成了哪些文件”联合推出, 问题从定级改为合并决策与四项补救判定]
+  lure:
+    problem: >-
+      同一仓库、同一份 ci.yml 与同一个 PR #482，但旧版门禁只写“PR 至少需要 4 个绿色检查”。
+      六个检查全部绿色。问能否自动合并，以及 C1–C4 各项是否有必要（已满足则全部填 NO）。
+    solution: 旧版门禁只数绿色检查：6 个大于等于 4，直接可合并，四项补充均无必要。
+    answer:
+      parts:
+        - {type: label, value: MERGE=YES}
+        - {type: label, value: C1=NO}
+        - {type: label, value: C2=NO}
+        - {type: label, value: C3=NO}
+        - {type: label, value: C4=NO}
+    why_surface_similar: 同一仓库、同一配置、同一 PR 与同样的六个绿色检查。
+    why_structurally_different: lure 直接计数，目标要求把依赖同一批再生成快照的检查合并。
+    wrong_schema_id: count-green-checks-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: MERGE=YES}
+        - {type: label, value: C1=NO}
+        - {type: label, value: C2=NO}
+        - {type: label, value: C3=NO}
+        - {type: label, value: C4=NO}
+    derivation: 数绿色检查得 6 个，认为已满足门禁；没有把四个依赖本 PR 再生成快照的检查合并为一个。
+  hints:
+    schema_name: 共享同一上游的一致信号只构成一份证据
+    oracle_mindset:
+      insight: 先问每个检查“它的判定依据从哪来”，把依据同一份 PR 生成物的检查合并成一个根，再数根。
+      when_to_use: 多个检查读取同一份由被测代码自己生成的预期文件时。
+    false_mindset:
+      insight: 绿色检查越多越安全，直接数绿灯。
+      when_to_use: CI 面板全绿时。
+  verification:
+    entrypoint: mindsetbench.verification.far_evidence_independence:verify_far_indep_l2_01
+    method: provenance-root-counting-with-remedies
+  provenance: original synthetic case; repository, policy, and PR are fictional
+  verified: lint、unit-core 各为一根，四个快照/契约检查同根，共 3 根小于 4；C2、C4 各新增一根。
+
+- id: FAR-INDEP-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P7
+  thread: E-证据独立性
+  schema_id: far-evidence-independence-v1
+  schema_name: 共享同一上游的一致信号只构成一份证据
+  chain: far-evidence-independence-v1
+  level: 3
+  source: *far_indep_source
+  target:
+    domain: 医院不可逆手术的排期审核
+    problem: >-
+      清源医院《不可逆手术排期规程》第 7 条：排期前须有至少 3 份相互独立且结论一致的评估；评估只有在
+      评估者签署前接触过至少一种一手证据（影像原片、组织切片或亲自查体）时才算独立；拟主刀医师的评估
+      不计入。
+
+      患者 K 当日记录节选：
+      08:30 入院登记；09:10 MRI 扫描完成；10:30 影像科 R 医师签发报告，结论“符合 X 病变”；
+      10:45 报告经院内系统推送给会诊医师 A、B、C、D 及拟主刀 E；11:20 A（神经外科）签署会诊意见，同意 X；
+      11:40 B（肿瘤内科）签署，同意 X；12:05 D（放疗科）签署，同意 X；13:15 信息科通告：因 PACS 系统迁移，
+      会诊端影像原片自 14:00 起方可调阅，此前只能查看文字报告；14:20 病理科：活检切片已取材，报告预计
+      明日 09:00 出；15:30 C（神经内科）调阅影像原片后签署，同意 X；16:00 E 查体并调阅影像原片后签署，
+      同意 X，建议今日排期。
+
+      问：(1) 按规程，今日能否排期？(2) 下列单项措施中，哪些能单独使今日排期合规（若今日已可排期，
+      则各项均填 NO）：
+      M1 请会诊医师 F 阅读报告后签署意见；M2 请 A 调阅影像原片后重新签署；M3 等待明日病理报告；
+      M4 请 R 补充一份更详细的影像报告；M5 请 D 与 R 电话讨论后重新签署；M6 请外院专家 G 远程调阅影像
+      原片并签署。
+    answer_format: "SCHEDULE=<YES|NO>;M1=<YES|NO>;M2=<YES|NO>;M3=<YES|NO>;M4=<YES|NO>;M5=<YES|NO>;M6=<YES|NO>"
+    answer:
+      parts:
+        - {type: label, value: SCHEDULE=NO}
+        - {type: label, value: M1=NO}
+        - {type: label, value: M2=YES}
+        - {type: label, value: M3=NO}
+        - {type: label, value: M4=NO}
+        - {type: label, value: M5=NO}
+        - {type: label, value: M6=YES}
+  mapping:
+    objects: {乾隆县志: 影像科报告 R, 自述采录的方志: 只见到文字报告的会诊 A/B/D, 独立碑刻: 调阅原片后签署的 C, 三个见证的门槛: 三份独立评估的门槛, 编修组: 排期审核}
+    shared_relations: [多个一致结论共享同一上游时只算一份, 独立性由来源根决定而非结论条数, 门槛按独立根计数, 增加同源转述不改变计数, 新增独立根才改变计数]
+    removed_relations: [记载自述来源的显式引用关系]
+    added_relations: [依赖关系须由时间可行性推断：影像原片 14:00 才可调阅，此前签署者只能依据报告, 拟主刀医师的评估被规程排除]
+    adaptation_required: [把“自述据某书”的显式引用边改为“签署时能接触到什么一手证据”的可行性推断, 在计数前先剔除被排除的角色, 对每项补救措施重算独立根数]
+    varied: [从史料考订跨到临床治理, 从记载清单改为带时间戳的病程记录, 引用关系从自述改为隐含, 增加角色排除条款]
+  lure:
+    problem: >-
+      同院另一患者 J 当日记录：10:30 影像科 R 签发报告，结论“符合 Y 病变”；11:10 A、11:35 B、12:00 D
+      先后签署会诊意见，均同意 Y；15:40 拟主刀 E 查体后签署，同意 Y。该科室沿用的旧版规程只要求
+      “至少 3 份结论一致的评估”。问今日能否排期，以及 M1–M6 各项是否有必要（已满足则全部填 NO）。
+    solution: 旧版规程只数一致评估：R、A、B、D、E 共 5 份大于等于 3，直接可排期，各项补救均无必要。
+    answer:
+      parts:
+        - {type: label, value: SCHEDULE=YES}
+        - {type: label, value: M1=NO}
+        - {type: label, value: M2=NO}
+        - {type: label, value: M3=NO}
+        - {type: label, value: M4=NO}
+        - {type: label, value: M5=NO}
+        - {type: label, value: M6=NO}
+    why_surface_similar: 同一医院、同类记录、同样的角色与措施清单。
+    why_structurally_different: lure 直接计数一致评估，目标要求以一手证据可及性判断独立性并排除主刀。
+    wrong_schema_id: count-concurring-opinions-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: SCHEDULE=YES}
+        - {type: label, value: M1=NO}
+        - {type: label, value: M2=NO}
+        - {type: label, value: M3=NO}
+        - {type: label, value: M4=NO}
+        - {type: label, value: M5=NO}
+        - {type: label, value: M6=NO}
+    derivation: 沿用源题“只合并自述引用的记载”，记录里无人自述依据报告，于是把六份一致意见都当成独立评估。
+  hints:
+    schema_name: 共享同一上游的一致信号只构成一份证据
+    oracle_mindset:
+      insight: 没有人会写“我只看了报告”；要用时间线判断每份意见签署时能接触到什么，再把只可能依据同一份报告的意见合并为一根。
+      when_to_use: 一致意见的形成过程只留下时间戳与系统日志，而没有显式引用时。
+    false_mindset:
+      insight: 一致意见的数量就是共识强度，超过门槛即可。
+      when_to_use: 多位专家结论一致时直接计数。
+  verification:
+    entrypoint: mindsetbench.verification.far_evidence_independence:verify_far_indep_l3_01
+    method: time-feasibility-provenance-with-role-exclusion
+  provenance: original synthetic case; hospital, staff, and patient are fictional
+  verified: R 与 C 为两根，A/B/D 签署时原片不可调阅只能依据报告，E 为主刀被排除；M2、M6 各新增一根。
+
+- id: FAR-INDEP-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P7
+  thread: E-证据独立性
+  schema_id: far-evidence-independence-v1
+  schema_name: 共享同一上游的一致信号只构成一份证据
+  chain: far-evidence-independence-v1
+  level: 4
+  source: *far_indep_source
+  target:
+    domain: 储罐高液位联锁的可靠性评估
+    problem: >-
+      某储罐进料联锁由三只液位开关 S1、S2、S3 组成，任意两只及以上报高液位即关闭进料阀。
+      评估用“需求时失效概率”表示联锁在真正出现高液位时未能关阀的概率。每只开关各自的随机漏报概率
+      为 0.1，且互不影响。
+
+      计量室校准记录：9 月 2 日，S1 与 S2 由同一台便携校准器 PC-7 在现场校准；8 月 30 日，S3 在计量室
+      按固定基准校准。9 月 5 日复检发现 PC-7 可能存在量程偏移故障，评估为 5% 的概率；若该故障存在，
+      凡经 PC-7 校准的开关在高液位时都会读低而漏报，这一漏报与其随机漏报无关。
+
+      问：(1) 联锁当前的需求时失效概率是多少（保留四位小数）？(2) 以下改造单独实施时，哪一项使该概率最低：
+      A 再加一只同样用 PC-7 校准的开关 S4，改为任意两只报高即关阀；
+      B 将 S2 送计量室按固定基准重新校准；
+      C 把 S3 更换为随机漏报概率 0.05 的高等级开关。
+    answer_format: "PFD=<四位小数>;BEST=<A|B|C>"
+    answer:
+      parts:
+        - {type: number, value: "0.0766", abs_tolerance: "0.0002"}
+        - {type: label, value: B}
+  mapping:
+    objects: {乾隆县志: 便携校准器 PC-7, 采录方志: 经 PC-7 校准的 S1 与 S2, 独立碑刻: 按固定基准校准的 S3, 三个见证的门槛: 二取三表决, 定级: 需求时失效概率}
+    shared_relations: [多个一致信号共享同一上游时其一致性不提供额外保证, 独立性取决于上游根而非信号数量, 增加同源信号不提升可靠性, 只有新增独立根才真正提升可靠性]
+    removed_relations: [来源链的显式引用关系, 离散的见证计数与定级]
+    added_relations: [上游以给定概率故障并使全部下游同时失效, 表决门限把单个漏报组合成整体失效, 结果为连续概率而非计数]
+    adaptation_required: [把“同源合并计数”改写为对共同上游状态的条件化：先按校准器是否故障分情形，再在每种情形内按独立性计算, 对三种改造分别重算条件概率并比较]
+    varied: [从史料考订跨到过程安全工程, 从叙述记载改为校准记录与表决逻辑, 模型从来源计数变为条件概率, 方法从追根变为分情形求和]
+  lure:
+    problem: >-
+      同一储罐、同样三只开关与二取三关阀逻辑，各开关随机漏报概率 0.1 且三只均在计量室按固定基准校准。
+      问当前需求时失效概率（四位小数），以及改造 A（加一只同样校准的开关并改为任意两只报高即关阀）、
+      B（把 S2 重新校准一次）、C（S3 换为漏报概率 0.05 的开关）中哪一项使其最低。
+    solution: >-
+      三只独立开关至少两只漏报的概率为 3×0.01×0.9+0.001=0.0280。A 改为四取二后至少三只漏报的概率
+      为 4×0.001×0.9+0.0001=0.0037，最低；B 重新校准不改变任何概率；C 得 0.0190。
+    answer:
+      parts:
+        - {type: number, value: "0.0280", abs_tolerance: "0.0002"}
+        - {type: label, value: A}
+    why_surface_similar: 同一设备、同一表决逻辑、同样的三项改造与数值。
+    why_structurally_different: lure 中三只开关来源独立，目标中两只共享一台可能故障的校准器。
+    wrong_schema_id: independent-redundancy-product-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: number, value: "0.0280", abs_tolerance: "0.0002"}
+        - {type: label, value: A}
+    derivation: 把三只开关当成相互独立的冗余，用二项组合直接相乘，并认为增加同样校准的开关最能降低失效概率。
+  hints:
+    schema_name: 共享同一上游的一致信号只构成一份证据
+    oracle_mindset:
+      insight: 先找出多只开关共享的上游（同一台校准器），按它是否故障分情形；上游故障时同源开关一起失效，冗余不再存在。
+      when_to_use: 冗余通道由同一份文件、同一次生成或同一台仪器派生时。
+    false_mindset:
+      insight: 冗余度等于通道数，通道越多失效概率越低。
+      when_to_use: 看到多只并联传感器时直接用独立概率相乘。
+  verification:
+    entrypoint: mindsetbench.verification.far_evidence_independence:verify_far_indep_l4_01
+    method: common-cause-conditional-probability
+  provenance: original synthetic case; plant, instruments, and records are fictional
+  verified: 0.05+0.95×0.028=0.0766；改造 A/B/C 分别为 0.0535、0.0361、0.0681，B 最低。

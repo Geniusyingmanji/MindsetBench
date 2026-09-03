@@ -1,0 +1,322 @@
+# Far-transfer family: the value of trying the uncertain option is created by the
+# periods that remain afterwards, so the decision depends on the remaining horizon.
+# Decoy at every level: the stationary rule "its informed value is higher, try it now".
+- id: FAR-HORIZON-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P1
+  thread: D-元认知控制
+  schema_id: far-horizon-exploration-v1
+  schema_name: 试探的价值由其后剩余的可利用时间决定
+  chain: far-horizon-exploration-v1
+  level: 0
+  source: &far_horizon_source
+    domain: 越冬鸟类的觅食地选择
+    problem: >-
+      越冬地的一只鸟每天只能去一处觅食。草地每天稳定获得 12 单位食物。灌丛的产量事先未知：40% 的可能是
+      25 单位一天，60% 的可能只有 2 单位一天；去灌丛觅食一天就能确知它属于哪一种，此后每天可以自由选择去处。
+      这只鸟剩余 N 天后迁徙离开。(a) N 至少为多少时，第一天去灌丛更优？(b) N 等于 6 时，最优安排的期望总食物是多少？
+    solution: >-
+      第一天去灌丛当天只期望得到 0.4×25+0.6×2=11.2 单位，比草地的 12 少，单看这一天是亏的。它的价值全在之后：
+      知道结果后每天可以期望拿到 0.4×25+0.6×12=17.2 单位，比一直去草地多 5.2。于是去灌丛的总期望是
+      11.2+17.2(N−1)，一直去草地是 12N；前者更大当且仅当 5.2N>6，即 N 至少为 2。只剩 1 天时没有“之后”，
+      必须去草地。N=6 时最优期望为 11.2+17.2×5=97.2。决定是否试探的不是灌丛本身的好坏，而是试探之后还剩多少天
+      可以用上这个信息。
+    answer: 2;97.2
+  target:
+    domain: 越冬鸟类的觅食地选择
+    problem: >-
+      另一处越冬地：草地每天稳定获得 16 单位食物。灌丛产量未知：30% 的可能是 30 单位一天，70% 的可能只有
+      1 单位一天；去一天即可确知，之后每天可自由选择。两只条件相同的鸟：一只剩 2 天迁徙，一只剩 5 天迁徙。
+      问：两只鸟第一天各应去哪里？至少还剩几天时，第一天去灌丛才更优？
+    answer_format: "DAY1_SHORT=<BUSH|GRASS>;DAY1_LONG=<BUSH|GRASS>;MIN_DAYS=<整数>"
+    answer:
+      parts:
+        - {type: label, value: DAY1_SHORT=GRASS}
+        - {type: label, value: DAY1_LONG=BUSH}
+        - {type: label, value: MIN_DAYS=3}
+  mapping:
+    objects: {草地: 草地, 灌丛: 灌丛, 剩余天数: 剩余天数, 试探一天: 试探一天}
+    shared_relations: [试探当期期望低于稳妥选项, 试探后每期可多得的期望取决于是否知情, 是否试探由剩余期数决定]
+    varied: [仅更换数值与两个具体地平线]
+  lure:
+    problem: >-
+      同一处越冬地，但灌丛较差的情形也有 16 单位一天（30% 是 30 单位，70% 是 16 单位）。同样两只鸟剩 2 天和
+      5 天，问第一天各去哪里，以及至少剩几天时第一天去灌丛更优。
+    solution: 此时去灌丛当天期望 0.3×30+0.7×16=20.2 已高于草地的 16，无论剩几天都应先去灌丛，最小天数为 1。
+    answer:
+      parts:
+        - {type: label, value: DAY1_SHORT=BUSH}
+        - {type: label, value: DAY1_LONG=BUSH}
+        - {type: label, value: MIN_DAYS=1}
+    why_surface_similar: 同一越冬地、同样两只鸟与同样的问法。
+    why_structurally_different: lure 中试探当期不亏，决策与剩余天数无关；目标中试探当期亏损，只有剩余天数够多才值得。
+    wrong_schema_id: informed-value-dominates-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: DAY1_SHORT=BUSH}
+        - {type: label, value: DAY1_LONG=BUSH}
+        - {type: label, value: MIN_DAYS=1}
+    derivation: 认为灌丛知情后的期望 0.3×30+0.7×16=20.2 高于草地，因此无论剩几天都先去灌丛。
+  hints:
+    schema_name: 试探的价值由其后剩余的可利用时间决定
+    oracle_mindset:
+      insight: 先算试探当天的期望亏损，再算之后每天的期望增益，比较亏损与增益乘以剩余天数。
+      when_to_use: 有一个未知选项需要付出一期代价才能了解，且之后还能反复选择时。
+    false_mindset:
+      insight: 只要知情后的期望更高，就应当先去了解它。
+      when_to_use: 只比较两个选项的长期平均值时。
+  verification:
+    entrypoint: mindsetbench.verification.far_horizon_exploration:verify_far_horizon_l0_01
+    method: finite-horizon-trial-value
+  provenance: original synthetic case
+  verified: 试探总期望 9.7+20.2(N−1) 与 16N 比较，N=2 时 29.9<32，N=3 时 50.1>48，最小天数 3。
+
+- id: FAR-HORIZON-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P1
+  thread: D-元认知控制
+  schema_id: far-horizon-exploration-v1
+  schema_name: 试探的价值由其后剩余的可利用时间决定
+  chain: far-horizon-exploration-v1
+  level: 1
+  source: *far_horizon_source
+  target:
+    domain: 休渔期前的渔场选择
+    problem: >-
+      休渔期临近，渔民每天只能去一处渔场。老渔场每天稳定收获 8 筐。新发现的渔场收获未知：三成把握是 20 筐一天，
+      七成可能只有 1 筐一天；去一天就能看清是哪种，之后每天可任选一处。渔民甲距休渔只剩 1 天，渔民乙还有 4 天。
+      问：两人明天各应去哪个渔场？至少还有几天时，先去新渔场一天才划得来？
+    answer_format: "DAY1_SHORT=<NEW|OLD>;DAY1_LONG=<NEW|OLD>;MIN_DAYS=<整数>"
+    answer:
+      parts:
+        - {type: label, value: DAY1_SHORT=OLD}
+        - {type: label, value: DAY1_LONG=NEW}
+        - {type: label, value: MIN_DAYS=2}
+  mapping:
+    objects: {草地: 老渔场, 灌丛: 新渔场, 剩余天数: 距休渔天数, 试探一天: 去新渔场一天}
+    shared_relations: [试探当期期望低于稳妥选项, 知情后每期期望更高, 是否试探由剩余期数决定]
+    varied: [从觅食换成捕鱼，把握用成数表达，两个地平线分别为 1 天与 4 天]
+  lure:
+    problem: >-
+      同样两位渔民，但新渔场较差的情形也有 8 筐一天（三成 20 筐，七成 8 筐）。问两人明天各去哪里，以及至少还有几天时先去新渔场才划得来。
+    solution: 新渔场当天期望 0.3×20+0.7×8=11.6 已高于老渔场的 8，任何天数都应先去新渔场，最小天数为 1。
+    answer:
+      parts:
+        - {type: label, value: DAY1_SHORT=NEW}
+        - {type: label, value: DAY1_LONG=NEW}
+        - {type: label, value: MIN_DAYS=1}
+    why_surface_similar: 同样的渔民、渔场与问法。
+    why_structurally_different: lure 中试探当期不亏，目标中试探当期亏损而只剩 1 天的渔民不该去。
+    wrong_schema_id: informed-value-dominates-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: DAY1_SHORT=NEW}
+        - {type: label, value: DAY1_LONG=NEW}
+        - {type: label, value: MIN_DAYS=1}
+    derivation: 认为新渔场知情后的期望 0.3×20+0.7×8=11.6 高于 8，无论剩几天都先去新渔场。
+  hints:
+    schema_name: 试探的价值由其后剩余的可利用时间决定
+    oracle_mindset:
+      insight: 只剩一天的人没有“之后”，试探当天的亏损无法收回；先比较当天亏损与之后每天的增益乘以剩余天数。
+      when_to_use: 有一期代价的试探且之后还能反复选择时。
+    false_mindset:
+      insight: 新渔场平均更好，先去看看总没错。
+      when_to_use: 只比较长期平均值时。
+  verification:
+    entrypoint: mindsetbench.verification.far_horizon_exploration:verify_far_horizon_l1_01
+    method: finite-horizon-trial-value
+  provenance: original synthetic case
+  verified: 试探总期望 6.7+11.6(N−1) 与 8N 比较，N=1 时 6.7<8，N=2 时 18.3>16，最小天数 2。
+
+- id: FAR-HORIZON-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P1
+  thread: D-元认知控制
+  schema_id: far-horizon-exploration-v1
+  schema_name: 试探的价值由其后剩余的可利用时间决定
+  chain: far-horizon-exploration-v1
+  level: 2
+  source: *far_horizon_source
+  target:
+    domain: 工程项目的施工队选择
+    problem: >-
+      项目部内部邮件，日期 9 月 8 日（周一）：
+      “两处工地都在做管线点位安装，每周一决定当周由哪支队伍施工，一周内不换队。老包工队每周稳定完成
+      14 个点位。新承包方报价与老包工队相同，但产能未知：四成机会是每周 30 个，六成机会只有每周 2 个；
+      用一周就能看清是哪种情况，此后每周可任选一方。A 工地 9 月 14 日验收，B 工地 10 月 19 日验收，
+      验收日后不再施工。请两位负责人回复本周用哪支队伍；另请说明至少还剩几周时，先用新承包方一周才划得来。”
+    answer_format: "SITE_A=<NEW|OLD>;SITE_B=<NEW|OLD>;MIN_WEEKS=<整数>"
+    answer:
+      parts:
+        - {type: label, value: SITE_A=OLD}
+        - {type: label, value: SITE_B=NEW}
+        - {type: label, value: MIN_WEEKS=2}
+  mapping:
+    objects: {草地: 老包工队, 灌丛: 新承包方, 剩余天数: 距验收的施工周数, 试探一天: 试用新承包方一周, 迁徙离开: 验收日}
+    shared_relations: [试探当期期望低于稳妥选项, 知情后每期期望高于稳妥选项, 是否试探由剩余期数决定, 剩余期数不同的两方在同一环境下应做相反选择]
+    varied: [从生态跨到工程管理, 文体从题面改为内部邮件, 剩余周数要从日期推算, 数值全部更换]
+  lure:
+    problem: >-
+      同一封邮件，但新承包方较差的情形也是每周 14 个（四成 30 个，六成 14 个）。问两处工地本周用哪支队伍，以及至少还剩几周时先用新承包方才划得来。
+    solution: 新承包方首周期望 0.4×30+0.6×14=20.4 已高于老包工队的 14，两处工地都应直接用新承包方，最小周数为 1。
+    answer:
+      parts:
+        - {type: label, value: SITE_A=NEW}
+        - {type: label, value: SITE_B=NEW}
+        - {type: label, value: MIN_WEEKS=1}
+    why_surface_similar: 同一封邮件、同样两处工地与日期。
+    why_structurally_different: lure 中试用首周不亏，目标中试用首周期望 13.2 低于 14，只剩 1 周的 A 工地不该试。
+    wrong_schema_id: informed-value-dominates-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: SITE_A=NEW}
+        - {type: label, value: SITE_B=NEW}
+        - {type: label, value: MIN_WEEKS=1}
+    derivation: 认为新承包方知情后的期望 0.4×30+0.6×14=20.4 高于 14，两处工地都应先用新承包方。
+  hints:
+    schema_name: 试探的价值由其后剩余的可利用时间决定
+    oracle_mindset:
+      insight: 先从日期算出每处工地还剩几周；试用一周当周亏 0.8 个点位，之后每周多 6.4 个，只有还有第二周时才划得来。
+      when_to_use: 一期代价的试用之后还能反复选择，且不同对象剩余期数不同时。
+    false_mindset:
+      insight: 新承包方平均产能更高，两处工地都应先试用。
+      when_to_use: 只比较平均产能时。
+  verification:
+    entrypoint: mindsetbench.verification.far_horizon_exploration:verify_far_horizon_l2_01
+    method: finite-horizon-trial-value
+  provenance: original synthetic case; project, sites, and dates are fictional
+  verified: A 工地 1 周、B 工地 6 周；试用总期望 13.2+20.4(N−1) 与 14N 比较，N=1 亏 0.8，N=2 起更优。
+
+- id: FAR-HORIZON-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P1
+  thread: D-元认知控制
+  schema_id: far-horizon-exploration-v1
+  schema_name: 试探的价值由其后剩余的可利用时间决定
+  chain: far-horizon-exploration-v1
+  level: 3
+  source: *far_horizon_source
+  target:
+    domain: 术前慢性疼痛用药方案
+    problem: >-
+      疼痛门诊记录：现用药 A 每周症状缓解评分稳定为 12。新药 B 的效果因人而异：40% 的患者每周评分 25，
+      60% 的患者每周评分只有 2；B 需要连用两周才能判断患者属于哪一类，之后每周可自由选择继续 B 或换回 A；
+      但从 B 换回 A 需要一周洗脱期，洗脱期评分为 0。两位患者情况相同：患者甲距手术还有 3 周，患者乙距手术
+      还有 8 周，手术后不再用药。问：两位患者第一周各应用哪种药？至少还有几周时，先用 B 才划得来？
+    answer_format: "WEEK1_SHORT=<A|B>;WEEK1_LONG=<A|B>;MIN_WEEKS=<整数>"
+    answer:
+      parts:
+        - {type: label, value: WEEK1_SHORT=A}
+        - {type: label, value: WEEK1_LONG=B}
+        - {type: label, value: MIN_WEEKS=4}
+  mapping:
+    objects: {草地: 现用药 A, 灌丛: 新药 B, 剩余天数: 距手术周数, 试探一天: 连用 B 两周, 迁徙离开: 手术日}
+    shared_relations: [试探期间期望低于稳妥选项, 知情后每期期望更高, 是否试探由剩余期数决定, 剩余期数不同的两人应做相反选择]
+    removed_relations: [一期即可确知, 换回稳妥选项不需代价]
+    added_relations: [判断需要两期而非一期, 换回稳妥选项要付出一期评分为 0 的洗脱期]
+    adaptation_required: [把试探代价从一期改为两期并计入两期的期望亏损, 在不利分支中加入洗脱期损失后重算阈值, 不能照搬源题“剩 2 期即可试”的结论]
+    varied: [从生态跨到临床决策, 试探时长与回退代价改变使阈值从 2 升到 4]
+  lure:
+    problem: >-
+      同一门诊的另一种新药 C：40% 的患者每周评分 25，60% 的患者每周评分 2，用一周即可判断类型，换回 A 无需洗脱。
+      同样两位患者分别还有 3 周与 8 周，问第一周各用哪种药，以及至少还有几周时先用 C 才划得来。
+    solution: 一周试探、无洗脱时，试探总期望 11.2+17.2(N−1) 与 12N 比较，N 至少为 2 即可；两位患者第一周都应先用 C。
+    answer:
+      parts:
+        - {type: label, value: WEEK1_SHORT=B}
+        - {type: label, value: WEEK1_LONG=B}
+        - {type: label, value: MIN_WEEKS=2}
+    why_surface_similar: 同一门诊、同样的评分数值与两位患者。
+    why_structurally_different: lure 试探只需一周且换回免费，目标要两周判断并付一周洗脱，阈值从 2 周升到 4 周。
+    wrong_schema_id: one-period-free-switch-trial-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: WEEK1_SHORT=B}
+        - {type: label, value: WEEK1_LONG=B}
+        - {type: label, value: MIN_WEEKS=2}
+    derivation: 照搬源题结构，按一期试探、免费换回计算得到阈值 2 周，于是还有 3 周的患者甲也先用 B。
+  hints:
+    schema_name: 试探的价值由其后剩余的可利用时间决定
+    oracle_mindset:
+      insight: 试探要付两周、换回还要付一周，代价比源题大得多；把这些代价全部计入不利分支后再和剩余周数比较。
+      when_to_use: 试探需要多期才能得到结论，或退回稳妥选项本身有代价时。
+    false_mindset:
+      insight: 只要还有两周以上，先试新药总是值得。
+      when_to_use: 把任何试探都当作一期即可完成时。
+  verification:
+    entrypoint: mindsetbench.verification.far_horizon_exploration:verify_far_horizon_l3_01
+    method: finite-horizon-trial-value-with-washout
+  provenance: original synthetic case; clinic and patients are fictional
+  verified: 试 B 总期望 N=3 为 33.6<36，N=4 为 49.6>48；一周判断无洗脱时阈值为 2。
+
+- id: FAR-HORIZON-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P1
+  thread: D-元认知控制
+  schema_id: far-horizon-exploration-v1
+  schema_name: 试探的价值由其后剩余的可利用时间决定
+  chain: far-horizon-exploration-v1
+  level: 4
+  source: *far_horizon_source
+  target:
+    domain: 求职截止前的投稿策略
+    problem: >-
+      两位博士生的求职材料截止日期不同，材料中只计已录用的成果。可选去处有两个：期刊 B 录用概率 100%，
+      审稿 2 个月，成果分 12；会议 A 录用概率 40%，审稿 3 个月，录用成果分 25。若被 A 拒稿，可以把稿件改投 B，
+      B 仍需 2 个月审稿；同一时间只能投一处，截止前未录用的成果分为 0。同学甲距截止还有 4 个月，
+      同学乙距截止还有 6 个月。问：两人应先投哪里？至少还有几个月时，先投 A 才划得来？
+    answer_format: "FIRST_N4=<A|B>;FIRST_N6=<A|B>;MIN_MONTHS=<整数>"
+    answer:
+      parts:
+        - {type: label, value: FIRST_N4=B}
+        - {type: label, value: FIRST_N6=A}
+        - {type: label, value: MIN_MONTHS=5}
+  mapping:
+    objects: {草地: 期刊 B, 灌丛: 会议 A, 剩余天数: 距截止月数, 试探一天: 先投 A 等待 3 个月, 迁徙离开: 材料截止}
+    shared_relations: [先试不确定选项会消耗一段时间, 不确定选项的价值取决于失败后是否还有时间退回稳妥选项, 是否先试由剩余时间决定, 剩余时间不同的两人应做相反选择]
+    removed_relations: [逐期累积收益, 试探后每期反复选择]
+    added_relations: [一次性结果而非逐期收益, 退回稳妥选项需要固定时长且必须在截止前完成, 失败分支的补救只在剩余时间足够时存在]
+    adaptation_required: [把“之后每期多得”的价值改写为“失败后还来得及改投”的价值, 用截止前能否完成改投判断不确定选项是否值得, 不能沿用源题的期数阈值]
+    varied: [从生态跨到学术生涯规划, 模型从逐期累积改为一次性结果加时限, 方法从期数比较改为时限可行性判断]
+  lure:
+    problem: >-
+      同样两位同学与同样的两个去处，但该领域允许一稿同时投 A 与 B，B 两个月内必录用，A 若录用则撤回 B。
+      问两人应先投哪里，以及至少还有几个月时先投 A 才划得来。
+    solution: 可同时投稿时，只要还有 3 个月等 A 的结果，先投 A 的期望为 0.4×25+0.6×12=17.2，高于只投 B 的 12；两人都应先投 A，最少 3 个月。
+    answer:
+      parts:
+        - {type: label, value: FIRST_N4=A}
+        - {type: label, value: FIRST_N6=A}
+        - {type: label, value: MIN_MONTHS=3}
+    why_surface_similar: 同样的同学、去处、概率与月数。
+    why_structurally_different: lure 中退回 B 不占用时间，目标中被拒后改投 B 还需 2 个月，还有 4 个月的同学来不及。
+    wrong_schema_id: fallback-always-available-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: FIRST_N4=A}
+        - {type: label, value: FIRST_N6=A}
+        - {type: label, value: MIN_MONTHS=3}
+    derivation: 照搬源题“试过之后总能退回稳妥选项”的结构，认为只要来得及等 A 的 3 个月审稿就先投 A。
+  hints:
+    schema_name: 试探的价值由其后剩余的可利用时间决定
+    oracle_mindset:
+      insight: 先投 A 的价值来自“被拒后还来得及投 B”；算出 A 审稿加 B 审稿共需 5 个月，剩余不足 5 个月时先投 A 等于放弃保底。
+      when_to_use: 不确定选项失败后的补救需要时间，而截止日期固定时。
+    false_mindset:
+      insight: 只要来得及等 A 的结果，A 的期望更高就先投 A。
+      when_to_use: 忽略失败后改投所需时间时。
+  verification:
+    entrypoint: mindsetbench.verification.far_horizon_exploration:verify_far_horizon_l4_01
+    method: deadline-fallback-expected-value
+  provenance: original synthetic case
+  verified: 还有 4 个月时先投 A 期望 10 低于 12；还有 6 个月时 17.2 高于 12；改投最少需 5 个月。

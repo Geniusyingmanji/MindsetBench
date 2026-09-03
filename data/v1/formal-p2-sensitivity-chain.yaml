@@ -1,6 +1,8 @@
 - id: FORMAL-P2-SENS-L0-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：L2–L4 目标题是 source 同一后继场系统的重命名同构（L4 仅再扰动一条边权），复用同一边表模板“去向:形态数,谱类”，Model 与 Method 均未变化，不满足 SPEC 对 L2–L4 的定义；mb audit --surface 判定 surface-shared-template。保留为矩阵树执行力 sanity，不计入迁移距离统计。
   paradigm: P2
   thread: B-符号约束
   schema_id: coefficient-filtered-arborescence-sensitivity-v1
@@ -64,7 +66,9 @@
 
 - id: FORMAL-P2-SENS-L1-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：L2–L4 目标题是 source 同一后继场系统的重命名同构（L4 仅再扰动一条边权），复用同一边表模板“去向:形态数,谱类”，Model 与 Method 均未变化，不满足 SPEC 对 L2–L4 的定义；mb audit --surface 判定 surface-shared-template。保留为矩阵树执行力 sanity，不计入迁移距离统计。
   paradigm: P2
   thread: B-符号约束
   schema_id: coefficient-filtered-arborescence-sensitivity-v1
@@ -105,7 +109,9 @@
 
 - id: FORMAL-P2-SENS-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：L2–L4 目标题是 source 同一后继场系统的重命名同构（L4 仅再扰动一条边权），复用同一边表模板“去向:形态数,谱类”，Model 与 Method 均未变化，不满足 SPEC 对 L2–L4 的定义；mb audit --surface 判定 surface-shared-template。保留为矩阵树执行力 sanity，不计入迁移距离统计。
   paradigm: P2
   thread: B-符号约束
   schema_id: coefficient-filtered-arborescence-sensitivity-v1
@@ -147,7 +153,9 @@
 
 - id: FORMAL-P2-SENS-L3-01
   version: "1.1"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：L2–L4 目标题是 source 同一后继场系统的重命名同构（L4 仅再扰动一条边权），复用同一边表模板“去向:形态数,谱类”，Model 与 Method 均未变化，不满足 SPEC 对 L2–L4 的定义；mb audit --surface 判定 surface-shared-template。保留为矩阵树执行力 sanity，不计入迁移距离统计。
   paradigm: P2
   thread: B-符号约束
   schema_id: coefficient-filtered-arborescence-sensitivity-v1
@@ -190,7 +198,9 @@
 
 - id: FORMAL-P2-SENS-L4-01
   version: "1.1"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：L2–L4 目标题是 source 同一后继场系统的重命名同构（L4 仅再扰动一条边权），复用同一边表模板“去向:形态数,谱类”，Model 与 Method 均未变化，不满足 SPEC 对 L2–L4 的定义；mb audit --surface 判定 surface-shared-template。保留为矩阵树执行力 sanity，不计入迁移距离统计。
   paradigm: P2
   thread: B-符号约束
   schema_id: coefficient-filtered-arborescence-sensitivity-v1

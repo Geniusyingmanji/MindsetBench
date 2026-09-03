@@ -1,6 +1,8 @@
 - id: FORMAL-P5-PLAN-L0-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题与 source 为同一有状态操作系统的重命名/乱序版本，L4 仅改一张操作卡的效果，难度来自状态搜索规模；GPT-5.5 预筛 2/2 天花板。保留为规划执行力 sanity。
   paradigm: P5
   thread: J-操作规划
   schema_id: stateful-operation-planning-edit-v1
@@ -65,7 +67,9 @@
 
 - id: FORMAL-P5-PLAN-L1-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题与 source 为同一有状态操作系统的重命名/乱序版本，L4 仅改一张操作卡的效果，难度来自状态搜索规模；GPT-5.5 预筛 2/2 天花板。保留为规划执行力 sanity。
   paradigm: P5
   thread: J-操作规划
   schema_id: stateful-operation-planning-edit-v1
@@ -111,7 +115,9 @@
 
 - id: FORMAL-P5-PLAN-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题与 source 为同一有状态操作系统的重命名/乱序版本，L4 仅改一张操作卡的效果，难度来自状态搜索规模；GPT-5.5 预筛 2/2 天花板。保留为规划执行力 sanity。
   paradigm: P5
   thread: J-操作规划
   schema_id: stateful-operation-planning-edit-v1
@@ -164,7 +170,9 @@
 
 - id: FORMAL-P5-PLAN-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题与 source 为同一有状态操作系统的重命名/乱序版本，L4 仅改一张操作卡的效果，难度来自状态搜索规模；GPT-5.5 预筛 2/2 天花板。保留为规划执行力 sanity。
   paradigm: P5
   thread: J-操作规划
   schema_id: stateful-operation-planning-edit-v1
@@ -230,7 +238,9 @@
 
 - id: FORMAL-P5-PLAN-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题与 source 为同一有状态操作系统的重命名/乱序版本，L4 仅改一张操作卡的效果，难度来自状态搜索规模；GPT-5.5 预筛 2/2 天花板。保留为规划执行力 sanity。
   paradigm: P5
   thread: J-操作规划
   schema_id: stateful-operation-planning-edit-v1

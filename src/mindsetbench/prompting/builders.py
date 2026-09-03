@@ -14,7 +14,7 @@ TAIL = (
 
 
 def condition_is_applicable(case: CasePromptView, condition: Condition) -> bool:
-    if condition == Condition.WITH_LURE:
+    if condition in {Condition.WITH_LURE, Condition.WITH_BOTH}:
         return case.lure is not None
     if condition == Condition.H3_FALSE_MINDSET:
         return case.hints.false_mindset is not None
@@ -31,6 +31,9 @@ def build_prompt(
     context = context or PromptContext()
     user = _build_user(case, condition, context)
     digest = hashlib.sha256(f"{SYSTEM}\n{user}\n{TEMPLATE_VERSION}".encode()).hexdigest()
+    metadata: dict[str, str | int | None] = {"reference_case_id": context.reference_case_id}
+    if condition == Condition.WITH_BOTH:
+        metadata["reference_order"] = with_both_order(case.id)
     return PromptArtifact(
         case_id=case.id,
         condition=condition,
@@ -38,8 +41,15 @@ def build_prompt(
         user=user,
         template_version=TEMPLATE_VERSION,
         prompt_sha256=digest,
-        metadata={"reference_case_id": context.reference_case_id},
+        metadata=metadata,
     )
+
+
+def with_both_order(case_id: str) -> str:
+    """Deterministic, case-keyed presentation order for the unlabeled reference pair."""
+
+    digest = hashlib.sha256(case_id.encode("utf-8")).hexdigest()
+    return "source-first" if int(digest, 16) % 2 == 0 else "lure-first"
 
 
 def _build_user(case: CasePromptView, condition: Condition, context: PromptContext) -> str:
@@ -77,6 +87,29 @@ def _build_user(case: CasePromptView, condition: Condition, context: PromptConte
             solution=solution,
             answer=answer,
             target=target,
+        )
+    if condition == Condition.WITH_BOTH:
+        if case.lure is None:
+            raise ValueError(f"case {case.id} has no lure")
+        source_block = _reference_block(
+            problem=case.source.problem,
+            solution=case.source.solution,
+            answer=case.source.answer,
+        )
+        lure_block = _reference_block(
+            problem=case.lure.problem,
+            solution=case.lure.solution or "（该参考题尚未提供结构化解答。）",
+            answer=case.lure.answer.legacy_value() if case.lure.answer else "（未提供）",
+        )
+        ordered = (
+            (source_block, lure_block)
+            if with_both_order(case.id) == "source-first"
+            else (lure_block, source_block)
+        )
+        return (
+            "先阅读两道已解出的参考题。它们与目标题的相关性未知，可能有一道、两道或没有一道"
+            "与目标题共享解题结构；请自行判断后再解决目标题。\n\n"
+            f"【参考题一】\n{ordered[0]}\n\n【参考题二】\n{ordered[1]}\n\n{target}{TAIL}"
         )
     if condition == Condition.H1_SOURCE_PROBLEM:
         return (
@@ -124,3 +157,7 @@ def _solved_reference_prompt(*, problem: str, solution: str, answer: str, target
         f"【参考题解答】\n{solution}\n"
         f"【参考题答案】\n{answer}\n\n{target}{TAIL}"
     )
+
+
+def _reference_block(*, problem: str, solution: str, answer: str) -> str:
+    return f"{problem}\n\n解答：{solution}\n答案：{answer}"

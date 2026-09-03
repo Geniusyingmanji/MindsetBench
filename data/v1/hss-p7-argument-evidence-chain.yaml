@@ -1,6 +1,8 @@
 - id: HSS-P7-ARG-EVIDENCE-L0-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题直接陈述“来自/转引/同源/失效”等整理后的来源关系，识别步骤为零；GPT-5.6-sol 三条件 100%。远域版本见 far-evidence-independence 系列（来源关系须从可行性推断）。
   paradigm: P7
   thread: E-信噪判别
   schema_id: provenance-aware-corroboration-v1
@@ -55,7 +57,9 @@
 
 - id: HSS-P7-ARG-EVIDENCE-L1-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题直接陈述“来自/转引/同源/失效”等整理后的来源关系，识别步骤为零；GPT-5.6-sol 三条件 100%。远域版本见 far-evidence-independence 系列（来源关系须从可行性推断）。
   paradigm: P7
   thread: E-信噪判别
   schema_id: provenance-aware-corroboration-v1
@@ -95,7 +99,9 @@
 
 - id: HSS-P7-ARG-EVIDENCE-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题直接陈述“来自/转引/同源/失效”等整理后的来源关系，识别步骤为零；GPT-5.6-sol 三条件 100%。远域版本见 far-evidence-independence 系列（来源关系须从可行性推断）。
   paradigm: P7
   thread: E-信噪判别
   schema_id: provenance-aware-corroboration-v1
@@ -139,7 +145,9 @@
 
 - id: HSS-P7-ARG-EVIDENCE-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题直接陈述“来自/转引/同源/失效”等整理后的来源关系，识别步骤为零；GPT-5.6-sol 三条件 100%。远域版本见 far-evidence-independence 系列（来源关系须从可行性推断）。
   paradigm: P7
   thread: E-信噪判别
   schema_id: provenance-aware-corroboration-v1
@@ -195,7 +203,9 @@
 
 - id: HSS-P7-ARG-EVIDENCE-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题直接陈述“来自/转引/同源/失效”等整理后的来源关系，识别步骤为零；GPT-5.6-sol 三条件 100%。远域版本见 far-evidence-independence 系列（来源关系须从可行性推断）。
   paradigm: P7
   thread: E-信噪判别
   schema_id: provenance-aware-corroboration-v1

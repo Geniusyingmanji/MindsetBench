@@ -23,3 +23,7 @@ jobs:
       - run: mb validate
       - run: mb verify all
       - run: mb smoke
+      - run: mb validate data/manifests/far20.json --strict-v1
+      - run: mb validate-cards data/manifests/far20-cards.json data/manifests/far20.json
+      - run: mb audit data/manifests/far20.json --require-complete-chains --surface
+      - run: mb verify all --dataset data/manifests/far20.json

@@ -1,6 +1,8 @@
 - id: FORMAL-P5-CERT-L0-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：L3 为十六操作卡的完全重命名同构，L4 仅把一张卡的登记效果从 v 改为 p；GPT-5.6-sol 单样本 L0–L3 全对。保留为最优性证书格式与路径计数 sanity，不作为迁移距离证据。
   paradigm: P5
   thread: J-操作证书
   schema_id: stateful-planning-optimality-certificate-edit-v1
@@ -67,7 +69,9 @@
 
 - id: FORMAL-P5-CERT-L1-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：L3 为十六操作卡的完全重命名同构，L4 仅把一张卡的登记效果从 v 改为 p；GPT-5.6-sol 单样本 L0–L3 全对。保留为最优性证书格式与路径计数 sanity，不作为迁移距离证据。
   paradigm: P5
   thread: J-操作证书
   schema_id: stateful-planning-optimality-certificate-edit-v1
@@ -115,7 +119,9 @@
 
 - id: FORMAL-P5-CERT-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：L3 为十六操作卡的完全重命名同构，L4 仅把一张卡的登记效果从 v 改为 p；GPT-5.6-sol 单样本 L0–L3 全对。保留为最优性证书格式与路径计数 sanity，不作为迁移距离证据。
   paradigm: P5
   thread: J-操作证书
   schema_id: stateful-planning-optimality-certificate-edit-v1
@@ -166,7 +172,9 @@
 
 - id: FORMAL-P5-CERT-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：L3 为十六操作卡的完全重命名同构，L4 仅把一张卡的登记效果从 v 改为 p；GPT-5.6-sol 单样本 L0–L3 全对。保留为最优性证书格式与路径计数 sanity，不作为迁移距离证据。
   paradigm: P5
   thread: J-操作证书
   schema_id: stateful-planning-optimality-certificate-edit-v1
@@ -229,7 +237,9 @@
 
 - id: FORMAL-P5-CERT-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：L3 为十六操作卡的完全重命名同构，L4 仅把一张卡的登记效果从 v 改为 p；GPT-5.6-sol 单样本 L0–L3 全对。保留为最优性证书格式与路径计数 sanity，不作为迁移距离证据。
   paradigm: P5
   thread: J-操作证书
   schema_id: stateful-planning-optimality-certificate-edit-v1

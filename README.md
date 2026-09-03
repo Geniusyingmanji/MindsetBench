@@ -11,6 +11,29 @@ MindsetBench 用于测量 LLM/agent 能否把一个问题中的认知图式迁�
 
 答案、结构约束和关键构造均可由程序验证。
 
+## 2026-09-03 更新：降级与远域批次
+
+- 复盘发现 `formal35`、`hss20`、`hss-active8` 与 `expansion20` 的 L2–L4 目标题要么是 source 同一形式化系统的
+  重命名，要么把关系图和规则层级原样写进题面，按 SPEC 定义只翻了 Surface，且在 GPT-5.6-sol 上全部天花板。
+  这 82 题现改为 `split: sanity`，保留为执行力与格式 sanity 集，不再计入迁移距离统计（[题库状态](data/CASE_STATUS.md)）。
+- 新增 `mb audit --surface`：对 calibration/test 的 L2+ 题做表面距离闸门（共享记法模板、字符 bigram 重合大于
+  0.12 为 ERROR；lure 比 source 更远为 WARNING）。
+- 新增评测条件 `with-both`（source 与 lure 同时给出、不标注）及指标 `with_both_gain`、`selection_loss`、
+  `lure_answer_rate_by_condition`，直接测量表面竞争下的结构选择。
+- 新增 `far20`：四个框架型 mindset 家族（证据独立性、阴性证据、剩余地平线、可信承诺）各一条 L0–L4 链，
+  L2–L4 跨学科、跨文体、跨表征，目标题只问领域自然决策，诱饵是目标领域的标准做法，20/20 有可执行 verifier。
+  构造协议见 [`docs/FAR_TRANSFER_PROTOCOL.md`](docs/FAR_TRANSFER_PROTOCOL.md)，报告见
+  [`docs/far20-report.md`](docs/far20-report.md)。尚未做模型校准。
+
+```bash
+.venv/bin/mb validate data/manifests/far20.json --strict-v1
+.venv/bin/mb validate-cards data/manifests/far20-cards.json data/manifests/far20.json
+.venv/bin/mb audit data/manifests/far20.json --require-complete-chains --surface-table
+.venv/bin/mb verify all --dataset data/manifests/far20.json
+.venv/bin/mb plan-run --dataset data/manifests/far20-hard.json \
+  --conditions target-only with-source with-lure with-both --samples-per-item 3
+```
+
 ## 当前任务
 
 类型化开发集包含以下主要范式：
@@ -163,6 +186,8 @@ export MINDSETBENCH_API_KEY='...'
 
 ## 当前结论
 
+- 2026-09-03：类型化扩展的 L2–L4 不满足 SPEC 对 Model/Method 变化的要求，已整体降为 sanity；下一阶段的迁移
+  测量以 `far20` 这类“识别难、执行易、诱饵为领域标准做法”的远域家族为主，先跑 target-only 校准再谈增益。
 - 显式规则题对强模型普遍偏简单，容易出现天花板效应。
 - HSS20 的首轮假低分来自未明示的答案前缀；修复后 72/72 全对，现已明确降为 sanity/calibration。
 - 远域换皮加主动查询仍不足：单步与两阶段策略共 24/24 全对；增加显式矩阵搜索只显著增加 tokens/延迟。

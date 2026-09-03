@@ -14,6 +14,9 @@ class Split(StrEnum):
     DEV = "dev"
     CALIBRATION = "calibration"
     TEST = "test"
+    # Execution/format sanity material: verified and runnable, but the target shares the
+    # source's formal representation, so it must not be reported as transfer distance.
+    SANITY = "sanity"
 
 
 class Paradigm(StrEnum):

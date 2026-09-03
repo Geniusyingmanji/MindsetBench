@@ -1,6 +1,8 @@
 - id: FORMAL-P6-ALIGN-L0-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题与 source 共用同一两图边表记法，L3/L4 为重命名与一删一增；GPT-5.5 单样本 6/6，mb audit --surface 判定 surface-lexical-overlap。保留为图对齐执行力 sanity。
   paradigm: P6
   thread: K-角色映射
   schema_id: joint-typed-alignment-edit-sensitivity-v1
@@ -76,7 +78,9 @@
 
 - id: FORMAL-P6-ALIGN-L1-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题与 source 共用同一两图边表记法，L3/L4 为重命名与一删一增；GPT-5.5 单样本 6/6，mb audit --surface 判定 surface-lexical-overlap。保留为图对齐执行力 sanity。
   paradigm: P6
   thread: K-角色映射
   schema_id: joint-typed-alignment-edit-sensitivity-v1
@@ -133,7 +137,9 @@
 
 - id: FORMAL-P6-ALIGN-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题与 source 共用同一两图边表记法，L3/L4 为重命名与一删一增；GPT-5.5 单样本 6/6，mb audit --surface 判定 surface-lexical-overlap。保留为图对齐执行力 sanity。
   paradigm: P6
   thread: K-角色映射
   schema_id: joint-typed-alignment-edit-sensitivity-v1
@@ -198,7 +204,9 @@
 
 - id: FORMAL-P6-ALIGN-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题与 source 共用同一两图边表记法，L3/L4 为重命名与一删一增；GPT-5.5 单样本 6/6，mb audit --surface 判定 surface-lexical-overlap。保留为图对齐执行力 sanity。
   paradigm: P6
   thread: K-角色映射
   schema_id: joint-typed-alignment-edit-sensitivity-v1
@@ -276,7 +284,9 @@
 
 - id: FORMAL-P6-ALIGN-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题与 source 共用同一两图边表记法，L3/L4 为重命名与一删一增；GPT-5.5 单样本 6/6，mb audit --surface 判定 surface-lexical-overlap。保留为图对齐执行力 sanity。
   paradigm: P6
   thread: K-角色映射
   schema_id: joint-typed-alignment-edit-sensitivity-v1

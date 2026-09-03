@@ -64,6 +64,15 @@ def summarize_transfer(records: Sequence[TrialRecord]) -> dict[str, object]:
         "structural_selectivity": paired_condition_difference(
             records, Condition.WITH_SOURCE, Condition.WITH_LURE
         ),
+        # Schema selection under surface competition: how much of the with-source gain
+        # survives when the lure is shown next to the source without labels.
+        "with_both_gain": paired_condition_difference(
+            records, Condition.WITH_BOTH, Condition.TARGET_ONLY
+        ),
+        "selection_loss": paired_condition_difference(
+            records, Condition.WITH_SOURCE, Condition.WITH_BOTH
+        ),
+        "lure_answer_rate_by_condition": lure_answer_rate_by_condition(records),
         "completed_structural_selectivity": paired_completed_condition_difference(
             records, Condition.WITH_SOURCE, Condition.WITH_LURE
         ),
@@ -246,6 +255,20 @@ def copy_probe_rate_by_condition(records: Sequence[TrialRecord]) -> dict[str, fl
     for record in records:
         if record.has_copy_probe:
             grouped[record.condition.value].append(record.grade.matched_copy_probe)
+    return {
+        condition: sum(matches) / len(matches)
+        for condition, matches in sorted(grouped.items())
+        if matches
+    }
+
+
+def lure_answer_rate_by_condition(records: Sequence[TrialRecord]) -> dict[str, float]:
+    """Share of trials whose final answer equals the preregistered lure answer."""
+
+    grouped: dict[str, list[bool]] = defaultdict(list)
+    for record in records:
+        matched = bool(getattr(record.grade, "matched_lure_answer", False))
+        grouped[record.condition.value].append(matched)
     return {
         condition: sum(matches) / len(matches)
         for condition, matches in sorted(grouped.items())

@@ -484,3 +484,23 @@ def test_calibration_gate_rejects_underfilled_ceiling_data() -> None:
     assert not assessment["passed"]
     assert "insufficient-coverage" in assessment["reasons"]
     assert "target-outside-window" in assessment["reasons"]
+
+
+def test_transfer_summary_reports_selection_under_surface_competition() -> None:
+    records = [
+        _record("a", Condition.TARGET_ONLY, False),
+        _record("a", Condition.WITH_SOURCE, True),
+        _record("a", Condition.WITH_BOTH, False),
+        _record("b", Condition.TARGET_ONLY, False),
+        _record("b", Condition.WITH_SOURCE, True),
+        _record("b", Condition.WITH_BOTH, True),
+    ]
+    summary = summarize_transfer(records)
+    assert summary["transfer_gain"] == 1.0
+    assert summary["with_both_gain"] == 0.5
+    assert summary["selection_loss"] == 0.5
+    assert summary["lure_answer_rate_by_condition"] == {
+        "target-only": 0.0,
+        "with-both": 0.0,
+        "with-source": 0.0,
+    }

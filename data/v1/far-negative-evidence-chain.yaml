@@ -1,0 +1,311 @@
+# Far-transfer family: an observation that fails to show the expected signal cuts the
+# hypothesis space as hard as one that shows it. Decoy at every level: rank hypotheses
+# by how many sampled items they touch, which ignores what the negatives rule out.
+- id: FAR-NEG-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: F-逆问题
+  schema_id: far-negative-evidence-v1
+  schema_name: 未出现的预期信号与出现的信号同样切割候选集
+  chain: far-negative-evidence-v1
+  level: 0
+  source: &far_neg_source
+    domain: 食品供应链污染溯源
+    problem: >-
+      某食品厂有五家原料供应商 S1—S5、四个混料罐 M1—M4 和六种成品 P1—P6。
+      配方：M1 由 S1、S2 的原料配成；M2 由 S2、S3 配成；M3 由 S3、S4 配成；M4 由 S4、S5 配成。
+      用料：P1 用 M1；P2 用 M2；P3 用 M1 和 M3；P4 用 M3；P5 用 M4；P6 用 M2 和 M4。
+      质检确认污染来自恰好一家供应商，并且会传入该供应商原料所到达的全部成品。
+      抽检结果：P2、P6 阳性；P4、P5 阴性；P1、P3 未抽检。问污染来自哪家供应商。
+    solution: >-
+      先列出各供应商原料能到达的成品：S1 到 P1、P3；S2 到 P1、P2、P3、P6；S3 到 P2、P3、P4、P6；
+      S4 到 P3、P4、P5、P6；S5 到 P5、P6。要同时到达阳性的 P2 和 P6，只剩 S2 与 S3 两个候选，阳性结果
+      本身分不出它们。P4 阴性说明污染没有到达 P4，而 S3 的原料会进入 P4，于是 S3 被排除；S2 不到达 P4、P5，
+      与两条阴性都相容。唯一相容的来源是 S2。没有检出的样品和检出的样品一样在收窄候选，只看阳性会停在两个
+      候选之间。
+    answer: S2
+  target:
+    domain: 食品供应链污染溯源
+    problem: >-
+      另一家工厂有四家供应商 T1—T4、三个混料罐 M1—M3 和五种成品 Q1—Q5。
+      配方：M1 由 T1、T2 配成；M2 由 T2、T3 配成；M3 由 T3、T4 配成。
+      用料：Q1 用 M1；Q2 用 M2；Q3 用 M1 和 M2；Q4 用 M3；Q5 用 M2 和 M3。
+      污染同样来自恰好一家供应商并传入其原料到达的全部成品。
+      抽检结果：Q3、Q5 阳性；Q1 阴性；Q2、Q4 未抽检。问污染来自哪家供应商。
+    answer_format: "<供应商编号>"
+    answer:
+      parts:
+        - {type: label, value: T3}
+  mapping:
+    objects: {供应商 S: 供应商 T, 混料罐: 混料罐, 阳性成品: 阳性成品, 阴性成品: 阴性成品}
+    shared_relations: [候选须到达全部阳性, 候选不得到达任何阴性, 阳性只筛出候选集而阴性完成区分]
+    varied: [仅更换规模与配方]
+  lure:
+    problem: >-
+      同一工厂、同样配方，但这次抽检结果为 Q1、Q3、Q5 阳性，其余未抽检。问污染来自哪家供应商。
+    solution: 同时到达 Q1、Q3、Q5 的只有 T2，阳性结果已足以定位。
+    answer:
+      parts:
+        - {type: label, value: T2}
+    why_surface_similar: 同一工厂、同样配方与成品编号。
+    why_structurally_different: lure 只靠阳性即可唯一定位，目标必须用阴性排除并列候选。
+    wrong_schema_id: positives-only-coverage-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: T2}
+    derivation: 忽略 Q1 阴性，在同时到达阳性的 T2、T3 中选择到达抽检样品更多的 T2。
+  hints:
+    schema_name: 未出现的预期信号与出现的信号同样切割候选集
+    oracle_mindset:
+      insight: 先用阳性列出候选，再用每一条阴性删掉会到达该样品的候选。
+      when_to_use: 阳性样品被多个来源共同覆盖时。
+    false_mindset:
+      insight: 哪个来源牵涉的抽检样品最多，污染就来自它。
+      when_to_use: 只看阳性数量或牵涉面时。
+  verification:
+    entrypoint: mindsetbench.verification.far_negative_evidence:verify_far_neg_l0_01
+    method: set-cover-with-negative-exclusion
+  provenance: original synthetic case
+  verified: 阳性留下 T2、T3；Q1 阴性排除到达 Q1 的 T2；唯一相容 T3。
+
+- id: FAR-NEG-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: F-逆问题
+  schema_id: far-negative-evidence-v1
+  schema_name: 未出现的预期信号与出现的信号同样切割候选集
+  chain: far-negative-evidence-v1
+  level: 1
+  source: *far_neg_source
+  target:
+    domain: 病区院内感染溯源
+    problem: >-
+      某病区排查一起耐药菌传播事件。感染控制科确认传染源只有一名护理人员，且该人员在其值班病房内接触过的
+      全部患者都会被定植。护理人员排班：N1 只在 W1 病房值班；N2 在 W1、W2 值班；N3 在 W2、W3 值班；
+      N4 只在 W3 值班。患者去向：p1 全程在 W1；p2 在 W2；p3 先在 W1 后转入 W2；p4 在 W3；p5 先在 W2
+      后转入 W3；p6 全程在 W1。筛查：p3、p5 检出该菌；p6 检测阴性；其余患者尚未筛查。问传染源是哪名护理人员。
+    answer_format: "<护理人员编号>"
+    answer:
+      parts:
+        - {type: label, value: N3}
+  mapping:
+    objects: {供应商: 护理人员, 混料罐: 病房, 成品: 患者, 抽检结果: 筛查结果}
+    shared_relations: [传染源须到达全部检出者, 传染源不得到达阴性者, 检出只筛出候选而阴性完成区分]
+    varied: [从原料流换成人员排班与患者转科，阳性阴性用医学措辞表达]
+  lure:
+    problem: >-
+      同一病区、同样排班与患者去向，但筛查结果为 p3、p5、p6 检出，其余未筛查。问传染源是谁。
+    solution: 同时到达 p3、p5、p6 的只有在 W1、W2 值班的 N2，检出结果已足以定位。
+    answer:
+      parts:
+        - {type: label, value: N2}
+    why_surface_similar: 同一病区、同一排班与患者编号。
+    why_structurally_different: lure 靠检出即可定位，目标必须用 p6 阴性排除 N2。
+    wrong_schema_id: positives-only-coverage-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: N2}
+    derivation: 忽略 p6 阴性，在到达全部检出者的 N2、N3 中选择接触过更多已筛查患者的 N2。
+  hints:
+    schema_name: 未出现的预期信号与出现的信号同样切割候选集
+    oracle_mindset:
+      insight: 未被定植的患者所在病房，其值班人员不可能是传染源；阴性筛查是排除条件。
+      when_to_use: 多名人员都能解释全部检出者时。
+    false_mindset:
+      insight: 接触面最广、牵涉筛查患者最多的人最可疑。
+      when_to_use: 只统计接触过的患者数时。
+  verification:
+    entrypoint: mindsetbench.verification.far_negative_evidence:verify_far_neg_l1_01
+    method: set-cover-with-negative-exclusion
+  provenance: original synthetic case; ward, staff, and patients are fictional
+  verified: 检出留下 N2、N3；p6 阴性排除在 W1 值班的 N2；唯一相容 N3。
+
+- id: FAR-NEG-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: F-逆问题
+  schema_id: far-negative-evidence-v1
+  schema_name: 未出现的预期信号与出现的信号同样切割候选集
+  chain: far-negative-evidence-v1
+  level: 2
+  source: *far_neg_source
+  target:
+    domain: 持续集成中的故障定位
+    problem: >-
+      一次夜间构建后，服务 report-svc 出现确定性崩溃：崩溃发生在恰好一个函数里，任何执行到该函数的测试
+      都会失败，没有执行到它的测试都会通过。夜间流水线只跑了部分测试：T2、T5 失败；T1、T4 通过；
+      T3、T6、T7 未运行。
+      覆盖报告（每个测试执行到的函数）：
+      T1 执行 parse_header、normalize_row；
+      T2 执行 parse_header、normalize_row、merge_batches；
+      T3 执行 render_report、cache_lookup；
+      T4 执行 parse_header、cache_lookup、check_auth；
+      T5 执行 normalize_row、merge_batches、render_report；
+      T6 执行 merge_batches、check_auth；
+      T7 执行 cache_lookup、check_auth。
+      问：崩溃位于哪个函数？
+    answer_format: "FAULT=<函数名>"
+    answer:
+      parts:
+        - {type: label, value: FAULT=merge_batches}
+  mapping:
+    objects: {供应商: 候选函数, 混料罐与成品: 执行到该函数的测试, 阳性成品: 失败的测试, 阴性成品: 通过的测试, 未抽检成品: 未运行的测试}
+    shared_relations: [候选必须出现在全部失败测试的执行路径上, 候选不得出现在任何通过测试的执行路径上, 失败结果只筛出候选而通过结果完成区分, 未运行的测试不提供约束]
+    varied: [从物料流跨到软件测试, 材料从配方表改为覆盖报告, 到达关系改为“测试执行到函数”]
+  lure:
+    problem: >-
+      同一服务、同一份覆盖报告，但这次 T1、T2、T5 全部失败，T4 通过，其余未运行。问崩溃位于哪个函数。
+    solution: 同时被 T1、T2、T5 执行到的只有 normalize_row，失败结果已足以定位。
+    answer:
+      parts:
+        - {type: label, value: FAULT=normalize_row}
+    why_surface_similar: 同一服务、同一覆盖报告、同样的测试编号。
+    why_structurally_different: lure 只靠失败测试即可定位，目标必须用通过的 T1 排除 normalize_row。
+    wrong_schema_id: positives-only-coverage-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: FAULT=normalize_row}
+    derivation: 只看失败测试的交集得到 normalize_row 与 merge_batches，再选被更多已运行测试执行到的 normalize_row，没有用 T1 通过来排除它。
+  hints:
+    schema_name: 未出现的预期信号与出现的信号同样切割候选集
+    oracle_mindset:
+      insight: 通过的测试执行到的每个函数都不可能是崩溃点；先取失败测试执行路径的交集，再减去通过测试的执行路径。
+      when_to_use: 多个函数同时出现在所有失败测试的路径上时。
+    false_mindset:
+      insight: 被最多测试执行到、出现最频繁的函数最可疑。
+      when_to_use: 按覆盖频次排序时。
+  verification:
+    entrypoint: mindsetbench.verification.far_negative_evidence:verify_far_neg_l2_01
+    method: coverage-intersection-with-pass-exclusion
+  provenance: original synthetic case; service, tests, and functions are fictional
+  verified: T2∩T5 留下 normalize_row、merge_batches；T1 通过排除 normalize_row；唯一 merge_batches。
+
+- id: FAR-NEG-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: F-逆问题
+  schema_id: far-negative-evidence-v1
+  schema_name: 未出现的预期信号与出现的信号同样切割候选集
+  chain: far-negative-evidence-v1
+  level: 3
+  source: *far_neg_source
+  target:
+    domain: 手抄编年史的成书年代考订
+    problem: >-
+      某城主教座堂藏有一部佚名编年史抄本，学界认为它出自一位作者、一次写成，且作者写作时身在该城。
+      该编年史通篇只记教会与主教座堂事务，不记世俗政事、商贸与灾荒。关于成书年代，可用的线索如下：
+      它记载了 1462 年主教更替与 1466 年座堂钟楼落成，两事均写作已发生之事；
+      它没有记载 1471 年座堂大火，那场火灾烧毁了半个中殿，是该城教会史上最大的灾变；
+      它没有记载 1468 年邻国主教会议的决议，但据另一史料，该决议的消息直到 1475 年才传至该城；
+      它也没有记载 1469 年该城获得的商贸特许状，那是一件震动全城的世俗大事。
+      问：这部编年史最早和最晚可能成书于哪一年？
+    answer_format: "<最早成书年份>;<最晚成书年份>"
+    answer:
+      parts:
+        - {type: number, value: "1466"}
+        - {type: number, value: "1470"}
+  mapping:
+    objects: {供应商: 候选成书年份, 阳性成品: 被记载的事件, 阴性成品: 未被记载的事件, 到达关系: 作者能够且按体例会记载该事件, 未抽检成品: 消息尚未到达或不在体例内的事件}
+    shared_relations: [被记载的事件给出成书年份的下界, 未被记载的事件给出成书年份的上界, 一条约束只在作者能观察到该事件时才成立, 阳性只框出范围而阴性完成收窄]
+    removed_relations: [每次抽检都可靠地能检出污染这一默认]
+    added_relations: [未记载只有在作者当时能够知道并且事件属于编年史体例时才构成约束, 消息传播延迟与体例范围决定一条沉默是否有效]
+    adaptation_required: [把“阴性一律排除”改为“先判定该次观测能否检出，再决定它是否构成上界”, 逐条核对每个未记载事件的可知性与体例内外]
+    varied: [从物料流跨到历史文献学, 观测从抽检改为记载与未记载, 候选从离散来源改为年份区间, 新增观测有效性条件]
+  lure:
+    problem: >-
+      同一抄本与同一批线索，但抄本首页有作者自序：“凡本城及邻邦教俗诸事，无论巨细，本年皆书。”
+      问这部编年史最早和最晚可能成书于哪一年。
+    solution: 自序表明作者对世俗与邻邦之事一律记载且及时知悉，于是三处未记载都构成上界，最晚为 1467 年。
+    answer:
+      parts:
+        - {type: number, value: "1466"}
+        - {type: number, value: "1467"}
+    why_surface_similar: 同一抄本、同一批事件与年份。
+    why_structurally_different: lure 中每条沉默都有效，目标中有两条沉默因不可知或不在体例内而无效。
+    wrong_schema_id: every-silence-excludes-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: number, value: "1466"}
+        - {type: number, value: "1467"}
+    derivation: 照搬“未检出即排除”，把 1468 年决议与 1469 年特许状的未记载都当作上界，得到最晚 1467 年。
+  hints:
+    schema_name: 未出现的预期信号与出现的信号同样切割候选集
+    oracle_mindset:
+      insight: 未记载要构成上界，作者必须当时知道且按体例会写；先剔除不可知与体例外的沉默，再取最早的有效上界。
+      when_to_use: 用文献的沉默推断年代而文献有明确体例或消息有延迟时。
+    false_mindset:
+      insight: 凡是没写的大事都发生在成书之后。
+      when_to_use: 把所有沉默一律当作上界时。
+  verification:
+    entrypoint: mindsetbench.verification.far_negative_evidence:verify_far_neg_l3_01
+    method: interval-bounds-with-informative-silence
+  provenance: original synthetic case; city, cathedral, and events are fictional
+  verified: 下界 1466；有效上界只有 1471 年大火给出的 1470；1468 决议不可知、1469 特许状不在体例内。
+
+- id: FAR-NEG-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: F-逆问题
+  schema_id: far-negative-evidence-v1
+  schema_name: 未出现的预期信号与出现的信号同样切割候选集
+  chain: far-negative-evidence-v1
+  level: 4
+  source: *far_neg_source
+  target:
+    domain: 保护区红外相机的动物路线重建
+    problem: >-
+      保护区有六处相机点 A、B、C、D、E、F，步道连接及沿步道行走的最短用时（分钟）为：
+      A—B 20，B—F 30，A—C 50，C—F 40，C—D 15，D—F 20，C—E 30，E—F 45，B—C 35。
+      一只戴项圈的雪豹某日清晨从 A 出发到达 F，途中不重复经过任何相机点；它可以在任何位置停留，
+      但在任一步道上不会比标注时间更快。相机记录：A 处 06:00 拍到它，C 处 06:50 拍到它，F 处 08:00 拍到它；
+      B、D 两处相机整晨正常工作但没有任何记录；E 处相机故障，当晨无法记录。
+      问：它走的是哪一条路线？
+    answer_format: "ROUTE=<用>连接的相机点序列>"
+    answer:
+      parts:
+        - {type: label, value: "ROUTE=A>C>F"}
+  mapping:
+    objects: {供应商: 候选路线, 阳性成品: 有记录的相机点, 阴性成品: 正常工作却无记录的相机点, 未抽检成品: 故障的相机点, 到达关系: 路线经过相机点且时间可行}
+    shared_relations: [候选路线必须经过全部有记录的点, 候选路线不得经过正常工作却无记录的点, 故障相机不提供约束, 有记录的点只框出候选而无记录的点完成区分]
+    removed_relations: [来源到达成品的静态物料关系, 离散来源集合]
+    added_relations: [候选是图上的路径而非单个节点, 每个有记录的点附带时间且沿途最短用时给出可行性约束, 无记录的点以否定形式约束路径]
+    adaptation_required: [把“候选来源”改为“候选路径”并枚举, 同时用时间可行性与无记录相机两类约束筛选, 不用最短路径代替唯一可行路径]
+    varied: [从物料流跨到野生动物监测, 假设空间从有限来源变为图上路径, 观测带时间戳并允许停留]
+  lure:
+    problem: >-
+      同一保护区、同一批相机与用时表，同样是 A 处 06:00、C 处 06:50、F 处 08:00 拍到它；但当晨 B、D
+      两处相机存储卡已满，没有留下任何记录，E 处相机故障。问它最可能走的最短路线是哪一条。
+    solution: 无有效的否定信息时，只需经过 A、C、F 且时间可行的最短路线为 A、C、D、F，共 85 分钟。
+    answer:
+      parts:
+        - {type: label, value: "ROUTE=A>C>D>F"}
+    why_surface_similar: 同一地图、同样三条拍摄记录与时间。
+    why_structurally_different: lure 中无记录来自设备失效不构成约束，目标中正常工作的 B、D 无记录直接排除经过它们的路线。
+    wrong_schema_id: shortest-path-through-sightings-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: "ROUTE=A>C>D>F"}
+    derivation: 只用有记录的 A、C、F 约束路线并取最短，得到经过 D 的 A、C、D、F，没有用 D 处正常工作却无记录来排除。
+  hints:
+    schema_name: 未出现的预期信号与出现的信号同样切割候选集
+    oracle_mindset:
+      insight: 正常工作却没拍到的相机点是路线不能经过的点；先按有记录的点与时间筛出可行路线，再删掉经过这些点的路线。
+      when_to_use: 多条路线都能解释全部拍摄记录时。
+    false_mindset:
+      insight: 动物走最短路线，经过所有拍到它的点的最短路径就是答案。
+      when_to_use: 只用有记录的点做最短路时。
+  verification:
+    entrypoint: mindsetbench.verification.far_negative_evidence:verify_far_neg_l4_01
+    method: path-enumeration-with-time-and-silence-constraints
+  provenance: original synthetic case; reserve, trails, and animal are fictional
+  verified: 经过 A、C、F 且时间可行的路线为 A>C>F 与 A>C>D>F；D 正常工作无记录排除后者；A>C>E>F 到 F 不早于 08:05 不可行。

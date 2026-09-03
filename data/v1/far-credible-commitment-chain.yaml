@@ -1,0 +1,365 @@
+# Far-transfer family: a promise is credible only when the promiser has lost the option
+# to renege at the moment reneging would pay, and the counterparty can verify that.
+# Decoy at every level: read stated penalties, automation or strong wording as credibility.
+- id: FAR-COMMIT-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P8
+  thread: J-机制识别
+  schema_id: far-credible-commitment-v1
+  schema_name: 承诺的可信度来自承诺人失去反悔的能力
+  chain: far-credible-commitment-v1
+  level: 0
+  source: &far_commit_source
+    domain: 云服务接口停用公告
+    problem: >-
+      某云服务商宣布旧版接口将于 2027 年 1 月 1 日停用，要求客户在此之前迁移。过去两次同类公告都在临近时被
+      延期，客户普遍不再相信这次会真的停用。服务商考虑以下四项措施，请判断每项单独实施时，能否让“到期一定停用”
+      这一承诺变得可信：
+      A 由首席执行官在公开信中用最严厉的措辞重申日期，并声明“绝不再延期”；
+      B 在官方 SDK 中写入停用日期，日期之后客户端自动拒绝调用旧接口；SDK 更新由服务商推送，服务商可随时发布
+      去掉该限制的新版本；
+      C 与一家独立的行业标准机构签订不可单方解除的托管合同：停用开关由该机构在 2027 年 1 月 1 日执行，合同
+      文本公开可查；
+      D 服务商承诺若延期将向每位客户支付 100 万元违约金，但是否构成“延期”由服务商自行认定。
+    solution: >-
+      客户担心的不是服务商今天想不想停用，而是到了 2027 年 1 月、延期对服务商有利的那一刻，它还能不能反悔。
+      A 只是措辞，反悔不需要任何代价。B 看起来是技术强制，但开关仍在服务商手里，它随时可以推送新版本取消限制，
+      等于没有交出选项。C 把执行权交给了利益无关、服务商不能控制的第三方，且合同不可单方解除、客户能核实，
+      服务商在关键时刻确实无法反悔，可信。D 罚金数额虽大，但“是否延期”由服务商自己认定，它可以随时判定
+      自己没有延期，罚金从未真正约束它。可信的措施是把反悔的能力交出去或销毁掉，而不是把话说得更重或把罚金
+      写得更大。
+    answer: A=CHEAP;B=CHEAP;C=CREDIBLE;D=CHEAP
+  target:
+    domain: 云服务数据留存承诺
+    problem: >-
+      另一家云服务商向用户承诺“账户注销后 30 天内彻底删除全部数据”，用户对此普遍存疑。请判断以下四项措施
+      单独实施时，能否让这一承诺变得可信：
+      M1 在隐私政策中用加粗字体写明该承诺；
+      M2 删除由服务商自己的定时任务在第 30 天执行，运维可随时暂停该任务；
+      M3 用户数据全部用独立密钥加密，密钥托管在第三方机构，第 30 天由第三方销毁密钥；托管协议不可单方解除
+      且公开可查；
+      M4 承诺若未按期删除则向每位用户赔付 100 元，但是否“未按期删除”由服务商内部合规部门认定。
+    answer_format: "M1=<CREDIBLE|CHEAP>;M2=<CREDIBLE|CHEAP>;M3=<CREDIBLE|CHEAP>;M4=<CREDIBLE|CHEAP>"
+    answer:
+      parts:
+        - {type: label, value: M1=CHEAP}
+        - {type: label, value: M2=CHEAP}
+        - {type: label, value: M3=CREDIBLE}
+        - {type: label, value: M4=CHEAP}
+  mapping:
+    objects: {停用开关: 删除任务与密钥, 服务商: 服务商, 行业标准机构: 密钥托管机构, 客户: 用户}
+    shared_relations: [反悔能力仍在承诺人手中的措施不可信, 执行权交给不受控第三方且不可撤销的措施可信, 由承诺人自行裁定的罚金不构成约束]
+    varied: [仅更换承诺内容与措施细节]
+  lure:
+    problem: >-
+      同一服务商与同样四项措施，但公司法务的评审标准是“凡有自动执行机制或明确赔付条款的措施即视为有约束力”。
+      按该标准判断 M1–M4。
+    solution: 按该标准，M2 有自动任务、M3 有托管销毁、M4 有赔付条款，均视为有约束力，只有 M1 是纯文字。
+    answer:
+      parts:
+        - {type: label, value: M1=CHEAP}
+        - {type: label, value: M2=CREDIBLE}
+        - {type: label, value: M3=CREDIBLE}
+        - {type: label, value: M4=CREDIBLE}
+    why_surface_similar: 同一服务商、同样四项措施与标签。
+    why_structurally_different: lure 按是否存在强制或赔付机制分类，目标按反悔能力是否交出分类。
+    wrong_schema_id: enforcement-wording-equals-credibility-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: M1=CHEAP}
+        - {type: label, value: M2=CREDIBLE}
+        - {type: label, value: M3=CREDIBLE}
+        - {type: label, value: M4=CREDIBLE}
+    derivation: 看到自动任务和赔付条款就判为可信，没有追问在到期那一刻谁还能暂停任务、谁来认定违约。
+  hints:
+    schema_name: 承诺的可信度来自承诺人失去反悔的能力
+    oracle_mindset:
+      insight: 对每项措施只问一件事：到了违约有利的那一刻，承诺人自己还能不能取消它。
+      when_to_use: 评估一方对另一方的承诺、威胁或保证是否会被兑现时。
+    false_mindset:
+      insight: 有自动机制或写明罚金的承诺就是有约束力的承诺。
+      when_to_use: 按措辞强度和罚金大小排序时。
+  verification:
+    entrypoint: mindsetbench.verification.far_credible_commitment:verify_far_commit_l0_01
+    method: reneging-control-attribute-classification
+  provenance: original synthetic case
+  verified: M2 由运维可暂停、M4 由自身合规部门裁定，反悔权仍在承诺人；只有 M3 把销毁权交给不受控第三方。
+
+- id: FAR-COMMIT-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P8
+  thread: J-机制识别
+  schema_id: far-credible-commitment-v1
+  schema_name: 承诺的可信度来自承诺人失去反悔的能力
+  chain: far-credible-commitment-v1
+  level: 1
+  source: *far_commit_source
+  target:
+    domain: 应用商店对开发者的分成承诺
+    problem: >-
+      某应用商店向开发者承诺“三年内不提高平台分成比例”。开发者此前经历过两次“暂不调整”后不久即上调的
+      情况。请判断以下四项措施单独实施时，能否让这一承诺变得可信：
+      M1 平台首席执行官发布公开信，措辞恳切地重申三年不变；
+      M2 把分成比例写进开发者协议，但协议保留平台单方修改条款、提前 30 天通知即生效的权利；
+      M3 与开发者协会签订三年期协议，任何分成变动须经协会同意，协议公开，平台不能单方终止；
+      M4 宣布若三年内提高分成，将向开发者基金捐款 1 亿元，捐款时机与方式由平台自行决定时机。
+    answer_format: "M1=<CREDIBLE|CHEAP>;M2=<CREDIBLE|CHEAP>;M3=<CREDIBLE|CHEAP>;M4=<CREDIBLE|CHEAP>"
+    answer:
+      parts:
+        - {type: label, value: M1=CHEAP}
+        - {type: label, value: M2=CHEAP}
+        - {type: label, value: M3=CREDIBLE}
+        - {type: label, value: M4=CHEAP}
+  mapping:
+    objects: {停用开关: 分成比例的修改权, 服务商: 平台, 行业标准机构: 开发者协会, 客户: 开发者}
+    shared_relations: [反悔能力仍在承诺人手中的措施不可信, 修改权交给不受控第三方且不可单方终止的措施可信, 由承诺人自行决定的赔付不构成约束]
+    varied: [从接口停用换成分成承诺，措施以协议条款表述]
+  lure:
+    problem: >-
+      同一平台与同样四项措施，但按“凡写入协议或附带明确金额的承诺即有约束力”的评审标准判断 M1–M4。
+    solution: 按该标准，M2 写入了协议，M3 写入了协议，M4 有明确金额，均视为有约束力，只有 M1 是公开信。
+    answer:
+      parts:
+        - {type: label, value: M1=CHEAP}
+        - {type: label, value: M2=CREDIBLE}
+        - {type: label, value: M3=CREDIBLE}
+        - {type: label, value: M4=CREDIBLE}
+    why_surface_similar: 同一平台、同样四项措施与标签。
+    why_structurally_different: lure 按是否写入协议或有金额分类，目标按平台是否保留单方修改权分类。
+    wrong_schema_id: enforcement-wording-equals-credibility-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: M1=CHEAP}
+        - {type: label, value: M2=CREDIBLE}
+        - {type: label, value: M3=CREDIBLE}
+        - {type: label, value: M4=CREDIBLE}
+    derivation: 看到写入协议和 1 亿元捐款就判为可信，没有注意 M2 保留单方修改权、M4 的捐款由平台自行决定。
+  hints:
+    schema_name: 承诺的可信度来自承诺人失去反悔的能力
+    oracle_mindset:
+      insight: 协议是否有约束力取决于谁能改它；保留单方修改权的协议和自行决定的捐款都没有交出反悔的能力。
+      when_to_use: 承诺以合同条款或自愿赔付的形式出现时。
+    false_mindset:
+      insight: 写进协议、标明金额的承诺才是认真的承诺。
+      when_to_use: 按形式正式程度判断时。
+  verification:
+    entrypoint: mindsetbench.verification.far_credible_commitment:verify_far_commit_l1_01
+    method: reneging-control-attribute-classification
+  provenance: original synthetic case
+  verified: M2 保留单方修改权、M4 由平台自行决定，反悔权未交出；M3 变动须经协会同意且不可单方终止。
+
+- id: FAR-COMMIT-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P8
+  thread: J-机制识别
+  schema_id: far-credible-commitment-v1
+  schema_name: 承诺的可信度来自承诺人失去反悔的能力
+  chain: far-credible-commitment-v1
+  level: 2
+  source: *far_commit_source
+  target:
+    domain: 零售连锁的低价保证
+    problem: >-
+      某连锁超市推出“买贵退差价”活动，但顾客反映过去退差价常被门店以各种理由拖延或拒绝。运营部内部备忘录
+      列出四种落地方案，请判断每种方案单独实施时，能否让顾客相信差价一定会退：
+      M1 授权店长酌情处理顾客的差价申请，鼓励“以顾客满意为先”；
+      M2 上线系统自动比价功能，发现差价后自动生成退款单，但退款需店长在后台点击确认后才划出；
+      M3 在门店海报上印“买贵赔十倍”，但是否属于“买贵”由总部裁定；
+      M4 每家门店预存差价保证金到第三方支付平台，平台按公开规则在系统比价发现差价后 24 小时内自动划付
+      给顾客，门店不能撤回或暂停。
+    answer_format: "M1=<CREDIBLE|CHEAP>;M2=<CREDIBLE|CHEAP>;M3=<CREDIBLE|CHEAP>;M4=<CREDIBLE|CHEAP>"
+    answer:
+      parts:
+        - {type: label, value: M1=CHEAP}
+        - {type: label, value: M2=CHEAP}
+        - {type: label, value: M3=CHEAP}
+        - {type: label, value: M4=CREDIBLE}
+  mapping:
+    objects: {停用开关: 退款的划出动作, 服务商: 超市及其门店与总部, 行业标准机构: 第三方支付平台, 客户: 顾客, 违约金: 十倍赔付口号}
+    shared_relations: [反悔能力仍在承诺人或其下属手中的措施不可信, 执行权交给不受控第三方且不可撤回的措施可信, 由承诺人自行裁定的赔付不构成约束, 自动化步骤若仍需承诺人确认则未交出选项]
+    varied: [从软件行业跨到零售业, 文体从公告改为内部备忘录, 反悔能力体现在门店确认与总部裁定两处, 措施数额与形式全部更换]
+  lure:
+    problem: >-
+      同一超市的同一场“买贵退差价”活动，四种方案不变：M1 授权店长酌情处理差价申请；M2 系统自动比价并生成
+      退款单，退款需店长在后台点击确认；M3 门店海报印“买贵赔十倍”，是否买贵由总部裁定；M4 门店预存保证金到
+      第三方支付平台，按公开规则自动划付。市场部按“凡有系统自动化或明确赔付倍数的方案即视为硬承诺”判断 M1–M4。
+    solution: 按该标准，M2 有系统自动比价，M3 有十倍赔付，M4 有平台自动划付，均视为硬承诺，只有 M1 是口头授权。
+    answer:
+      parts:
+        - {type: label, value: M1=CHEAP}
+        - {type: label, value: M2=CREDIBLE}
+        - {type: label, value: M3=CREDIBLE}
+        - {type: label, value: M4=CREDIBLE}
+    why_surface_similar: 同一活动、同样四种方案与标签。
+    why_structurally_different: lure 按自动化与赔付倍数分类，目标按门店或总部是否仍能拦住退款分类。
+    wrong_schema_id: enforcement-wording-equals-credibility-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: M1=CHEAP}
+        - {type: label, value: M2=CREDIBLE}
+        - {type: label, value: M3=CREDIBLE}
+        - {type: label, value: M4=CREDIBLE}
+    derivation: 把“系统自动比价”和“赔十倍”当作可信的标志，没有追问退款单谁来确认、是否买贵谁来裁定。
+  hints:
+    schema_name: 承诺的可信度来自承诺人失去反悔的能力
+    oracle_mindset:
+      insight: 追踪钱划出去之前的最后一步掌握在谁手里；只要门店或总部还能拦住，承诺就没有交出去。
+      when_to_use: 承诺以流程或自动化包装，但流程中仍有承诺方的确认或裁定节点时。
+    false_mindset:
+      insight: 系统自动执行和高额赔付就是硬承诺。
+      when_to_use: 按技术手段与赔付力度判断时。
+  verification:
+    entrypoint: mindsetbench.verification.far_credible_commitment:verify_far_commit_l2_01
+    method: reneging-control-attribute-classification
+  provenance: original synthetic case; retailer and memo are fictional
+  verified: M2 退款需店长确认、M3 由总部裁定、M1 由店长酌情，反悔权均未交出；M4 由平台按公开规则自动划付且门店不能撤回。
+
+- id: FAR-COMMIT-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P8
+  thread: J-机制识别
+  schema_id: far-credible-commitment-v1
+  schema_name: 承诺的可信度来自承诺人失去反悔的能力
+  chain: far-credible-commitment-v1
+  level: 3
+  source: *far_commit_source
+  target:
+    domain: 虚构两国边境停火安排
+    problem: >-
+      北岸王国与南岸公国隔河对峙。北岸承诺在雨季结束前不再进军南岸，但过去两次同样的承诺都在获得优势时被
+      撕毁，南岸不再相信。谈判纪要记录了北岸提出的四项安排，请判断每项单独实施时，能否让南岸相信北岸雨季
+      结束前确实不会进军：
+      T1 北岸国王在两国使节面前公开宣誓；
+      T2 北岸把渡口要塞的钥匙交给一个“独立监督团”保管，进军前必须由监督团开门；监督团的经费与人员由北岸
+      王室任命和供给；
+      T3 北岸炸毁河上唯一的桥梁，雨季结束前无法重建，且爆破由南岸使节在场见证；
+      T4 北岸承诺若进军则向南岸赔付一万金币，是否构成进军由北岸议会裁定。
+    answer_format: "T1=<CREDIBLE|CHEAP>;T2=<CREDIBLE|CHEAP>;T3=<CREDIBLE|CHEAP>;T4=<CREDIBLE|CHEAP>"
+    answer:
+      parts:
+        - {type: label, value: T1=CHEAP}
+        - {type: label, value: T2=CHEAP}
+        - {type: label, value: T3=CREDIBLE}
+        - {type: label, value: T4=CHEAP}
+  mapping:
+    objects: {停用开关: 进军的能力, 服务商: 北岸王国, 行业标准机构: 独立监督团, 客户: 南岸公国, 违约金: 一万金币赔付}
+    shared_relations: [措辞与誓言不交出反悔的能力, 由承诺人自行裁定的赔付不构成约束, 把执行权交给不受控第三方或销毁选项才可信, 对方须能核实措施已生效]
+    removed_relations: [第三方一律视为独立且利益无关]
+    added_relations: [第三方若由承诺人任命与供给则等同于承诺人自己, 不需要任何第三方，物理上销毁选项同样交出了反悔能力]
+    adaptation_required: [对“交给第三方”的措施先审计第三方是否受承诺人控制, 把“不可单方解除的合同”推广到“物理上无法在期限内恢复的能力”, 不能照搬源题“第三方托管即可信”的结论]
+    varied: [从商业公告跨到外交史叙事, 文体从措施清单改为谈判纪要, 第三方独立性成为需要审查的隐含条件]
+  lure:
+    problem: >-
+      同一谈判与同样四项安排，但监督团的经费与人员由中立的城邦联盟任命和供给，北岸不能撤换。问 T1–T4 各能否让南岸相信北岸不会进军。
+    solution: 监督团由中立联盟任命时，把钥匙交给它确实交出了进军的能力；T2 与 T3 可信，T1、T4 仍不可信。
+    answer:
+      parts:
+        - {type: label, value: T1=CHEAP}
+        - {type: label, value: T2=CREDIBLE}
+        - {type: label, value: T3=CREDIBLE}
+        - {type: label, value: T4=CHEAP}
+    why_surface_similar: 同一谈判、同样四项安排与标签。
+    why_structurally_different: lure 中监督团确实独立，目标中监督团由北岸任命供给，等同北岸自己持有钥匙。
+    wrong_schema_id: any-third-party-counts-as-independent-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: T1=CHEAP}
+        - {type: label, value: T2=CREDIBLE}
+        - {type: label, value: T3=CREDIBLE}
+        - {type: label, value: T4=CHEAP}
+    derivation: 照搬源题“交给第三方托管即可信”，没有审查监督团的经费与人员由北岸任命这一事实。
+  hints:
+    schema_name: 承诺的可信度来自承诺人失去反悔的能力
+    oracle_mindset:
+      insight: “第三方”只有在承诺人不能撤换、不能供养它时才算第三方；而炸桥这种物理上的自我限制不需要任何第三方。
+      when_to_use: 承诺依赖某个监督者或托管者，而其人事与经费来源可查时。
+    false_mindset:
+      insight: 只要钥匙不在自己手里、并且有赔付，承诺就可信。
+      when_to_use: 不审查保管者与承诺人的关系时。
+  verification:
+    entrypoint: mindsetbench.verification.far_credible_commitment:verify_far_commit_l3_01
+    method: reneging-control-with-third-party-alignment-audit
+  provenance: original synthetic case; both polities are fictional
+  verified: T2 监督团由北岸任命供给等同北岸自己；T3 桥梁雨季前无法重建且南岸见证；T1、T4 反悔权在北岸。
+
+- id: FAR-COMMIT-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P8
+  thread: J-机制识别
+  schema_id: far-credible-commitment-v1
+  schema_name: 承诺的可信度来自承诺人失去反悔的能力
+  chain: far-credible-commitment-v1
+  level: 4
+  source: *far_commit_source
+  target:
+    domain: 劳资谈判中的罢工威胁
+    problem: >-
+      某厂工会要求加薪 5%，并威胁若资方拒绝就罢工两周。资方顾问整理的估算如下（单位：百万元）：
+      若真的罢工，工会成员合计损失 2，资方损失 3；若资方拒绝而工会不罢工，双方各损失 0；
+      资方若接受加薪，成本为 1。资方认为工会在被拒绝后未必真会罢工。工会考虑四项做法，请判断每项单独
+      实施时，能否让“被拒绝就罢工”这一威胁变得可信：
+      M1 工会召开全员大会，公开投票通过罢工决议并向媒体宣布；
+      M2 工会与一家外部互助基金签订不可撤销的公开合同：若资方拒绝后工会未罢工，工会须向基金支付 3；
+      M3 工会向资方出示评估报告，说明罢工实际会使资方损失 5 而不是 3；
+      M4 工会成员先各自预存一笔罢工基金，合计 1，存在工会账户，成员可随时取回。
+    answer_format: "M1=<CREDIBLE|CHEAP>;M2=<CREDIBLE|CHEAP>;M3=<CREDIBLE|CHEAP>;M4=<CREDIBLE|CHEAP>"
+    answer:
+      parts:
+        - {type: label, value: M1=CHEAP}
+        - {type: label, value: M2=CREDIBLE}
+        - {type: label, value: M3=CHEAP}
+        - {type: label, value: M4=CHEAP}
+  mapping:
+    objects: {停用开关: 被拒绝后是否罢工的选择, 服务商: 工会, 行业标准机构: 外部互助基金, 客户: 资方, 违约金: 未罢工时须支付的 3}
+    shared_relations: [口头或公开声明不改变承诺人事后的选择, 承诺人只有在事后仍会选择兑现时威胁才可信, 把反悔的代价交给不受控第三方执行才改变事后的选择, 影响对方损失的信息不改变承诺人自己的选择]
+    removed_relations: [按措施属性直接分类, 承诺内容为不作为的义务]
+    added_relations: [可信性由承诺人在事后节点的收益比较决定, 措施通过改变承诺人自己在“兑现”与“不兑现”之间的收益差起作用, 增大对方损失或可取回的资金不改变该收益差]
+    adaptation_required: [把“谁掌握反悔权”改写为“事后节点上兑现与不兑现哪个对承诺人更有利”, 对每项措施重算工会被拒后罢工与不罢工的收益, 不能按是否有资金或强硬表态分类]
+    varied: [从商业承诺跨到劳资谈判, 模型从结构属性变为带收益的两步决策, 方法从审查控制权变为比较事后收益]
+  lure:
+    problem: >-
+      同一场谈判、同样的基础估算，但四项做法的细节不同：M1 全员投票并向媒体宣布；M2 与外部基金签订不可撤销
+      合同，被拒后未罢工须支付 3；M3 行业工会联合会承诺罢工期间按资方损失 5 的六成补贴工会成员；M4 成员预存
+      合计 3 的罢工基金到第三方托管账户，被拒后若不罢工则被没收。问 M1–M4 各能否让威胁可信。
+    solution: >-
+      M2 使不罢工损失 3、罢工损失 2，罢工更优；M3 使罢工净得 1，罢工更优；M4 使不罢工损失 3，罢工更优；
+      只有 M1 不改变工会事后的收益比较。
+    answer:
+      parts:
+        - {type: label, value: M1=CHEAP}
+        - {type: label, value: M2=CREDIBLE}
+        - {type: label, value: M3=CREDIBLE}
+        - {type: label, value: M4=CREDIBLE}
+    why_surface_similar: 同一谈判、同样的四个措施编号与数额量级。
+    why_structurally_different: lure 中 M3、M4 真的改变了工会罢工与不罢工的收益差，目标中 M3 只改变资方损失、M4 的资金可随时取回。
+    wrong_schema_id: enforcement-wording-equals-credibility-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: M1=CHEAP}
+        - {type: label, value: M2=CREDIBLE}
+        - {type: label, value: M3=CREDIBLE}
+        - {type: label, value: M4=CREDIBLE}
+    derivation: 把“损失更大的评估报告”和“预存罢工基金”都当作威胁力度的证据，没有比较工会被拒后罢工与不罢工各自的损失。
+  hints:
+    schema_name: 承诺的可信度来自承诺人失去反悔的能力
+    oracle_mindset:
+      insight: 站在资方拒绝之后的那一刻问工会：罢工损失多少、不罢工损失多少？只有让不罢工比罢工更亏的措施才使威胁可信；对方损失多大与此无关。
+      when_to_use: 威胁或承诺的兑现与否取决于承诺人事后的自身利害时。
+    false_mindset:
+      insight: 威胁越强硬、准备的资金越多、宣称的损失越大，威胁越可信。
+      when_to_use: 按声势与准备程度判断时。
+  verification:
+    entrypoint: mindsetbench.verification.far_credible_commitment:verify_far_commit_l4_01
+    method: post-refusal-payoff-comparison
+  provenance: original synthetic case; firm and union are fictional
+  verified: 基线罢工 −2 与不罢工 0；M2 使不罢工 −3 低于 −2；M3 只改资方损失；M4 资金可取回，收益不变。

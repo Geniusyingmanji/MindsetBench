@@ -1,6 +1,8 @@
 - id: FORMAL-P3-CAUSAL-L0-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题与 source 共用同一线性结构方程记法与系数表模板，L3/L4 只做节点重命名与单系数扰动；mb audit --surface 判定 surface-shared-template / surface-lexical-overlap。保留为 SCM 传播执行力 sanity。
   paradigm: P3
   thread: H-因果拓扑
   schema_id: linear-scm-path-sensitivity-v1
@@ -58,7 +60,9 @@
 
 - id: FORMAL-P3-CAUSAL-L1-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题与 source 共用同一线性结构方程记法与系数表模板，L3/L4 只做节点重命名与单系数扰动；mb audit --surface 判定 surface-shared-template / surface-lexical-overlap。保留为 SCM 传播执行力 sanity。
   paradigm: P3
   thread: H-因果拓扑
   schema_id: linear-scm-path-sensitivity-v1
@@ -98,7 +102,9 @@
 
 - id: FORMAL-P3-CAUSAL-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题与 source 共用同一线性结构方程记法与系数表模板，L3/L4 只做节点重命名与单系数扰动；mb audit --surface 判定 surface-shared-template / surface-lexical-overlap。保留为 SCM 传播执行力 sanity。
   paradigm: P3
   thread: H-因果拓扑
   schema_id: linear-scm-path-sensitivity-v1
@@ -141,7 +147,9 @@
 
 - id: FORMAL-P3-CAUSAL-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题与 source 共用同一线性结构方程记法与系数表模板，L3/L4 只做节点重命名与单系数扰动；mb audit --surface 判定 surface-shared-template / surface-lexical-overlap。保留为 SCM 传播执行力 sanity。
   paradigm: P3
   thread: H-因果拓扑
   schema_id: linear-scm-path-sensitivity-v1
@@ -186,7 +194,9 @@
 
 - id: FORMAL-P3-CAUSAL-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题与 source 共用同一线性结构方程记法与系数表模板，L3/L4 只做节点重命名与单系数扰动；mb audit --surface 判定 surface-shared-template / surface-lexical-overlap。保留为 SCM 传播执行力 sanity。
   paradigm: P3
   thread: H-因果拓扑
   schema_id: linear-scm-path-sensitivity-v1

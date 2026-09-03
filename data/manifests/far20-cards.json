@@ -1,0 +1,9 @@
+{
+  "name": "far20-schema-cards",
+  "schema_card_files": [
+    "../schema_cards/far-evidence-independence-v1.yaml",
+    "../schema_cards/far-negative-evidence-v1.yaml",
+    "../schema_cards/far-horizon-exploration-v1.yaml",
+    "../schema_cards/far-credible-commitment-v1.yaml"
+  ]
+}

@@ -21,7 +21,7 @@ def test_formal25_bundle_has_five_complete_chains() -> None:
         Paradigm.P5,
         Paradigm.P6,
     }
-    assert {case.split for case in cases} == {Split.CALIBRATION}
+    assert {case.split for case in cases} == {Split.SANITY}
     for paradigm in {case.paradigm for case in cases}:
         members = [case for case in cases if case.paradigm == paradigm]
         assert sorted(case.level for case in members) == list(range(5))

@@ -1,6 +1,8 @@
 - id: HSS-P8-INST-MECHANISM-L0-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题给出全部机制条件（成本承担者、选项恢复权）供直接分类；GPT-5.6-sol 三条件 100%。远域版本见 far-credible-commitment 系列。
   paradigm: P8
   thread: D-元认知控制
   schema_id: credible-cost-option-mechanism-v1
@@ -56,7 +58,9 @@
 
 - id: HSS-P8-INST-MECHANISM-L1-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题给出全部机制条件（成本承担者、选项恢复权）供直接分类；GPT-5.6-sol 三条件 100%。远域版本见 far-credible-commitment 系列。
   paradigm: P8
   thread: D-元认知控制
   schema_id: credible-cost-option-mechanism-v1
@@ -98,7 +102,9 @@
 
 - id: HSS-P8-INST-MECHANISM-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题给出全部机制条件（成本承担者、选项恢复权）供直接分类；GPT-5.6-sol 三条件 100%。远域版本见 far-credible-commitment 系列。
   paradigm: P8
   thread: D-元认知控制
   schema_id: credible-cost-option-mechanism-v1
@@ -141,7 +147,9 @@
 
 - id: HSS-P8-INST-MECHANISM-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题给出全部机制条件（成本承担者、选项恢复权）供直接分类；GPT-5.6-sol 三条件 100%。远域版本见 far-credible-commitment 系列。
   paradigm: P8
   thread: D-元认知控制
   schema_id: credible-cost-option-mechanism-v1
@@ -193,7 +201,9 @@
 
 - id: HSS-P8-INST-MECHANISM-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
+  history_note: >-
+    2026-09-03 降级为 sanity：目标题给出全部机制条件（成本承担者、选项恢复权）供直接分类；GPT-5.6-sol 三条件 100%。远域版本见 far-credible-commitment 系列。
   paradigm: P8
   thread: D-元认知控制
   schema_id: credible-cost-option-mechanism-v1

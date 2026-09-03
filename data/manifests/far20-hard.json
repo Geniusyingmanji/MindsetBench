@@ -1,0 +1,24 @@
+{
+  "name": "far20-hard-slice",
+  "description": "The twelve cross-domain targets (L2-L4) of the far20 families: the slice to run first for target-only / with-source / with-lure / with-both calibration.",
+  "datasets": [
+    "../v1/far-evidence-independence-chain.yaml",
+    "../v1/far-negative-evidence-chain.yaml",
+    "../v1/far-horizon-exploration-chain.yaml",
+    "../v1/far-credible-commitment-chain.yaml"
+  ],
+  "case_ids": [
+    "FAR-INDEP-L2-01",
+    "FAR-INDEP-L3-01",
+    "FAR-INDEP-L4-01",
+    "FAR-NEG-L2-01",
+    "FAR-NEG-L3-01",
+    "FAR-NEG-L4-01",
+    "FAR-HORIZON-L2-01",
+    "FAR-HORIZON-L3-01",
+    "FAR-HORIZON-L4-01",
+    "FAR-COMMIT-L2-01",
+    "FAR-COMMIT-L3-01",
+    "FAR-COMMIT-L4-01"
+  ]
+}

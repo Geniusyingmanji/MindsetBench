@@ -36,7 +36,7 @@ def test_formal20_has_four_disjoint_complete_chains() -> None:
     assert len(cases) == 20
     assert len({case.id for case in cases}) == 20
     assert {case.paradigm for case in cases} == set(CHAINS)
-    assert {case.split for case in cases} == {Split.CALIBRATION}
+    assert {case.split for case in cases} == {Split.SANITY}
     for paradigm in CHAINS:
         members = [case for case in cases if case.paradigm == paradigm]
         assert sorted(case.level for case in members) == list(range(5))
