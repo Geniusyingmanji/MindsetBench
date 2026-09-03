@@ -8,6 +8,8 @@ from mindsetbench.data import (
     validate_schema_cards,
     validate_transfer_design,
 )
+from mindsetbench.models.prompt import Condition
+from mindsetbench.prompting import build_prompt
 from mindsetbench.verification import verify_case
 from mindsetbench.verification.institutional_mechanism import (
     MechanismCase,
@@ -72,6 +74,14 @@ def test_hss20_hard_manifest_selects_every_l3_and_l4_once() -> None:
     assert len(hard) == 8
     assert {case.id for case in hard} == expected
     assert all(case.level >= 3 for case in hard)
+
+
+def test_hss20_hard_prompts_have_explicit_nonleaking_answer_contracts() -> None:
+    for case in load_cases(HARD_MANIFEST):
+        assert case.target.answer_format
+        assert case.target.answer.legacy_value() not in case.target.answer_format
+        prompt = build_prompt(case.prompt_view(), Condition.TARGET_ONLY)
+        assert f"【答案格式】\n{case.target.answer_format}" in prompt.user
 
 
 def test_mechanism_classifier_distinguishes_core_mechanisms() -> None:

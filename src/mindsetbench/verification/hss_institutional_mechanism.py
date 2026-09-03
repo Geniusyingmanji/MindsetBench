@@ -254,7 +254,7 @@ def verify_hss_p8_inst_mechanism_l2_01(case: Case) -> VerificationResult:
 @register("HSS-P8-INST-MECHANISM-L3-01")
 def verify_hss_p8_inst_mechanism_l3_01(case: Case) -> VerificationResult:
     target = {
-        "R1": MechanismCase(True, removes_defection_option=True),
+        "R1": MechanismCase(True),
         "R2": MechanismCase(
             True, costly_action=True, actor_bears_cost=True, committed_type_can_bear=True
         ),
@@ -266,8 +266,17 @@ def verify_hss_p8_inst_mechanism_l3_01(case: Case) -> VerificationResult:
             third_party_reimbursement=True,
         ),
         "R4": MechanismCase(False),
+        "R5": MechanismCase(True, removes_defection_option=True),
+        "R6": MechanismCase(
+            True,
+            costly_action=True,
+            actor_bears_cost=True,
+            committed_type_can_bear=True,
+            opportunistic_type_can_bear=True,
+        ),
     }
     lure = dict(target)
+    lure["R1"] = MechanismCase(True, removes_defection_option=True)
     lure["R3"] = MechanismCase(
         True,
         costly_action=True,
@@ -278,24 +287,30 @@ def verify_hss_p8_inst_mechanism_l3_01(case: Case) -> VerificationResult:
         case,
         target_cases=target,
         lure_cases=lure,
-        order=("R1", "R2", "R3", "R4"),
+        order=("R1", "R2", "R3", "R4", "R5", "R6"),
         required_phrases=(
-            "在配额决定前把超额捕捞许可证永久交给登记所销毁",
+            "协会保留的认证副本可在投票后自动换发同等许可证",
             "守约协会能承担、掠夺型协会不能承担",
             "基金会为所有入选者全额报销，并预先提供过桥资金",
             "演说发生在席位分配结束后",
+            "把唯一捕捞密钥交给独立保管人并销毁全部副本",
+            "两类协会都能承担且都可购买",
         ),
         expected_target=(
-            "R1=CREDIBLE_COMMITMENT",
+            "R1=NONCREDIBLE",
             "R2=SEPARATING_SIGNAL",
             "R3=POOLING_SIGNAL",
             "R4=NONCREDIBLE",
+            "R5=CREDIBLE_COMMITMENT",
+            "R6=POOLING_SIGNAL",
         ),
         expected_lure=(
             "R1=CREDIBLE_COMMITMENT",
             "R2=SEPARATING_SIGNAL",
             "R3=SEPARATING_SIGNAL",
             "R4=NONCREDIBLE",
+            "R5=CREDIBLE_COMMITMENT",
+            "R6=POOLING_SIGNAL",
         ),
     )
 
@@ -310,7 +325,7 @@ def verify_hss_p8_inst_mechanism_l4_01(case: Case) -> VerificationResult:
             committed_type_can_bear=True,
             third_party_reimbursement=True,
         ),
-        "H2": MechanismCase(True, removes_defection_option=True),
+        "H2": MechanismCase(True),
         "H3": MechanismCase(
             False, costly_action=True, actor_bears_cost=True, committed_type_can_bear=True
         ),
@@ -321,6 +336,13 @@ def verify_hss_p8_inst_mechanism_l4_01(case: Case) -> VerificationResult:
             committed_type_can_bear=True,
             opportunistic_type_can_bear=True,
         ),
+        "H5": MechanismCase(
+            True,
+            costly_action=True,
+            actor_bears_cost=True,
+            committed_type_can_bear=True,
+        ),
+        "H6": MechanismCase(True, removes_defection_option=True),
     }
     lure = dict(target)
     lure["H1"] = MechanismCase(
@@ -329,28 +351,35 @@ def verify_hss_p8_inst_mechanism_l4_01(case: Case) -> VerificationResult:
         actor_bears_cost=True,
         committed_type_can_bear=True,
     )
+    lure["H2"] = MechanismCase(True, removes_defection_option=True)
     return _verify_case(
         case,
         target_cases=target,
         lure_cases=lure,
-        order=("H1", "H2", "H3", "H4"),
+        order=("H1", "H2", "H3", "H4", "H5", "H6"),
         required_phrases=(
             "担保人向任何获准派别全额返还保证金，并为其预先垫资",
             "垫资和返还同样覆盖机会主义派别",
-            "在盟友投票前把唯一联络密钥交给中立档案馆并销毁副本",
+            "凭自己的单方书函立即复制密钥",
             "集会发生在接纳投票以后",
             "两类派别都能取得同一种公开印章",
+            "任何赞助人或保险都不得补偿",
+            "不存在副本、补发或代理加入渠道",
         ),
         expected_target=(
             "H1=POOLING_SIGNAL",
-            "H2=CREDIBLE_COMMITMENT",
+            "H2=NONCREDIBLE",
             "H3=NONCREDIBLE",
             "H4=POOLING_SIGNAL",
+            "H5=SEPARATING_SIGNAL",
+            "H6=CREDIBLE_COMMITMENT",
         ),
         expected_lure=(
             "H1=SEPARATING_SIGNAL",
             "H2=CREDIBLE_COMMITMENT",
             "H3=NONCREDIBLE",
             "H4=POOLING_SIGNAL",
+            "H5=SEPARATING_SIGNAL",
+            "H6=CREDIBLE_COMMITMENT",
         ),
     )

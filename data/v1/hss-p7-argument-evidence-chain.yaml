@@ -151,29 +151,39 @@
     domain: 虚构艺术品来源委员会档案摘要
     problem: >-
       委员会规定：支持或反对一项来源判断都需至少两个彼此独立的档案家族；同一底本的图录、展签和新闻稿只算一个家族，
-      对底本的真实性否定会传到所有复制品。A 是“该物曾合法入境”：图录 A1 来自成交册 O1，
+      对底本的真实性否定会传到所有复制品；不同底本若由同一送审包协调生成也只算一个家族。
+      A 是“该物曾合法入境”：图录 A1 来自成交册 O1，
       展签 A2 抄自图录 A1，新闻稿 A3 又抄自 A2；海关底册 A4 来自另一档案 O2，四项均支持 A。
       B 是“捐赠者在界年以前拥有该物”：三份所有权支持材料最终都来自同一本失踪笔记 O3；
       两份反证分别来自税册 O4 和保险清单 O5。
       C 是“该物在指定年代修复”：两项支持来自 O6/O7，两项反对来自 O8/O9，四者独立。
       D 是“印章真实”：D1、D2 分别经 O10、O11 支持，但鉴定警报认定印章底片 O11 不真实。
-      对 A、B、C、D 分别使用 SUPPORTED、REJECTED、CONTESTED、UNCORROBORATED，按顺序输出。
-    answer: {parts: [{type: label, value: A=SUPPORTED}, {type: label, value: B=REJECTED}, {type: label, value: C=CONTESTED}, {type: label, value: D=UNCORROBORATED}]}
+      E 是“经销商独立核验过来源”：支持材料 E1、E2 分别追到 O12、O13，但编辑日志证明 O12/O13
+      均由同一份经销商送审包生成；反对材料 E3、E4 分别来自互不相干的 O14、O15。
+      F 是“修复剂符合年代”：联合实验报告 F1 同时综合独立原始记录 O16、O17并支持 F；反对报道 F2 来自 O18，
+      后续报道 F3 只转引 F2。对 A—F 使用 SUPPORTED、REJECTED、CONTESTED、UNCORROBORATED。
+    answer_format: A=<LABEL>;B=<LABEL>;C=<LABEL>;D=<LABEL>;E=<LABEL>;F=<LABEL>，其中 <LABEL> 必须使用题面给出的英文标签之一。
+    answer: {parts: [{type: label, value: A=SUPPORTED}, {type: label, value: B=REJECTED}, {type: label, value: C=CONTESTED}, {type: label, value: D=UNCORROBORATED}, {type: label, value: E=REJECTED}, {type: label, value: F=SUPPORTED}]}
   mapping:
     objects: {工程假设: 来源判断, 一手记录: 档案底本, 报告转引链: 图录展签新闻稿链, 真实性警报: 鉴定警报, 正反报告: 支持与反对来源判断}
     shared_relations: [按最终底本形成来源等价类, 多级抄录不增加独立性, 支持与反对两侧分别应用双来源门槛, 两侧同时达标形成争议, 根真实性攻击向所有复制材料传播]
-    varied: [跨到艺术史与博物馆治理, 从规则清单变为档案摘要, 四项判断混合转引簇双向冲突和底本攻击]
+    added_relations: [不同底本可因同一协调送审包而再次合并, 单份综合报告可携带两个独立根]
+    adaptation_required: [同时处理文件到根和根到生产家族两层去重, 不把综合报告的载体数量误当成来源数量]
+    varied: [跨到艺术史与博物馆治理, 从规则清单变为档案摘要, 六项判断同时混合转引簇双向冲突底本攻击协调生产与多根报告]
   lure:
     problem: >-
-      使用相同摘要，但把每份图录、展签、新闻稿、证词分别计数；鉴定警报只排除底片 O11 本身，不排除引用它的 D2。输出四项标签。
-    solution: A 仍为 SUPPORTED；B 表面有三份支持和两份反对而成 CONTESTED；C 仍为 CONTESTED；D 有两份支持而成 SUPPORTED。
-    answer: {parts: [{type: label, value: A=SUPPORTED}, {type: label, value: B=CONTESTED}, {type: label, value: C=CONTESTED}, {type: label, value: D=SUPPORTED}]}
+      使用相同摘要，但把每份呈现出来的图录、展签、新闻稿或报告分别计数；不合并协调生成的底本，
+      鉴定警报也只排除 O11 本身而不排除引用它的 D2。联合报告 F1 仍只按一份呈现材料计数。
+    solution: >-
+      A 为 SUPPORTED；B 的三份支持和两份反对形成 CONTESTED；C 为 CONTESTED；D 有两份支持而为 SUPPORTED；
+      E 的两份支持和两份反对形成 CONTESTED；F 只有一份支持报告而有两份反对报道，为 REJECTED。
+    answer: {parts: [{type: label, value: A=SUPPORTED}, {type: label, value: B=CONTESTED}, {type: label, value: C=CONTESTED}, {type: label, value: D=SUPPORTED}, {type: label, value: E=CONTESTED}, {type: label, value: F=REJECTED}]}
     why_surface_similar: 同一委员会、同一材料和同一四标签输出。
-    why_structurally_different: lure 用材料载体代替来源家族，且阻断真实性攻击沿引用链传播。
+    why_structurally_different: lure 用材料载体代替来源家族，同时忽略根的二次聚类、攻击传播和一份报告的多根来源。
     wrong_schema_id: artifact-count-with-local-attack-01
   copy_probe:
-    answer: {parts: [{type: label, value: A=SUPPORTED}, {type: label, value: B=CONTESTED}, {type: label, value: C=CONTESTED}, {type: label, value: D=SUPPORTED}]}
-    derivation: 对档案文本逐份投票，没有恢复底本谱系和攻击范围。
+    answer: {parts: [{type: label, value: A=SUPPORTED}, {type: label, value: B=CONTESTED}, {type: label, value: C=CONTESTED}, {type: label, value: D=SUPPORTED}, {type: label, value: E=CONTESTED}, {type: label, value: F=REJECTED}]}
+    derivation: 对呈现材料逐份投票，没有恢复底本谱系、协调家族、攻击范围或综合报告的多根来源。
   hints:
     schema_name: 证据谱系去重、双向佐证与局部独立性修订
     oracle_mindset: {insight: 把“材料”改写成“底本—复制品”图；独立性属于底本家族，真实性攻击也作用于家族。, when_to_use: 图录、展签、新闻、译本或回忆录可能共享未明示的档案底本时。}
@@ -181,7 +191,7 @@
     entrypoint: mindsetbench.verification.hss_argument_evidence:verify_hss_p7_arg_evidence_l3_01
     method: cross-genre-archive-provenance-reconstruction
   provenance: original synthetic case; all objects, archives, and committees are fictional
-  verified: A 有 O1/O2，B 为一支持根对两反对根，C 双侧达标，D 在 O11 失效后只剩一根。
+  verified: A 有 O1/O2；B 为一支持根对两反对根；C 双侧达标；D 只剩 O10；E 的两支持根合并而反对有两族；F 的单份报告携带 O16/O17 两根。
 
 - id: HSS-P7-ARG-EVIDENCE-L4-01
   version: "1.0"
@@ -206,25 +216,32 @@
       H3 的两项支持与两项反对分属四个证据家族。
       H4 主张官方委员会集体起草：印章证据 D1 来自底片 D0，登记证据 D3 来自底本 D2；
       流程簿显示印章底片 D0 与登记簿 D2 都由同一份委员会送审包生成，两项均支持 H4且无反证。
-      按 H1、H2、H3、H4 输出四项标签。
-    answer: {parts: [{type: label, value: H1=UNCORROBORATED}, {type: label, value: H2=SUPPORTED}, {type: label, value: H3=CONTESTED}, {type: label, value: H4=UNCORROBORATED}]}
+      H5 主张文书由赞助人授意：两项支持 E1/E3 来自底本 E0/E2，但二者都由同一份赞助人指令生成；
+      两项反对 E5/E7 分别来自互不相干的 E4/E6。
+      H6 主张定稿晚于罢工：两项支持 F1/F3 来自独立底本 F0/F2；两项反对 F5/F7 来自独立底本 F4/F6，
+      但新鉴定认定 F4 为后配伪件，该结论使 F5 失效。按 H1—H6 分类。
+    answer_format: H1=<LABEL>;H2=<LABEL>;H3=<LABEL>;H4=<LABEL>;H5=<LABEL>;H6=<LABEL>，其中 <LABEL> 只能是 SUPPORTED、REJECTED、CONTESTED 或 UNCORROBORATED。
+    answer: {parts: [{type: label, value: H1=UNCORROBORATED}, {type: label, value: H2=SUPPORTED}, {type: label, value: H3=CONTESTED}, {type: label, value: H4=UNCORROBORATED}, {type: label, value: H5=REJECTED}, {type: label, value: H6=SUPPORTED}]}
   mapping:
     objects: {工程假设: 历史作者主张, 一手记录根: 文书底本, 转引报告: 报刊与登记证据, 来源独立性: 证据家族独立性, 真实性攻击: 编纂原则与流程披露, 支持反对门槛: 历史归属的双向门槛}
     shared_relations: [转引同一根不增加证据, 支持与反对分别形成独立集合, 单侧双来源决定方向, 双侧双来源形成争议, 无一侧达到门槛时保持未获佐证]
-    added_relations: [两个不同一手文本若来自同一次协调简报或送审包则合并为同一独立性家族]
-    adaptation_required: [先追到不同文本根, 再依据生产过程对根进行第二次聚类, 只在有协调证据的 H1/H4 局部合并而不合并 H2/H3]
-    varied: [跨到历史文书归属, 从工程报告清单变为编辑通信和流程簿叙述, 独立性单位从文本根提升为协调生产家族]
+    added_relations: [两个不同一手文本若来自同一次协调简报或送审包则合并为同一独立性家族, 新真实性鉴定只使一个反对家族及其后代失效]
+    adaptation_required: [先追到不同文本根, 再依据生产过程对根进行第二次聚类, 最后传播局部真实性攻击且保持其余家族独立]
+    varied: [跨到历史文书归属, 从工程报告清单变为编辑通信流程簿与鉴定记录, 六个主张交错要求聚类与局部删除]
   lure:
     problem: >-
-      沿用源题规则，只要追到的底本编号不同就视为独立，不再检查不同底本是否由同一协调过程产生。输出四项标签。
-    solution: H1 的 A0/A3 被算作两根而为 SUPPORTED；H2 仍为 SUPPORTED；H3 仍为 CONTESTED；H4 的 D0/D2 被算作两根而为 SUPPORTED。
-    answer: {parts: [{type: label, value: H1=SUPPORTED}, {type: label, value: H2=SUPPORTED}, {type: label, value: H3=CONTESTED}, {type: label, value: H4=SUPPORTED}]}
+      沿用只追到底本编号的旧规则：不同底本一律独立，不检查共同协调过程，也把 F4 的鉴定当作只针对底本标签、
+      不影响已经写成的 F5。按 H1—H6 分类。
+    solution: >-
+      H1、H4 因各有两个不同底本而为 SUPPORTED；H2 为 SUPPORTED；H3 为 CONTESTED；
+      H5 两支持对两反对而为 CONTESTED；H6 仍保留两侧各两个家族而为 CONTESTED。
+    answer: {parts: [{type: label, value: H1=SUPPORTED}, {type: label, value: H2=SUPPORTED}, {type: label, value: H3=CONTESTED}, {type: label, value: H4=SUPPORTED}, {type: label, value: H5=CONTESTED}, {type: label, value: H6=CONTESTED}]}
     why_surface_similar: 正确追踪了全部引用链，也保留双向两来源门槛。
-    why_structurally_different: lure 机械保留“不同一手根即独立”，忽略目标材料新增的协调生产依赖。
+    why_structurally_different: lure 机械保留“不同一手根即独立”，同时阻断新真实性结论向引用材料传播。
     wrong_schema_id: root-identity-only-independence-01
   copy_probe:
-    answer: {parts: [{type: label, value: H1=SUPPORTED}, {type: label, value: H2=SUPPORTED}, {type: label, value: H3=CONTESTED}, {type: label, value: H4=SUPPORTED}]}
-    derivation: 完成第一层引用去重后就停止，没有把 A0/A3 与 D0/D2 分别按共同生产过程再次合并。
+    answer: {parts: [{type: label, value: H1=SUPPORTED}, {type: label, value: H2=SUPPORTED}, {type: label, value: H3=CONTESTED}, {type: label, value: H4=SUPPORTED}, {type: label, value: H5=CONTESTED}, {type: label, value: H6=CONTESTED}]}
+    derivation: 完成第一层引用去重后停止，既不按共同生产过程合并，也不传播 F4 的真实性攻击。
   hints:
     schema_name: 证据谱系去重、双向佐证与局部独立性修订
     oracle_mindset: {insight: 独立性的单位由题目中的生成过程决定，不恒等于文件或一手根；新依赖只应局部合并受影响的来源。, when_to_use: 不同证词或档案可能由共同简报、编辑、资助者或送审流程协调生成时。}
@@ -232,4 +249,4 @@
     entrypoint: mindsetbench.verification.hss_argument_evidence:verify_hss_p7_arg_evidence_l4_01
     method: two-stage-provenance-clustering-with-local-dependence-update
   provenance: original synthetic case; all persons, documents, and institutions are fictional
-  verified: A0/A3 共享简报、D0/D2 共享送审包，各只算一族；H2 两支持族，H3 双侧各两族。
+  verified: A0/A3、D0/D2、E0/E2 分别合并；H2 两支持族，H3 双侧各两族；H5 反对达标；H6 在 F4 失效后仅支持达标。

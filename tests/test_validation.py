@@ -25,3 +25,11 @@ def test_duplicate_ids_are_rejected() -> None:
     case = load_cases()[0]
     report = validate_dataset([case, case.model_copy(deep=True)])
     assert any(issue.code == "duplicate-id" for issue in report.errors)
+
+
+def test_answer_format_must_not_embed_complete_multipart_gold() -> None:
+    case = next(case for case in load_cases() if len(case.target.answer.parts) > 1)
+    leaked = case.model_copy(deep=True)
+    leaked.target.answer_format = leaked.target.answer.legacy_value()
+    report = validate_dataset([leaked])
+    assert any(issue.code == "answer-format-leaks-gold" for issue in report.errors)

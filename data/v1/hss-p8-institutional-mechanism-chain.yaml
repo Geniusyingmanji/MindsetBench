@@ -152,29 +152,36 @@
   target:
     domain: 虚构海湾公地治理会议纪要
     problem: >-
-      纪要 R1 记载，渔业协会在配额决定前把超额捕捞许可证永久交给登记所销毁，其他许可证不变。
+      档案由会议纪要、附函和登记所回执组成。纪要 R1 记载，渔业协会在配额决定前把超额捕捞许可证
+      交给登记所销毁；但同号回执的附页说明，协会保留的认证副本可在投票后自动换发同等许可证，因此背离选项并未消失。
       R2 记载，协会在席位分配前公开缴纳不可返还的审计费，守约协会能承担、掠夺型协会不能承担，且由协会自付。
       R3 的费用表面相同，但附函写明基金会为所有入选者全额报销，并预先提供过桥资金，掠夺型协会也在保障范围内。
       R4 是保护公地的演说，但演说发生在席位分配结束后。
-      按 R1—R4 输出标签。
-    answer: {parts: [{type: label, value: R1=CREDIBLE_COMMITMENT}, {type: label, value: R2=SEPARATING_SIGNAL}, {type: label, value: R3=POOLING_SIGNAL}, {type: label, value: R4=NONCREDIBLE}]}
+      R5 的公证书显示，另一协会在表决前把唯一捕捞密钥交给独立保管人并销毁全部副本，制度中没有补发渠道。
+      R6 是投票前购买的公开“守护者印章”，费用由协会自付，但两类协会都能承担且都可购买。
+      按 R1—R6 分类。
+    answer_format: R1=<LABEL>;R2=<LABEL>;R3=<LABEL>;R4=<LABEL>;R5=<LABEL>;R6=<LABEL>，其中 <LABEL> 只能是 CREDIBLE_COMMITMENT、SEPARATING_SIGNAL、POOLING_SIGNAL 或 NONCREDIBLE。
+    answer: {parts: [{type: label, value: R1=NONCREDIBLE}, {type: label, value: R2=SEPARATING_SIGNAL}, {type: label, value: R3=POOLING_SIGNAL}, {type: label, value: R4=NONCREDIBLE}, {type: label, value: R5=CREDIBLE_COMMITMENT}, {type: label, value: R6=POOLING_SIGNAL}]}
   mapping:
     objects: {销毁竞争契印: 销毁超额许可证, 自付审计押金: 协会审计费, 第三方补偿: 基金会报销与过桥资金, 回应后声明: 席位分配后演说, 商团类型: 守约与掠夺型协会}
-    shared_relations: [回应前删除背离选项形成承诺, 自担且不可模仿的成本形成分离, 有保障的机会主义者可以模仿, 回应后行为不影响既有选择]
-    added_relations: [R3 增加基金会事前垫资和事后全额报销]
-    adaptation_required: [从分散在纪要和附函中的事实恢复成本最终归属, 区分名义缴费者和实际承担者]
-    varied: [跨到公共资源治理, 从规则清单变为会议纪要与附函, 两个表面相同的费用机制具有不同成本归宿]
+    shared_relations: [回应前真正删除背离选项才形成承诺, 自担且不可模仿的成本形成分离, 有保障或可承担的机会主义者可以模仿, 回应后行为不影响既有选择]
+    added_relations: [R1 的认证副本恢复表面已删除的选项, R3 增加基金会事前垫资和事后全额报销]
+    adaptation_required: [跨纪要附页和公证书核查选项是否真的删除, 从名义付款继续追踪最终净成本承担者]
+    varied: [跨到公共资源治理, 六项机制散布在会议纪要附函回执和公证书, 销毁与缴费的公开表象分别被隐蔽补发和补偿关系推翻]
   lure:
     problem: >-
-      其他记录不变，但把 R3 的基金会款项解释成不影响协会成本的普通荣誉奖励，仍由协会实际承担审计费。输出标签。
-    solution: 在这一解释下 R3 与 R2 一样由行动者自担且不可模仿，标为 SEPARATING_SIGNAL。
-    answer: {parts: [{type: label, value: R1=CREDIBLE_COMMITMENT}, {type: label, value: R2=SEPARATING_SIGNAL}, {type: label, value: R3=SEPARATING_SIGNAL}, {type: label, value: R4=NONCREDIBLE}]}
+      只读会议纪要的公开正文，不查登记回执附页或基金会附函：把 R1 的交回销毁视为永久删除选项，
+      把 R3 的基金会款项视为不影响实际成本的荣誉奖励；其余记录按完整档案解释。
+    solution: >-
+      R1 因表面销毁被判为 CREDIBLE_COMMITMENT；R2 为 SEPARATING_SIGNAL；R3 被判为 SEPARATING_SIGNAL；
+      R4 为 NONCREDIBLE；R5 为 CREDIBLE_COMMITMENT；R6 为 POOLING_SIGNAL。
+    answer: {parts: [{type: label, value: R1=CREDIBLE_COMMITMENT}, {type: label, value: R2=SEPARATING_SIGNAL}, {type: label, value: R3=SEPARATING_SIGNAL}, {type: label, value: R4=NONCREDIBLE}, {type: label, value: R5=CREDIBLE_COMMITMENT}, {type: label, value: R6=POOLING_SIGNAL}]}
     why_surface_similar: 同一组纪要、费用和基金会参与。
-    why_structurally_different: lure 把明确的事前垫资与全额报销改成不改变成本归属的奖励。
+    why_structurally_different: lure 同时截断选项恢复链和成本补偿链，只按公开动作的名义形态分类。
     wrong_schema_id: nominal-payer-cost-signal-01
   copy_probe:
-    answer: {parts: [{type: label, value: R1=CREDIBLE_COMMITMENT}, {type: label, value: R2=SEPARATING_SIGNAL}, {type: label, value: R3=SEPARATING_SIGNAL}, {type: label, value: R4=NONCREDIBLE}]}
-    derivation: 只看到协会名义上缴费，未沿附函追踪垫资和报销后的实际成本承担者。
+    answer: {parts: [{type: label, value: R1=CREDIBLE_COMMITMENT}, {type: label, value: R2=SEPARATING_SIGNAL}, {type: label, value: R3=SEPARATING_SIGNAL}, {type: label, value: R4=NONCREDIBLE}, {type: label, value: R5=CREDIBLE_COMMITMENT}, {type: label, value: R6=POOLING_SIGNAL}]}
+    derivation: 只看公开纪要，既未沿回执附页检查补发渠道，也未沿基金会附函追踪最终成本。
   hints:
     schema_name: 可信承诺、分离信号与成本承担关系迁移
     oracle_mindset: {insight: 对资金流追到最终净承担者；名义付款与先垫后返不能证明行动者付出了区分性成本。, when_to_use: 机制分散在主协议、附函、保险或补贴条款中时。}
@@ -182,7 +189,7 @@
     entrypoint: mindsetbench.verification.hss_institutional_mechanism:verify_hss_p8_inst_mechanism_l3_01
     method: cross-genre-effective-cost-incidence-reconstruction
   provenance: original synthetic case; all institutions and actors are fictional
-  verified: R1 删除选项，R2 自担分离，R3 被全额垫付和报销而可模仿，R4 时点过晚。
+  verified: R1 因可自动补发而未删除选项；R2 自担分离；R3 被垫付报销而可模仿；R4 过晚；R5 真正删项；R6 两类均可模仿。
 
 - id: HSS-P8-INST-MECHANISM-L4-01
   version: "1.0"
@@ -197,31 +204,37 @@
   target:
     domain: 虚构城邦联盟的密函、账册与仪式记录
     problem: >-
-      联盟档案把行动分散在三类材料中。H1 的公开账册显示某派别在接纳投票前缴纳巨额保证金，
+      联盟档案把行动分散在公开账册、密函、保管规程和仪式记录中。H1 的公开账册显示某派别在接纳投票前缴纳巨额保证金，
       守约派别能承担而机会主义派别原本不能；但密函证明担保人向任何获准派别全额返还保证金，并为其预先垫资，
       垫资和返还同样覆盖机会主义派别。H2 的仪式记录显示，该派别在盟友投票前把唯一联络密钥交给中立档案馆并销毁副本，
-      此后无法秘密加入竞争同盟。H3 是一次高成本公开集会，但集会发生在接纳投票以后。
-      H4 是投票前展示的公开印章，两类派别都能取得同一种公开印章。
-      按 H1—H4 输出四分类标签。
-    answer: {parts: [{type: label, value: H1=POOLING_SIGNAL}, {type: label, value: H2=CREDIBLE_COMMITMENT}, {type: label, value: H3=NONCREDIBLE}, {type: label, value: H4=POOLING_SIGNAL}]}
+      公开仪式声称此后无法秘密加入竞争同盟；但保管规程的小字允许该派别凭自己的单方书函立即复制密钥，档案馆不得拒绝。
+      H3 是一次高成本公开集会，但集会发生在接纳投票以后。H4 是投票前展示的公开印章，两类派别都能取得同一种公开印章。
+      H5 是投票前缴入中立救济库且不可返还的粮券：由派别自己的金库支付，守约派别能承担、机会主义派别不能承担，
+      任何赞助人或保险都不得补偿。H6 是投票前把唯一竞争同盟授权书焚毁，公证簿确认不存在副本、补发或代理加入渠道。
+      按 H1—H6 分类。
+    answer_format: H1=<LABEL>;H2=<LABEL>;H3=<LABEL>;H4=<LABEL>;H5=<LABEL>;H6=<LABEL>，其中 <LABEL> 只能是 CREDIBLE_COMMITMENT、SEPARATING_SIGNAL、POOLING_SIGNAL 或 NONCREDIBLE。
+    answer: {parts: [{type: label, value: H1=POOLING_SIGNAL}, {type: label, value: H2=NONCREDIBLE}, {type: label, value: H3=NONCREDIBLE}, {type: label, value: H4=POOLING_SIGNAL}, {type: label, value: H5=SEPARATING_SIGNAL}, {type: label, value: H6=CREDIBLE_COMMITMENT}]}
   mapping:
     objects: {商团审计押金: 联盟保证金, 外部补偿者: 密函中的担保人, 销毁竞争契印: 托管并销毁联络密钥, 回应后声明: 投票后高成本集会, 可退会徽: 双方可得公开印章}
-    shared_relations: [投票前可观察才可能影响选择, 删除竞争同盟选项形成可信承诺, 两类均可采用的印章不能分离, 投票后成本对先前回应无效]
-    removed_relations: [保证金成本由发出信号的派别最终承担]
-    added_relations: [第三方为包括机会主义者在内的获准派别事前垫资并事后全额返还]
-    adaptation_required: [把公开账册与密函联合起来追踪真实资金流, 用补偿关系更新 H1 而不改变 H2/H3/H4, 不因名义金额巨大就判定分离]
-    varied: [跨到历史联盟档案, 单一规则表变成账册密函仪式记录, 公开材料与隐蔽资金关系给出相反表象]
+    shared_relations: [投票前可观察才可能影响选择, 真正删除竞争同盟选项形成可信承诺, 自担且坏类型不能模仿的成本形成分离, 两类均可采用的印章不能分离, 投票后成本对先前回应无效]
+    removed_relations: [H1 保证金由发出信号者最终承担, H2 的密钥托管不可逆地删除背离选项]
+    added_relations: [担保人为机会主义者垫付返还 H1 保证金, H2 保管规程保留单方即时复制通道]
+    adaptation_required: [跨公开材料和隐蔽条款分别追踪真实资金流与选项恢复权, 只更新 H1/H2而保持其余机制独立]
+    varied: [跨到历史联盟档案, 六项制度散布在账册密函保管规程仪式与公证簿, 两种公开承诺分别被资金和控制权关系推翻]
   lure:
     problem: >-
-      忽略密函中的担保人，只按公开账册把 H1 视为派别自付且机会主义者无法承担；其余材料不变。输出标签。
-    solution: H1 被判为 SEPARATING_SIGNAL；H2、H3、H4 分别仍为可信承诺、不可信和混同信号。
-    answer: {parts: [{type: label, value: H1=SEPARATING_SIGNAL}, {type: label, value: H2=CREDIBLE_COMMITMENT}, {type: label, value: H3=NONCREDIBLE}, {type: label, value: H4=POOLING_SIGNAL}]}
+      只依据公开账册和仪式记录，忽略 H1 密函中的担保人，也忽略 H2 保管规程中的单方复制条款；
+      H3—H6 仍按完整记录解释。
+    solution: >-
+      H1 被判为 SEPARATING_SIGNAL，H2 被判为 CREDIBLE_COMMITMENT；H3 为 NONCREDIBLE，H4 为 POOLING_SIGNAL，
+      H5 为 SEPARATING_SIGNAL，H6 为 CREDIBLE_COMMITMENT。
+    answer: {parts: [{type: label, value: H1=SEPARATING_SIGNAL}, {type: label, value: H2=CREDIBLE_COMMITMENT}, {type: label, value: H3=NONCREDIBLE}, {type: label, value: H4=POOLING_SIGNAL}, {type: label, value: H5=SEPARATING_SIGNAL}, {type: label, value: H6=CREDIBLE_COMMITMENT}]}
     why_surface_similar: 保留公开账册、保证金金额、类型承受差异和所有其他行动。
-    why_structurally_different: lure 删除了决定实际成本归属的第三方垫资与返还关系。
+    why_structurally_different: lure 同时删除了决定实际成本归属的补偿链和决定选项是否真正删除的恢复权。
     wrong_schema_id: public-ledger-self-funded-signal-01
   copy_probe:
-    answer: {parts: [{type: label, value: H1=SEPARATING_SIGNAL}, {type: label, value: H2=CREDIBLE_COMMITMENT}, {type: label, value: H3=NONCREDIBLE}, {type: label, value: H4=POOLING_SIGNAL}]}
-    derivation: 将源题“名义缴纳者即最终承担者”的关系照搬到目标题，没有用密函修订成本归宿。
+    answer: {parts: [{type: label, value: H1=SEPARATING_SIGNAL}, {type: label, value: H2=CREDIBLE_COMMITMENT}, {type: label, value: H3=NONCREDIBLE}, {type: label, value: H4=POOLING_SIGNAL}, {type: label, value: H5=SEPARATING_SIGNAL}, {type: label, value: H6=CREDIBLE_COMMITMENT}]}
+    derivation: 把公开缴费和公开托管分别当成自担成本与不可逆删项，没有继续追踪密函补偿和规程中的单方恢复权。
   hints:
     schema_name: 可信承诺、分离信号与成本承担关系迁移
     oracle_mindset: {insight: 跨文书追踪成本归宿；补贴者只改变信号的可模仿性，不会自动改变另一项不可逆选项删除。, when_to_use: 公开仪式看似昂贵，但保险、赞助、返还或垫资可能让坏类型无成本模仿时。}
@@ -229,4 +242,4 @@
     entrypoint: mindsetbench.verification.hss_institutional_mechanism:verify_hss_p8_inst_mechanism_l4_01
     method: hidden-subsidy-relation-update-and-mechanism-classification
   provenance: original synthetic case; all polities, actors, and documents are fictional
-  verified: H1 的有效成本被担保人消除而混同；H2 真正删除背离选项；H3 过晚；H4 两类均可模仿。
+  verified: H1 的有效成本被消除而混同；H2 因单方复制权未删项；H3 过晚；H4 两类可模仿；H5 自担分离；H6 真正删项。

@@ -42,9 +42,9 @@ MindsetBench 用于测量 LLM/agent 能否把一个问题中的认知图式迁�
 
 它们目前都是 calibration/challenge 数据，用于定位失败模式，不代表已经得到稳定的正迁移结论。
 
-## 下一目标：Humanities/Social-20
+## Humanities/Social-20
 
-现有正式题仍偏系数计算、组合枚举和路径搜索。`hss20` 已完成四条人文社科 L0–L4 链，共 20 题：规范与判例、论证与证据、历史类比、制度机制。20/20 为非数值结构答案并具有可执行 verifier；8 个 L3/L4 均跨文体、跨表征，其中技术→HSS 与 HSS→HSS 各半。
+现有正式题仍偏系数计算、组合枚举和路径搜索。`hss20` 已完成四条人文社科 L0–L4 链，共 20 题：规范与判例、论证与证据、历史类比、制度机制。20/20 为非数值结构答案并具有可执行 verifier；8 个 L3/L4 均跨文体、跨表征，其中技术→HSS 与 HSS→HSS 各半。GPT-5.6 三样本校准中三条件均为 100%，所以它们目前是 sanity/calibration 资产，不是正式高难集。
 
 L3/L4 的 source 与 target 必须同时跨学科、跨文体和跨表征，不能只是替换名词；至少 16/20 使用标签、集合、排序、三值或角色映射作答，全部保留可执行 verifier。
 
@@ -96,8 +96,11 @@ Y = -2T + 4A + 5B + ε_Y
 | 联合题 solved-reference | with-lure | 3 | 1/3 | 54/63 | 4/9 |
 | 联合题 procedure-only | oracle mindset | 3 | 0/3 | 52/63 | 2/9 |
 | 联合题 procedure-only | false mindset | 3 | 0/3 | 44/63 | 0/9 |
+| HSS20 L3/L4 v2 | target-only | 8题×3 | 24/24 | 168/168 | — |
+| HSS20 L3/L4 v2 | with-source | 8题×3 | 24/24 | 168/168 | — |
+| HSS20 L3/L4 v2 | with-lure | 8题×3 | 24/24 | 168/168 | — |
 
-Formal35 的 L0–L3 已接近天花板。联合题中 solved source 没有稳定增益，lure 也没有形成稳定的有害控制；procedure-only oracle 相对 false mindset 提高了 12.7 个百分点的逐段正确率和 22.2 个百分点的 block 正确率，但整题 exact 仍为 0。当前结果支持“程序提示改善局部搜索”，尚不支持“已实现稳定 schema transfer”。
+Formal35 的 L0–L3 已接近天花板。HSS20 在修复答案格式契约并扩充关系干扰后仍是 100%，说明纯文本加长不能产生迁移难度。联合题中 solved source 没有稳定增益；procedure-only oracle 相对 false mindset 改善局部搜索，但整题 exact 仍为 0。当前所有结果都不足以声称已实现稳定 schema transfer。
 
 ## 快速开始
 
@@ -153,6 +156,7 @@ export MINDSETBENCH_API_KEY='...'
 ## 当前结论
 
 - 显式规则题对强模型普遍偏简单，容易出现天花板效应。
+- HSS20 的首轮假低分来自未明示的答案前缀；修复后 72/72 全对，现已明确降为 sanity/calibration。
 - 潜在操作题已跨多个同构实例复现难度，但 solved source 的正增益尚不稳定。
 - 最新联合证书题稳定暴露了 first-hit stopping-time 错误：模型会把首次满足目标后的冗余操作误计为新路径。
 - procedure-only oracle 能改善部分字段和答案完整性，但整题 exact 仍未改善，因此暂不声称稳定 schema transfer。

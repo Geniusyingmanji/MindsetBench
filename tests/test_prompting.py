@@ -1,6 +1,6 @@
 import pytest
 
-from mindsetbench.data import load_cases
+from mindsetbench.data import PROJECT_ROOT, load_cases
 from mindsetbench.models.prompt import Condition, PromptContext
 from mindsetbench.prompting import build_prompt
 
@@ -30,6 +30,20 @@ def test_prompt_hash_is_deterministic(cases_by_id) -> None:
     first = build_prompt(view, Condition.WITH_SOURCE)
     second = build_prompt(view, Condition.WITH_SOURCE)
     assert first.prompt_sha256 == second.prompt_sha256
+
+
+def test_structured_answer_format_is_injected_without_gold() -> None:
+    case = next(
+        case
+        for case in load_cases(
+            PROJECT_ROOT / "data" / "v1" / "hss-p7-argument-evidence-chain.yaml"
+        )
+        if case.id == "HSS-P7-ARG-EVIDENCE-L3-01"
+    )
+    prompt = build_prompt(case.prompt_view(), Condition.TARGET_ONLY)
+    assert "【答案格式】" in prompt.user
+    assert case.target.answer_format in prompt.user
+    assert case.target.answer.legacy_value() not in case.target.answer_format
 
 
 def test_random_source_requires_explicit_context(cases_by_id) -> None:

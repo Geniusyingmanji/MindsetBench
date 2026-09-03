@@ -22,6 +22,7 @@ EXCEPTION_LEFT = "exception_left"
 EXCEPTION_RIGHT = "exception_right"
 ABSOLUTE_BAR = "absolute_bar"
 TOP_EXCEPTION = "top_exception"
+SCOPE_BAR = "scope_bar"
 
 
 def _rule(
@@ -211,6 +212,59 @@ def _verify_policy_case(
     return _result(case, checks)
 
 
+def _decision_parts(
+    records: Records,
+    rules: Sequence[PriorityRule],
+) -> list[str]:
+    decisions = evaluate_policy(records, rules)
+    parts: list[str] = []
+    for record_id, decision in decisions.items():
+        if len(decision.winning_rules) > 1:
+            raise ValueError(f"{record_id} has multiple winning reason codes")
+        reason = decision.winning_rules[0] if decision.winning_rules else "DEFAULT"
+        parts.append(f"{record_id}={decision.decision.value.upper()}@{reason}")
+    return parts
+
+
+def _verify_decision_certificate_case(
+    case: Case,
+    *,
+    aliases: Mapping[str, str],
+    records: Records,
+    target_rules: Sequence[PriorityRule],
+    lure_rules: Sequence[PriorityRule],
+    required_phrases: Sequence[str],
+    expected_target: Sequence[str],
+    expected_lure: Sequence[str],
+) -> VerificationResult:
+    target = _decision_parts(records, target_rules)
+    lure = _decision_parts(records, lure_rules)
+    assert case.lure is not None and case.lure.answer is not None
+    assert case.copy_probe is not None
+    checks = _source_checks(case)
+    checks.extend(
+        [
+            _check("target-text-records", _parse_for_check(case.target.problem, aliases), records),
+            _check(
+                "target-text-policy-clauses",
+                _contains_all(case.target.problem, required_phrases),
+                True,
+            ),
+            _check("decision-certificates", target, list(expected_target)),
+            _check("negative-control-certificates", lure, list(expected_lure)),
+            _check("stored-target", case.target.answer.legacy_value(), ";".join(target)),
+            _check("stored-lure", case.lure.answer.legacy_value(), ";".join(lure)),
+            _check(
+                "copy-equals-lure",
+                case.copy_probe.answer.legacy_value(),
+                case.lure.answer.legacy_value(),
+            ),
+            _check("copy-differs-from-target", case.copy_probe.answer != case.target.answer, True),
+        ]
+    )
+    return _result(case, checks)
+
+
 @register("HSS-P4-NORM-PRECEDENT-L0-01")
 def verify_hss_p4_norm_precedent_l0_01(case: Case) -> VerificationResult:
     aliases = {
@@ -349,7 +403,23 @@ LABOR_ALIASES = {
     "工会共同签署": EXCEPTION_LEFT,
     "劳动者明示同意": EXCEPTION_RIGHT,
     "法定期限届满": ABSOLUTE_BAR,
+    "第三方特权封存": SCOPE_BAR,
 }
+
+
+def _labor_rules(*, unrestricted_pair: bool = False) -> tuple[PriorityRule, ...]:
+    return (
+        _rule("BASE", {ELIGIBLE_LEFT, ELIGIBLE_RIGHT}, Decision.ALLOW, 1),
+        _rule("CONF", {ORDINARY_BAR}, Decision.DENY, 2),
+        _rule(
+            "PAIR",
+            {EXCEPTION_LEFT, EXCEPTION_RIGHT},
+            Decision.ALLOW,
+            6 if unrestricted_pair else 3,
+        ),
+        _rule("PRIV", {SCOPE_BAR}, Decision.DENY, 4),
+        _rule("DEADLINE", {ABSOLUTE_BAR}, Decision.DENY, 5),
+    )
 
 
 @register("HSS-P4-NORM-PRECEDENT-L3-01")
@@ -394,21 +464,66 @@ def verify_hss_p4_norm_precedent_l3_01(case: Case) -> VerificationResult:
                 EXCEPTION_RIGHT,
             },
         ),
+        (
+            "N9",
+            {
+                ELIGIBLE_LEFT,
+                ELIGIBLE_RIGHT,
+                SCOPE_BAR,
+                EXCEPTION_LEFT,
+                EXCEPTION_RIGHT,
+            },
+        ),
+        (
+            "N10",
+            {
+                ELIGIBLE_LEFT,
+                ELIGIBLE_RIGHT,
+                ORDINARY_BAR,
+                SCOPE_BAR,
+                EXCEPTION_LEFT,
+                EXCEPTION_RIGHT,
+                ABSOLUTE_BAR,
+            },
+        ),
     )
-    return _verify_policy_case(
+    return _verify_decision_certificate_case(
         case,
         aliases=LABOR_ALIASES,
         records=records,
-        target_rules=_standard_rules(),
-        lure_rules=_standard_rules(exception_priority=5),
+        target_rules=_labor_rules(),
+        lure_rules=_labor_rules(unrestricted_pair=True),
         required_phrases=(
             "书记员将未获受理依据的申请登记为不受理",
             "保密条款压过通常的受理资格",
             "工会共同签署且劳动者明示同意时可以克服保密条款",
-            "法定期限届满仍然终局阻却受理",
+            "共同保障只处理保密冲突，不能克服第三方特权封存",
+            "法定期限届满又压过此前所有理由",
         ),
-        expected_target=("N2", "N4", "N5", "N6", "N7"),
-        expected_lure=("N2", "N5", "N6", "N7"),
+        expected_target=(
+            "N1=ALLOW@BASE",
+            "N2=DENY@CONF",
+            "N3=ALLOW@PAIR",
+            "N4=DENY@DEADLINE",
+            "N5=DENY@DEFAULT",
+            "N6=DENY@CONF",
+            "N7=DENY@DEADLINE",
+            "N8=ALLOW@PAIR",
+            "N9=DENY@PRIV",
+            "N10=DENY@DEADLINE",
+        ),
+        expected_lure=(
+            "N1=ALLOW@BASE",
+            "N2=DENY@CONF",
+            "N3=ALLOW@PAIR",
+            "N4=ALLOW@PAIR",
+            "N5=DENY@DEFAULT",
+            "N6=DENY@CONF",
+            "N7=DENY@DEADLINE",
+            "N8=ALLOW@PAIR",
+            "N9=ALLOW@PAIR",
+            "N10=ALLOW@PAIR",
+        ),
     )
 
 
@@ -420,20 +535,24 @@ ARCHIVE_ALIASES = {
     "监察员背书": EXCEPTION_RIGHT,
     "捐赠契约封存": ABSOLUTE_BAR,
     "法院解密令": TOP_EXCEPTION,
+    "敏感个人通信封存": SCOPE_BAR,
 }
 
 
-def _archive_rules(*, include_court_exception: bool) -> tuple[PriorityRule, ...]:
-    rules = list(_standard_rules())
-    if include_court_exception:
-        rules.append(
-            _rule(
-                "court-declassification",
-                {ABSOLUTE_BAR, TOP_EXCEPTION},
-                Decision.ALLOW,
-                5,
-            )
-        )
+def _archive_rules(*, broad_court_exception: bool = False) -> tuple[PriorityRule, ...]:
+    rules = [
+        _rule("BASE", {ELIGIBLE_LEFT, ELIGIBLE_RIGHT}, Decision.ALLOW, 1),
+        _rule("SECURITY", {ORDINARY_BAR}, Decision.DENY, 2),
+        _rule("OVERSIGHT", {EXCEPTION_LEFT, EXCEPTION_RIGHT}, Decision.ALLOW, 3),
+        _rule("DEED", {ABSOLUTE_BAR}, Decision.DENY, 4),
+        _rule(
+            "COURT",
+            {TOP_EXCEPTION} if broad_court_exception else {ABSOLUTE_BAR, TOP_EXCEPTION},
+            Decision.ALLOW,
+            7 if broad_court_exception else 5,
+        ),
+        _rule("PRIVACY", {SCOPE_BAR}, Decision.DENY, 6),
+    ]
     return tuple(rules)
 
 
@@ -481,23 +600,64 @@ def verify_hss_p4_norm_precedent_l4_01(case: Case) -> VerificationResult:
             "U8",
             {ELIGIBLE_LEFT, ELIGIBLE_RIGHT, ORDINARY_BAR, TOP_EXCEPTION},
         ),
+        (
+            "U9",
+            {ELIGIBLE_LEFT, ELIGIBLE_RIGHT, SCOPE_BAR, TOP_EXCEPTION},
+        ),
+        (
+            "U10",
+            {
+                ELIGIBLE_LEFT,
+                ELIGIBLE_RIGHT,
+                ORDINARY_BAR,
+                EXCEPTION_LEFT,
+                EXCEPTION_RIGHT,
+                ABSOLUTE_BAR,
+                SCOPE_BAR,
+                TOP_EXCEPTION,
+            },
+        ),
     )
-    result = _verify_policy_case(
+    result = _verify_decision_certificate_case(
         case,
         aliases=ARCHIVE_ALIASES,
         records=records,
-        target_rules=_archive_rules(include_court_exception=True),
-        lure_rules=_archive_rules(include_court_exception=False),
+        target_rules=_archive_rules(),
+        lure_rules=_archive_rules(broad_court_exception=True),
         required_phrases=(
             "先例甲",
             "先例乙",
             "先例丙",
             "先例丁",
             "先例戊",
+            "先例己",
+            "先例庚",
             "法院命令改变了旧有的终局封存关系",
         ),
-        expected_target=("U2", "U4", "U6", "U7", "U8"),
-        expected_lure=("U2", "U4", "U5", "U6", "U7", "U8"),
+        expected_target=(
+            "U1=ALLOW@BASE",
+            "U2=DENY@SECURITY",
+            "U3=ALLOW@OVERSIGHT",
+            "U4=DENY@DEED",
+            "U5=ALLOW@COURT",
+            "U6=DENY@DEFAULT",
+            "U7=DENY@DEED",
+            "U8=DENY@SECURITY",
+            "U9=DENY@PRIVACY",
+            "U10=DENY@PRIVACY",
+        ),
+        expected_lure=(
+            "U1=ALLOW@BASE",
+            "U2=DENY@SECURITY",
+            "U3=ALLOW@OVERSIGHT",
+            "U4=DENY@DEED",
+            "U5=ALLOW@COURT",
+            "U6=DENY@DEFAULT",
+            "U7=DENY@DEED",
+            "U8=ALLOW@COURT",
+            "U9=ALLOW@COURT",
+            "U10=ALLOW@COURT",
+        ),
     )
 
     precedent_records = _records(
@@ -536,12 +696,20 @@ def verify_hss_p4_norm_precedent_l4_01(case: Case) -> VerificationResult:
                 TOP_EXCEPTION,
             },
         ),
+        (
+            "F",
+            {ELIGIBLE_LEFT, ELIGIBLE_RIGHT, ORDINARY_BAR, TOP_EXCEPTION},
+        ),
+        (
+            "G",
+            {ELIGIBLE_LEFT, ELIGIBLE_RIGHT, SCOPE_BAR, TOP_EXCEPTION},
+        ),
     )
     precedent_decisions = {
         record_id: decision.decision.value
         for record_id, decision in evaluate_policy(
             precedent_records,
-            _archive_rules(include_court_exception=True),
+            _archive_rules(),
         ).items()
     }
     result.checks.extend(
@@ -549,7 +717,15 @@ def verify_hss_p4_norm_precedent_l4_01(case: Case) -> VerificationResult:
             _check(
                 "precedents-recover-priority-chain",
                 precedent_decisions,
-                {"A": "allow", "B": "deny", "C": "allow", "D": "deny", "E": "allow"},
+                {
+                    "A": "allow",
+                    "B": "deny",
+                    "C": "allow",
+                    "D": "deny",
+                    "E": "allow",
+                    "F": "deny",
+                    "G": "deny",
+                },
             ),
             _check("target-omits-numeric-priorities", "优先级" not in case.target.problem, True),
         ]

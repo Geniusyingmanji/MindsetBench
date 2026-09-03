@@ -43,6 +43,7 @@ class Target(BaseModel):
     domain: str
     problem: str
     answer: AnswerSpec
+    answer_format: str | None = None
     answer_type: str = "string"
     tolerance: Decimal | None = None
     tolerance_note: str | None = None
@@ -146,6 +147,7 @@ class CasePromptView(BaseModel):
     hints: Hints
     source: Source
     target_problem: str
+    answer_format: str | None
     mapping_objects: dict[str, str]
     shared_relations: list[str]
     lure: Lure | None
@@ -215,6 +217,7 @@ class Case(BaseModel):
             hints=self.hints,
             source=self.source,
             target_problem=self.target.problem,
+            answer_format=self.target.answer_format,
             mapping_objects=self.mapping.objects,
             shared_relations=self.mapping.shared_relations,
             lure=self.lure,

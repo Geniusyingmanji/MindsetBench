@@ -240,6 +240,16 @@ def _validate_case(case: Case, report: ValidationReport, *, strict_v1: bool) -> 
             "descriptive tolerance must be migrated to per-part numeric tolerances",
             case.id,
         )
+    answer_format = case.target.answer_format
+    if answer_format and len(case.target.answer.parts) > 1:
+        gold = case.target.answer.legacy_value()
+        if gold.casefold() in answer_format.casefold():
+            report.add(
+                Severity.ERROR,
+                "answer-format-leaks-gold",
+                "answer format must contain placeholders, not the complete gold answer",
+                case.id,
+            )
     if strict_v1:
         if not case.version.startswith("1."):
             report.add(Severity.ERROR, "legacy-version", "strict v1 requires version 1.x", case.id)

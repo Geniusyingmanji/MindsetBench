@@ -164,7 +164,7 @@
       一份集体协议写道：按期提出且具备申诉资格的申请通常受理。
       书记员将未获受理依据的申请登记为不受理。庭务纪要补充：
       保密条款压过通常的受理资格；工会共同签署且劳动者明示同意时可以克服保密条款；
-      即使有该项共同保障，法定期限届满仍然终局阻却受理。
+      该共同保障只处理保密冲突，不能克服第三方特权封存；法定期限届满又压过此前所有理由，终局阻却受理。
       本期卷宗为 N1【按期提出、具备申诉资格】；
       N2【按期提出、具备申诉资格、涉及保密人事材料】；
       N3【按期提出、具备申诉资格、涉及保密人事材料、工会共同签署、劳动者明示同意】；
@@ -172,24 +172,31 @@
       N5【具备申诉资格】；
       N6【按期提出、具备申诉资格、涉及保密人事材料、工会共同签署】；
       N7【按期提出、具备申诉资格、法定期限届满】；
-      N8【按期提出、具备申诉资格、涉及保密人事材料、工会共同签署、劳动者明示同意】。
-      输出书记员应登记为不受理的全部编号，按编号升序并以分号分隔。
-    answer: {parts: [{type: label, value: N2}, {type: label, value: N4}, {type: label, value: N5}, {type: label, value: N6}, {type: label, value: N7}]}
+      N8【按期提出、具备申诉资格、涉及保密人事材料、工会共同签署、劳动者明示同意】；
+      N9【按期提出、具备申诉资格、第三方特权封存、工会共同签署、劳动者明示同意】；
+      N10【按期提出、具备申诉资格、涉及保密人事材料、第三方特权封存、工会共同签署、劳动者明示同意、法定期限届满】。
+      对每卷输出受理结论及实际控制结论的理由代码：通常门槛 BASE、保密 CONF、共同保障 PAIR、
+      第三方特权 PRIV、期限 DEADLINE；没有任何受理理由时用 DEFAULT。
+    answer_format: N1=<ALLOW或DENY>@<理由>;N2=...;N3=...;N4=...;N5=...;N6=...;N7=...;N8=...;N9=...;N10=...
+    answer: {parts: [{type: label, value: N1=ALLOW@BASE}, {type: label, value: N2=DENY@CONF}, {type: label, value: N3=ALLOW@PAIR}, {type: label, value: N4=DENY@DEADLINE}, {type: label, value: N5=DENY@DEFAULT}, {type: label, value: N6=DENY@CONF}, {type: label, value: N7=DENY@DEADLINE}, {type: label, value: N8=ALLOW@PAIR}, {type: label, value: N9=DENY@PRIV}, {type: label, value: N10=DENY@DEADLINE}]}
   mapping:
-    objects: {成员资格: 按期提出, 任务登记: 申诉资格, 事故审查: 保密人事材料, 安全主管批准: 工会共同签署, 独立复核: 劳动者明示同意, 法律保全: 法定期限届满}
+    objects: {成员资格: 按期提出, 任务登记: 申诉资格, 事故审查: 保密人事材料, 安全主管批准: 工会共同签署, 独立复核: 劳动者明示同意, 法律保全: 法定期限届满, 域内独立阻却: 第三方特权封存}
     shared_relations: [通常受理要求两个条件合取, 单一普通阻却压过通常受理, 两项保障必须同时存在才能克服普通阻却, 终局期限压过成对保障, 缺少完整受理依据时默认不受理]
-    varied: [跨到劳动制度, 从操作手册变为集体协议与书记员纪要, 从准入决定变为程序受理, 增加重复正例用于检查按编号猜测]
+    added_relations: [第三方特权封存压过仅针对保密冲突的共同保障]
+    adaptation_required: [逐卷恢复最高适用理由并报告理由证书, 不把成对保障从保密冲突外推到特权或期限]
+    varied: [跨到劳动制度, 从操作手册变为集体协议与书记员纪要, 十份卷宗混合两个阻却域并要求结论加控制理由]
   lure:
     problem: >-
-      卷宗不变，但把共同签署与明示同意理解为对所有不受理理由都有效，包括法定期限届满。输出不受理编号。
-    solution: N4 被共同保障受理；其余 N2、N5、N6、N7 仍不受理。
-    answer: {parts: [{type: label, value: N2}, {type: label, value: N5}, {type: label, value: N6}, {type: label, value: N7}]}
+      卷宗不变，但把共同签署与明示同意组成的 PAIR 理解为对所有拒绝理由都有效，优先于特权封存和期限届满。
+      仍按每卷“结论@理由”输出。
+    solution: N4、N9、N10 都由 PAIR 改为受理；未同时具备两项保障的卷宗仍按原理由处理。
+    answer: {parts: [{type: label, value: N1=ALLOW@BASE}, {type: label, value: N2=DENY@CONF}, {type: label, value: N3=ALLOW@PAIR}, {type: label, value: N4=ALLOW@PAIR}, {type: label, value: N5=DENY@DEFAULT}, {type: label, value: N6=DENY@CONF}, {type: label, value: N7=DENY@DEADLINE}, {type: label, value: N8=ALLOW@PAIR}, {type: label, value: N9=ALLOW@PAIR}, {type: label, value: N10=ALLOW@PAIR}]}
     why_surface_similar: 合同条件、卷宗事实与输出任务完全相同。
-    why_structurally_different: lure 把针对保密性的程序保障扩张为对法定期限的普遍豁免。
+    why_structurally_different: lure 把针对保密性的程序保障扩张为对特权和期限的普遍豁免。
     wrong_schema_id: unrestricted-procedural-waiver-01
   copy_probe:
-    answer: {parts: [{type: label, value: N2}, {type: label, value: N5}, {type: label, value: N6}, {type: label, value: N7}]}
-    derivation: 只识别“例外比禁止具体”，没有追踪例外实际覆盖的规范范围。
+    answer: {parts: [{type: label, value: N1=ALLOW@BASE}, {type: label, value: N2=DENY@CONF}, {type: label, value: N3=ALLOW@PAIR}, {type: label, value: N4=ALLOW@PAIR}, {type: label, value: N5=DENY@DEFAULT}, {type: label, value: N6=DENY@CONF}, {type: label, value: N7=DENY@DEADLINE}, {type: label, value: N8=ALLOW@PAIR}, {type: label, value: N9=ALLOW@PAIR}, {type: label, value: N10=ALLOW@PAIR}]}
+    derivation: 只识别“成对例外更具体”，没有追踪例外的冲突对象和最高理由证书。
   hints:
     schema_name: 默认规范、成对例外与先例优先关系迁移
     oracle_mindset: {insight: 将分散在协议和纪要中的理由重建为有方向的覆盖关系，再逐卷宗取最高适用理由。, when_to_use: 规则分布在不同文书、且没有统一编号或公式时。}
@@ -197,7 +204,7 @@
     entrypoint: mindsetbench.verification.hss_norm_precedent:verify_hss_p4_norm_precedent_l3_01
     method: cross-genre-norm-graph-recovery-and-scope-check
   provenance: original synthetic case; all institutions, records, and holdings are fictional
-  verified: N2、N6 受保密条款阻却，N4、N7 受终局期限阻却，N5 缺少完整受理条件。
+  verified: 十卷由有限优先规则逐项重算；N9 由 PRIV 控制，N10 即使有 PAIR 与 PRIV 仍由 DEADLINE 控制。
 
 - id: HSS-P4-NORM-PRECEDENT-L4-01
   version: "1.0"
@@ -212,14 +219,17 @@
   target:
     domain: 虚构公共档案委员会先例摘要
     problem: >-
-      委员会没有给出规则表，只留下五份理由摘要，并要求同类事实采用同一理由；
+      委员会没有给出规则表，只留下七份理由摘要，并要求同类事实采用同一理由；
       若旧案只解决某一冲突，后案从窄沿用该理由。
       先例甲：具备研究资质且材料已编目的申请获准公开，理由是两项通常门槛均满足。
       先例乙：在甲的事实外存在现实安全风险，改判不公开，理由是该风险压过通常门槛。
       先例丙：在乙的事实外又有公益复核通过和监察员背书，恢复公开，理由是成对监督保障克服普通安全风险。
       先例丁：在丙的事实外又受捐赠契约封存，仍判不公开，理由是当时该契约对上述保障具有终局效力。
       先例戊：事实与丁相同但另有法院解密令，改判公开；摘要明确说法院命令改变了旧有的终局封存关系，
-      但并未把法院命令扩张为对其他拒绝理由的一般通行证。没有先例支持公开的申请维持不公开。
+      但并未把法院命令扩张为对其他拒绝理由的一般通行证。
+      先例己：事实为通常门槛、现实安全风险和法院解密令，仍不公开；摘要以此确认法院命令不克服安全风险。
+      先例庚：事实为通常门槛、敏感个人通信封存和法院解密令，仍不公开；摘要说个人通信封存是独立理由，
+      不被前述任何监督、契约例外或法院命令克服。没有先例支持公开的申请维持不公开。
       现有申请为 U1【申请人具备研究资质、材料已编目】；
       U2【申请人具备研究资质、材料已编目、存在现实安全风险】；
       U3【申请人具备研究资质、材料已编目、存在现实安全风险、公益复核通过、监察员背书】；
@@ -227,27 +237,31 @@
       U5【申请人具备研究资质、材料已编目、存在现实安全风险、公益复核通过、监察员背书、捐赠契约封存、法院解密令】；
       U6【申请人具备研究资质】；
       U7【申请人具备研究资质、材料已编目、捐赠契约封存】；
-      U8【申请人具备研究资质、材料已编目、存在现实安全风险、法院解密令】。
-      输出应维持不公开的全部编号，按编号升序并以分号分隔。
-    answer: {parts: [{type: label, value: U2}, {type: label, value: U4}, {type: label, value: U6}, {type: label, value: U7}, {type: label, value: U8}]}
+      U8【申请人具备研究资质、材料已编目、存在现实安全风险、法院解密令】；
+      U9【申请人具备研究资质、材料已编目、敏感个人通信封存、法院解密令】；
+      U10【申请人具备研究资质、材料已编目、存在现实安全风险、公益复核通过、监察员背书、捐赠契约封存、敏感个人通信封存、法院解密令】。
+      对每项输出公开结论和控制理由代码：通常门槛 BASE、安全风险 SECURITY、成对监督 OVERSIGHT、
+      捐赠契约 DEED、法院窄例外 COURT、个人通信 PRIVACY；无公开依据为 DEFAULT。
+    answer_format: U1=<ALLOW或DENY>@<理由>;U2=...;U3=...;U4=...;U5=...;U6=...;U7=...;U8=...;U9=...;U10=...
+    answer: {parts: [{type: label, value: U1=ALLOW@BASE}, {type: label, value: U2=DENY@SECURITY}, {type: label, value: U3=ALLOW@OVERSIGHT}, {type: label, value: U4=DENY@DEED}, {type: label, value: U5=ALLOW@COURT}, {type: label, value: U6=DENY@DEFAULT}, {type: label, value: U7=DENY@DEED}, {type: label, value: U8=DENY@SECURITY}, {type: label, value: U9=DENY@PRIVACY}, {type: label, value: U10=DENY@PRIVACY}]}
   mapping:
-    objects: {成员资格与任务登记: 研究资质与材料编目, 事故审查: 现实安全风险, 双重批准: 公益复核与监察员背书, 法律保全: 捐赠契约封存, 访问准入: 档案公开, 新增最高例外: 法院解密令}
+    objects: {成员资格与任务登记: 研究资质与材料编目, 事故审查: 现实安全风险, 双重批准: 公益复核与监察员背书, 法律保全: 捐赠契约封存, 访问准入: 档案公开, 新增窄例外: 法院解密令, 独立最高阻却: 敏感个人通信封存}
     shared_relations: [通常公开需要两个门槛, 普通风险压过通常公开, 两项监督保障共同压过普通风险, 契约封存在旧关系中压过监督保障, 无公开理由时保持拒绝默认值]
-    added_relations: [法院解密令仅在捐赠契约封存冲突中推翻旧有终局拒绝]
-    adaptation_required: [从五份裁决结果恢复覆盖顺序, 在源题四层关系上加入法院解密令这一窄范围第五层, 不把新增例外错误扩张到普通安全风险]
-    varied: [跨到公共档案制度, 从显式手册变为先例摘要, 不提供规则编号, 新增一个只针对最高旧禁令的窄例外]
+    added_relations: [法院解密令仅在捐赠契约封存冲突中推翻旧拒绝, 敏感个人通信形成不受该窄例外影响的独立最高阻却]
+    adaptation_required: [从七份裁决的最小事实差恢复覆盖图, 为十项申请给出控制理由证书, 不把法院例外扩张到安全或隐私]
+    varied: [跨到公共档案制度, 显式手册变为七份先例摘要, 两个新增理由一窄一独立且十项申请多重叠加]
   lure:
     problem: >-
-      申请与旧四层关系相同，但机械沿用源手册，仍把捐赠契约封存当作不可被任何理由覆盖的终局拒绝；
-      同时不把法院解密令用于普通安全风险。输出维持不公开的编号。
-    solution: U5 仍受终局封存阻却；U2、U4、U6、U7、U8 也不公开。
-    answer: {parts: [{type: label, value: U2}, {type: label, value: U4}, {type: label, value: U5}, {type: label, value: U6}, {type: label, value: U7}, {type: label, value: U8}]}
+      申请和前四层关系相同，但把先例戊的法院解密令解释为一般最高许可，凡带 COURT 都公开；
+      不带法院命令的申请仍按原理由处理。输出每项“结论@理由”。
+    solution: U5、U8、U9、U10 都由 COURT 控制而公开；其余申请保持原结论和理由。
+    answer: {parts: [{type: label, value: U1=ALLOW@BASE}, {type: label, value: U2=DENY@SECURITY}, {type: label, value: U3=ALLOW@OVERSIGHT}, {type: label, value: U4=DENY@DEED}, {type: label, value: U5=ALLOW@COURT}, {type: label, value: U6=DENY@DEFAULT}, {type: label, value: U7=DENY@DEED}, {type: label, value: U8=ALLOW@COURT}, {type: label, value: U9=ALLOW@COURT}, {type: label, value: U10=ALLOW@COURT}]}
     why_surface_similar: 前四组理由与源手册可逐项对应，且绝大多数申请结论不变。
-    why_structurally_different: lure 忽略先例戊新增的窄范围法院例外，保留了已经被改变的终局关系。
-    wrong_schema_id: stale-absolute-bar-copy-01
+    why_structurally_different: lure 把只针对契约封存的局部修订错误提升为覆盖安全与隐私理由的一般最高许可。
+    wrong_schema_id: overgeneralized-court-exception-01
   copy_probe:
-    answer: {parts: [{type: label, value: U2}, {type: label, value: U4}, {type: label, value: U5}, {type: label, value: U6}, {type: label, value: U7}, {type: label, value: U8}]}
-    derivation: 将源题最高拒绝原样复制到目标题，没有用先例戊更新关系；又正确地未将法院命令泛化到 U8。
+    answer: {parts: [{type: label, value: U1=ALLOW@BASE}, {type: label, value: U2=DENY@SECURITY}, {type: label, value: U3=ALLOW@OVERSIGHT}, {type: label, value: U4=DENY@DEED}, {type: label, value: U5=ALLOW@COURT}, {type: label, value: U6=DENY@DEFAULT}, {type: label, value: U7=DENY@DEED}, {type: label, value: U8=ALLOW@COURT}, {type: label, value: U9=ALLOW@COURT}, {type: label, value: U10=ALLOW@COURT}]}
+    derivation: 识别了法院命令能够更新旧关系，却没有追踪该先例只解决法院命令与契约封存之间的一条边。
   hints:
     schema_name: 默认规范、成对例外与先例优先关系迁移
     oracle_mindset: {insight: 用相邻先例的最小事实差恢复理由覆盖图；戊只改变法院命令与契约封存之间的一条边，其他边保持。, when_to_use: 目标题用案例而非条款表达规则，并且新案例局部修订旧关系时。}
@@ -255,4 +269,4 @@
     entrypoint: mindsetbench.verification.hss_norm_precedent:verify_hss_p4_norm_precedent_l4_01
     method: precedent-contrast-priority-recovery-and-local-relation-update
   provenance: original synthetic case; all institutions, records, and holdings are fictional
-  verified: U5 由法院解密令窄范围公开；U8 没有契约封存，法院命令不能跨范围覆盖安全风险。
+  verified: 七先例恢复 BASE<SECURITY<OVERSIGHT<DEED<COURT<PRIVACY；COURT 仅以 DEED 为条件，U8—U10 不得据此越过其他拒绝理由。

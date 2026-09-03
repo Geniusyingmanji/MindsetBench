@@ -5,7 +5,7 @@ import hashlib
 from mindsetbench.models.case import CasePromptView
 from mindsetbench.models.prompt import Condition, PromptArtifact, PromptContext
 
-TEMPLATE_VERSION = "core-v2"
+TEMPLATE_VERSION = "core-v3"
 SYSTEM = "你是一个严谨的问题求解器。只依据用户提供的材料作答。"
 TAIL = (
     "\n\n请给出必要的推理过程，并在最后一行严格输出：ANSWER: <答案>。"
@@ -44,6 +44,8 @@ def build_prompt(
 
 def _build_user(case: CasePromptView, condition: Condition, context: PromptContext) -> str:
     target = f"【目标题】\n{case.target_problem}"
+    if case.answer_format:
+        target += f"\n\n【答案格式】\n{case.answer_format}"
     if condition == Condition.TARGET_ONLY:
         return f"请解下面这道题。\n\n{target}{TAIL}"
     if condition == Condition.RANDOM_SOURCE:
