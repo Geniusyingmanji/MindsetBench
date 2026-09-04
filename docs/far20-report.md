@@ -46,7 +46,16 @@ verifier 各自的形式世界：来源根计数与时间可行性、共因条�
 
 ## 4. 待校准
 
-尚未调用任何模型。建议顺序：
+尚未调用任何模型。2026-09-04 尝试从本机运行时，`matrixllm.alipay.com` 解析到 Alipay 办公网关地址段
+（110.76.x.x），TLS 握手被对端关闭，需要在能访问该端点的网络（公司 VPN 或办公网）上执行。一键脚本：
+
+```bash
+export MINDSETBENCH_API_KEY='...'
+scripts/run_far20_calibration.sh gpt-5.6-sol            # 两阶段：先 target-only，再三个配对条件
+scripts/run_far20_calibration.sh gpt-5.6-sol "$ENDPOINT" target   # 只跑 target-only 预筛
+```
+
+手动等价命令：
 
 ```bash
 .venv/bin/mb plan-run --dataset data/manifests/far20-hard.json \
