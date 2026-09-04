@@ -18,8 +18,9 @@
 按 SPEC 五成分定义它们只翻了 Surface，因此 `formal35`、`hss20`、`hss-active8`、`expansion20` 共 82 题降为
 `split: sanity`。主要交付改为**框架型 mindset 的远域家族**：首批 `far20` 覆盖证据独立性（P7）、阴性证据（P2）、
 剩余地平线（P1）、可信承诺（P8），每家族 L0–L4 一条链，L2–L4 目标跨学科、跨文体、跨表征并通过新增的
-`mb audit --surface` 闸门；评测新增 `with-both` 条件与 `selection_loss` 指标。下一步是按协议第 7 节对
-`far20-hard.json` 的 12 道 L2–L4 做 target-only 三样本校准，再决定是否扩到每家族多实例的全对源矩阵。
+`mb audit --surface` 闸门；评测新增 `with-both` 条件与 `selection_loss` 指标。2026-09-04 又完成两批：`far35` 加入时滞过度修正、极值选择效应、门槛级联三家族，`far50` 加入不变量可达性、
+筛选造出的关联、面积体积尺度律三个超远域家族，合计十个家族 50 题，`far50-hard.json` 为 30 道 L2–L4。下一步是按协议第 7 节对
+`far50-hard.json` 做 target-only 三样本校准（需要能访问 Matrix 端点的网络），再决定是否扩到每家族多实例的全对源矩阵。
 
 ## 1. 背景
 

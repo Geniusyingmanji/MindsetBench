@@ -106,3 +106,17 @@ L2–L4 跨学科、跨文体、跨表征且通过 `mb audit --surface` 闸门�
 | calibration（P5 算力型 challenge） | 19 |
 | sanity | 82 |
 | dev（hard seeds） | 9 |
+
+## 2026-09-04 第三批超远域家族（far50）
+
+新增三个家族、15 题，全部 calibration：`far-invariant-reachability-v1`（P2，黑板消数 → 翻杯 → 象棋马步 → 舞蹈队形 → 记账）、
+`far-selection-association-v1`（P3，住院 → 体检 → 校招 → 课程评论 → 星表）、`far-scaling-law-v1`（P1，动物食量 → 鸟卵 → 晾汤 →
+桥梁模型 → 冷库造价）。`far50.json` 汇总十个家族 50 题，`far50-hard.json` 为其中 30 道 L2–L4。报告见
+[`docs/far50-report.md`](../docs/far50-report.md)。尚未做模型校准。
+
+| 状态 | 类型化题数 |
+| --- | ---: |
+| calibration（far50） | 50 |
+| calibration（P5 算力型 challenge） | 19 |
+| sanity | 82 |
+| dev（hard seeds） | 9 |

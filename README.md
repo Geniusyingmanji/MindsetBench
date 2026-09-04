@@ -26,13 +26,16 @@ MindsetBench 用于测量 LLM/agent 能否把一个问题中的认知图式迁�
   [`docs/far20-report.md`](docs/far20-report.md)。尚未做模型校准。
 - 2026-09-04 新增第二批三个家族（时滞下的过度修正、极值选择效应、门槛分布的缺口决定扩散终点），合计 `far35`：
   七个家族 35 题，`far35-hard.json` 为 21 道 L2–L4。报告见 [`docs/far35-report.md`](docs/far35-report.md)。
+- 同日新增第三批三个超远域家族（不变量与可达性：黑板消数到象棋、舞蹈、记账；筛选造出的关联：住院到校招、课程评论、
+  星表；面积与体积的尺度律：动物食量到晾汤、桥梁模型、冷库造价），合计 `far50`：十个家族 50 题，`far50-hard.json` 为
+  30 道 L2–L4。报告见 [`docs/far50-report.md`](docs/far50-report.md)。
 
 ```bash
-.venv/bin/mb validate data/manifests/far35.json --strict-v1
-.venv/bin/mb validate-cards data/manifests/far35-cards.json data/manifests/far35.json
-.venv/bin/mb audit data/manifests/far35.json --require-complete-chains --surface-table
-.venv/bin/mb verify all --dataset data/manifests/far35.json
-.venv/bin/mb plan-run --dataset data/manifests/far35-hard.json \
+.venv/bin/mb validate data/manifests/far50.json --strict-v1
+.venv/bin/mb validate-cards data/manifests/far50-cards.json data/manifests/far50.json
+.venv/bin/mb audit data/manifests/far50.json --require-complete-chains --surface-table
+.venv/bin/mb verify all --dataset data/manifests/far50.json
+.venv/bin/mb plan-run --dataset data/manifests/far50-hard.json \
   --conditions target-only with-source with-lure with-both --samples-per-item 3
 ```
 

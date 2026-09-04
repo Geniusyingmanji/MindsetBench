@@ -1,0 +1,289 @@
+# Far-transfer family: scaling a shape by k multiplies surfaces by k^2 and volumes by
+# k^3, so anything supplied through a surface and consumed by a volume does not scale
+# proportionally. Domains: animal heat loss, bird eggs, a kitchen pot, a bridge model,
+# cold-store economics. Decoy: proportional extrapolation.
+- id: FAR-SCALE-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P1
+  thread: A-尺度约束
+  schema_id: far-scaling-law-v1
+  schema_name: 几何放大时面积按平方、体积按立方变化，比例外推失效
+  chain: far-scaling-law-v1
+  level: 0
+  source: &far_scale_source
+    domain: 哺乳动物的体型与食量
+    problem: >-
+      一种体长 10 厘米的小型哺乳动物，每天要吃掉相当于自身体重 50% 的食物，才能补足经体表散热失去的热量。
+      它有一种形状几乎相同的近亲，体长 100 厘米，产热与散热的规律相同。
+      问：这种近亲每天需要吃掉相当于自身体重百分之多少的食物？
+    solution: >-
+      体长放大 10 倍时，体表面积放大 100 倍，散热与之成正比；体重随体积放大 1000 倍。每单位体重的散热只有原来的
+      十分之一，因此食量占体重的比例也降到十分之一，即 5%。凡是由面积供给、由体积消耗的过程，放大后都会失衡：
+      表面按平方长，内部按立方长，不能按比例照搬。
+    answer: "5"
+  target:
+    domain: 哺乳动物的体型与食量
+    problem: >-
+      另一对近亲：小的体长 5 厘米，每天吃掉相当于体重 60% 的食物补足散热；大的形状相同、体长 40 厘米，规律相同。
+      问：大的每天需要吃掉相当于体重百分之多少的食物？
+    answer_format: "<百分数>"
+    answer:
+      parts:
+        - {type: number, value: "7.5"}
+  mapping:
+    objects: {体长 10 与 100 厘米: 体长 5 与 40 厘米, 食量比例 50%: 食量比例 60%, 体表散热: 体表散热, 体重: 体重}
+    shared_relations: [散热随表面积按平方变化, 体重随体积按立方变化, 单位体重需求随放大倍数反比下降]
+    varied: [仅更换尺寸与比例]
+  lure:
+    problem: >-
+      同样这对近亲，但这种动物的食物主要用于生长和活动，需求与体重成正比而不是与散热有关。小的每天吃体重的 60%，
+      问大的每天吃体重的百分之多少？
+    solution: 需求与体重成正比时，比例不随体型变化，仍是 60%。
+    answer:
+      parts:
+        - {type: number, value: "60"}
+    why_surface_similar: 同样两只动物、同样尺寸与数字。
+    why_structurally_different: lure 中需求随体积变化，目标中需求随表面积变化。
+    wrong_schema_id: proportional-extrapolation-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: number, value: "60"}
+    derivation: 认为食量比例与体型无关，按同样的 60% 外推。
+  hints:
+    schema_name: 几何放大时面积按平方、体积按立方变化，比例外推失效
+    oracle_mindset:
+      insight: 先问需求由什么供给、由什么消耗：散热走表面按平方长，体重按立方长，比例随放大倍数反比下降。
+      when_to_use: 把一个形状相似的对象放大或缩小后推算其某项比例时。
+    false_mindset:
+      insight: 形状一样，比例就一样。
+      when_to_use: 直接按比例外推时。
+  verification:
+    entrypoint: mindsetbench.verification.far_scaling_law:verify_far_scale_l0_01
+    method: surface-volume-ratio
+  provenance: original synthetic case
+  verified: 放大 8 倍，面积 64 倍、体积 512 倍，比例降为八分之一：60% 变 7.5%。
+
+- id: FAR-SCALE-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P1
+  thread: A-尺度约束
+  schema_id: far-scaling-law-v1
+  schema_name: 几何放大时面积按平方、体积按立方变化，比例外推失效
+  chain: far-scaling-law-v1
+  level: 1
+  source: *far_scale_source
+  target:
+    domain: 鸟卵离巢后的冷却
+    problem: >-
+      一枚 4 厘米长的鸟卵离开亲鸟后，10 分钟降到危险温度。另一种鸟的卵形状相同、8 厘米长，从同样的温度开始、
+      放在同样的环境里。卵内储存的热量与整枚卵的大小相称，散热通过卵壳表面进行。问：大卵多少分钟降到危险温度？
+    answer_format: "<分钟数>"
+    answer:
+      parts:
+        - {type: number, value: "20"}
+  mapping:
+    objects: {体表散热: 卵壳散热, 体重: 卵内热量, 食量比例: 冷却时间, 体长: 卵长}
+    shared_relations: [散热随表面积按平方变化, 储热随体积按立方变化, 时间随放大倍数正比增加]
+    varied: [从食量换成冷却时间，同为动物学]
+  lure:
+    problem: >-
+      同样两枚卵，但大卵被放在与小卵同样大小的保温罩开口处，只有与小卵相同面积的一块卵壳露在外面散热，其余部分保温。
+      小卵 10 分钟降到危险温度，问大卵多少分钟？
+    solution: 散热面积相同而热量多 8 倍，时间也是 8 倍，80 分钟。
+    answer:
+      parts:
+        - {type: number, value: "80"}
+    why_surface_similar: 同样两枚卵与同样的时间数字。
+    why_structurally_different: lure 中散热面积被固定，目标中散热面积随卵长按平方变化。
+    wrong_schema_id: proportional-extrapolation-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: number, value: "80"}
+    derivation: 大卵热量是小卵的 8 倍，认为冷却时间也是 8 倍。
+  hints:
+    schema_name: 几何放大时面积按平方、体积按立方变化，比例外推失效
+    oracle_mindset:
+      insight: 热量多 8 倍但散热面积也大 4 倍，时间只增加 2 倍。
+      when_to_use: 相似形状的物体放大后推算加热或冷却时间时。
+    false_mindset:
+      insight: 热量多几倍，时间就多几倍。
+      when_to_use: 忽略表面积也在变化时。
+  verification:
+    entrypoint: mindsetbench.verification.far_scaling_law:verify_far_scale_l1_01
+    method: surface-volume-ratio
+  provenance: original synthetic case
+  verified: 长度 2 倍，热量 8 倍、面积 4 倍，时间 2 倍：10 分钟变 20 分钟。
+
+- id: FAR-SCALE-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P1
+  thread: A-尺度约束
+  schema_id: far-scaling-law-v1
+  schema_name: 几何放大时面积按平方、体积按立方变化，比例外推失效
+  chain: far-scaling-law-v1
+  level: 2
+  source: *far_scale_source
+  target:
+    domain: 厨房里晾汤
+    problem: >-
+      家宴笔记：一锅 2 升的汤从沸腾晾到可以入口要 20 分钟。今天用了一口同样形状但装 16 升的大锅，汤同样从沸腾开始，
+      放在同样的地方晾。汤的热量存在整锅汤里，散热经过锅身与汤面。问：这锅汤要晾多少分钟才能入口？
+    answer_format: "<分钟数>"
+    answer:
+      parts:
+        - {type: number, value: "40"}
+  mapping:
+    objects: {体表散热: 锅身与汤面散热, 体重: 整锅汤的热量, 食量比例: 晾凉时间, 体长: 锅的线性尺寸, 动物: 汤锅}
+    shared_relations: [散热随表面积按平方变化, 储热随体积按立方变化, 时间随线性尺寸正比增加, 体积比要先换算成线性尺寸比]
+    varied: [从动物学跨到厨房, 文体从题面改为家宴笔记, 给出的是体积比而非长度比]
+  lure:
+    problem: >-
+      同样 16 升的汤，但装在一个只露出与 2 升小锅同样大小锅口的保温桶里，桶身包着保温层，只能从锅口散热。
+      小锅 20 分钟能入口，问这桶汤要多少分钟？
+    solution: 散热面积与小锅相同而热量多 8 倍，时间 8 倍，160 分钟。
+    answer:
+      parts:
+        - {type: number, value: "160"}
+    why_surface_similar: 同样的汤量与时间数字。
+    why_structurally_different: lure 中散热面积被固定，目标中散热面积随锅的尺寸按平方变化。
+    wrong_schema_id: proportional-extrapolation-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: number, value: "160"}
+    derivation: 汤多 8 倍，认为晾凉时间也是 8 倍。
+  hints:
+    schema_name: 几何放大时面积按平方、体积按立方变化，比例外推失效
+    oracle_mindset:
+      insight: 16 升是 2 升的 8 倍，尺寸只放大 2 倍，散热面积放大 4 倍；热量多 8 倍而散热快 4 倍，时间只翻一倍。
+      when_to_use: 相似形状容器放大后推算加热或冷却时间时。
+    false_mindset:
+      insight: 汤多几倍就晾几倍的时间。
+      when_to_use: 忽略表面积随尺寸变化时。
+  verification:
+    entrypoint: mindsetbench.verification.far_scaling_law:verify_far_scale_l2_01
+    method: surface-volume-ratio
+  provenance: original synthetic case
+  verified: 体积 8 倍对应尺寸 2 倍，时间 2 倍：20 分钟变 40 分钟。
+
+- id: FAR-SCALE-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P1
+  thread: A-尺度约束
+  schema_id: far-scaling-law-v1
+  schema_name: 几何放大时面积按平方、体积按立方变化，比例外推失效
+  chain: far-scaling-law-v1
+  level: 3
+  source: *far_scale_source
+  target:
+    domain: 桥梁模型的放大
+    problem: >-
+      土木系用某种木材做了一座 1 比 40 的桥梁模型，加载试验测得模型能承受相当于自身重量 30 倍的荷载而不损坏。
+      问：用同样材料、同样形状按实际尺寸建造，实物能否承受自身重量？按这种材料与形状，最多把模型放大到多少倍
+      仍能承受自身重量？
+    answer_format: "HOLDS=<YES|NO>;MAX_SCALE=<倍数或 UNLIMITED>"
+    answer:
+      parts:
+        - {type: label, value: HOLDS=NO}
+        - {type: label, value: MAX_SCALE=30}
+  mapping:
+    objects: {体表散热: 构件截面的承载, 体重: 结构自重, 食量比例: 承载力与自重之比, 体长: 放大倍数, 动物: 桥梁}
+    shared_relations: [按面积变化的量随放大按平方增长, 按体积变化的量随放大按立方增长, 两者之比随放大倍数反比下降, 比例外推失效]
+    removed_relations: [供给与消耗都是热量, 问题是一个连续比例]
+    added_relations: [面积一侧是承载能力而体积一侧是荷载, 比值降到 1 以下即失效, 问题变为能否成立与临界倍数]
+    adaptation_required: [把“散热对体重”映射为“截面承载对自重”, 用模型的 30 倍安全系数除以放大倍数判断实物, 反解安全系数等于 1 时的最大倍数]
+    varied: [从生物跨到结构工程, 面积量从散热改为承载, 问题从比例改为可行性与临界值]
+  lure:
+    problem: >-
+      同一座 1 比 40 的模型能承受自身重量 30 倍。若实物改用一种放大多少倍就强多少倍的材料（放大 k 倍时材料强度也提高到 k 倍），
+      问实物能否承受自身重量？最多放大到多少倍仍能承受？
+    solution: 材料强度随倍数同步提高时，承载与自重同步增长，安全系数始终为 30，任何倍数都能承受。
+    answer:
+      parts:
+        - {type: label, value: HOLDS=YES}
+        - {type: label, value: MAX_SCALE=UNLIMITED}
+    why_surface_similar: 同一模型、同样的 30 倍与 1 比 40。
+    why_structurally_different: lure 中材料强度随倍数提高抵消了立方增长；目标中材料不变，承载按平方、自重按立方增长。
+    wrong_schema_id: proportional-extrapolation-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: HOLDS=YES}
+        - {type: label, value: MAX_SCALE=UNLIMITED}
+    derivation: 认为模型能承受 30 倍自重，形状材料不变的实物也能，放大没有上限。
+  hints:
+    schema_name: 几何放大时面积按平方、体积按立方变化，比例外推失效
+    oracle_mindset:
+      insight: 承载能力随构件截面按平方长，自重随体积按立方长；放大 k 倍安全系数变为 30 除以 k，放大 40 倍只剩 0.75，临界是 30 倍。
+      when_to_use: 用缩比模型的试验结果推断实物时。
+    false_mindset:
+      insight: 模型撑得住，同样形状材料的实物也撑得住。
+      when_to_use: 把安全系数当作与尺寸无关的常数时。
+  verification:
+    entrypoint: mindsetbench.verification.far_scaling_law:verify_far_scale_l3_01
+    method: strength-weight-scaling
+  provenance: original synthetic case
+  verified: 安全系数 30 除以 40 等于 0.75 小于 1；等于 1 时的倍数为 30。
+
+- id: FAR-SCALE-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P1
+  thread: A-尺度约束
+  schema_id: far-scaling-law-v1
+  schema_name: 几何放大时面积按平方、体积按立方变化，比例外推失效
+  chain: far-scaling-law-v1
+  level: 4
+  source: *far_scale_source
+  target:
+    domain: 冷库围护结构的造价
+    problem: >-
+      物流公司投资备忘：现有一座边长 10 米的立方体冷库，围护结构（四壁、屋顶、地面）造价为每平方米 400 元，
+      储存容量按内部容积计。公司计划新建一座同样规格、边长 20 米的立方体冷库。
+      问：新冷库每立方米储存容量分摊的围护造价是多少元？
+    answer_format: "<元>"
+    answer:
+      parts:
+        - {type: number, value: "120"}
+  mapping:
+    objects: {体表散热: 围护结构造价, 体重: 储存容积, 食量比例: 每立方米分摊造价, 体长: 冷库边长, 动物: 冷库}
+    shared_relations: [按面积计的量随放大按平方增长, 按体积计的量随放大按立方增长, 单位体积的面积成本随放大反比下降, 比例外推失效]
+    removed_relations: [热量的供给与消耗, 生物或物理过程]
+    added_relations: [面积一侧是造价而体积一侧是容量, 结果是货币单位的成本指标, 需要先算绝对面积与容积再相除]
+    adaptation_required: [把“单位体重的散热”映射为“单位容积的围护造价”, 用边长算出总面积与容积, 用新旧冷库的比值或绝对值得出每立方米造价]
+    varied: [从生物跨到物流经济, 模型从热平衡变为成本核算, 输出从比例或时间变为货币金额]
+  lure:
+    problem: >-
+      同一公司若把边长 20 米的冷库内部用隔墙分成八个边长 10 米的独立小间，每个小间都要六面完整围护，围护造价仍为每平方米 400 元。
+      问每立方米储存容量分摊的围护造价是多少元？
+    solution: 每个小间与原冷库完全相同，每立方米造价不变：6 乘 100 乘 400 除以 1000，等于 240 元。
+    answer:
+      parts:
+        - {type: number, value: "240"}
+    why_surface_similar: 同样的边长、单价与问法。
+    why_structurally_different: lure 把大库拆成八个小库，面积与容积同步增长；目标是一个整体大库，面积按平方、容积按立方增长。
+    wrong_schema_id: proportional-extrapolation-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: number, value: "240"}
+    derivation: 认为同样规格的冷库每立方米造价相同，沿用小库的 240 元。
+  hints:
+    schema_name: 几何放大时面积按平方、体积按立方变化，比例外推失效
+    oracle_mindset:
+      insight: 围护按面积计价、容量按容积计，边长翻倍面积 4 倍而容积 8 倍，每立方米造价减半：6 乘 400 乘 400 除以 8000 等于 120 元。
+      when_to_use: 按面积计费而按体积产生效益的设施放大时。
+    false_mindset:
+      insight: 同样规格，单位造价一样。
+      when_to_use: 直接沿用小规模的单位成本时。
+  verification:
+    entrypoint: mindsetbench.verification.far_scaling_law:verify_far_scale_l4_01
+    method: area-cost-over-volume
+  provenance: original synthetic case
+  verified: 小库每立方米 240 元，大库每立方米 120 元。

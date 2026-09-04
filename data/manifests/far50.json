@@ -1,0 +1,16 @@
+{
+  "name": "far50-transfer-candidates",
+  "description": "Ten far-domain fixed-source L0-L4 families built under docs/FAR_TRANSFER_PROTOCOL.md. Batch 3 stresses ultra-far domains: blackboard arithmetic -> chess -> dance -> bookkeeping; hospital -> hiring -> online courses -> star catalogues; animal heat loss -> kitchen -> bridge models -> cold-store economics. Targets share only the mindset with their source; L2+ pass the surface-distance gate.",
+  "datasets": [
+    "../v1/far-evidence-independence-chain.yaml",
+    "../v1/far-negative-evidence-chain.yaml",
+    "../v1/far-horizon-exploration-chain.yaml",
+    "../v1/far-credible-commitment-chain.yaml",
+    "../v1/far-delayed-feedback-chain.yaml",
+    "../v1/far-selection-extreme-chain.yaml",
+    "../v1/far-threshold-cascade-chain.yaml",
+    "../v1/far-invariant-reachability-chain.yaml",
+    "../v1/far-selection-association-chain.yaml",
+    "../v1/far-scaling-law-chain.yaml"
+  ]
+}

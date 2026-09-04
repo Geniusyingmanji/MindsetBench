@@ -1,0 +1,298 @@
+# Far-transfer family: every allowed move preserves a class; a target in another class
+# is unreachable however many moves are tried. Domains: blackboard arithmetic, cups,
+# chess knight, dance formations, double-entry bookkeeping. Decoy: "looks reachable".
+- id: FAR-INVAR-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: B-不变量守恒
+  schema_id: far-invariant-reachability-v1
+  schema_name: 所有允许的操作都保持某个类别，不同类别的目标不可达
+  chain: far-invariant-reachability-v1
+  level: 0
+  source: &far_invar_source
+    domain: 黑板上的消数游戏
+    problem: >-
+      黑板上写着 1 到 9 这九个数。每一步任选两个数擦掉，写上它们之差（大数减小数）。重复进行，直到黑板上
+      最后剩下一个数为止。问：最后剩下的数可能是 0 吗？最后剩下的数最小可能是多少？
+    solution: >-
+      每一步把 a、b 换成 a 减 b，黑板上所有数的总和减少了 2b，是个偶数，所以总和是奇数还是偶数始终不变。
+      开头总和 45 是奇数，最后剩下的那个数就是当时的总和，必须是奇数：不可能是 0，最小只能是 1，而 1 确实
+      做得到，例如 9 减 8、7 减 6、5 减 4、3 减 2 得到四个 1，再与原来的 1 两两相消。判断一个目标能否到达，
+      不必穷举所有走法，只要找出每一步都不会改变的那个量，看目标是否与起点同类。
+    answer: ZERO=NO;MIN=1
+  target:
+    domain: 黑板上的消数游戏
+    problem: >-
+      黑板上这次写着 1 到 10 这十个数，规则不变：每一步任选两个数擦掉，写上它们之差（大数减小数），
+      直到只剩一个数。问：最后剩下的数可能是 0 吗？最小可能是多少？
+    answer_format: "ZERO=<YES|NO>;MIN=<最小值>"
+    answer:
+      parts:
+        - {type: label, value: ZERO=NO}
+        - {type: label, value: MIN=1}
+  mapping:
+    objects: {1 到 9: 1 到 10, 擦两数写差: 擦两数写差, 总和的奇偶: 总和的奇偶, 最后一个数: 最后一个数}
+    shared_relations: [每步保持总和的奇偶, 终点与起点同类, 最小值是同类中最接近 0 的数]
+    varied: [仅更换数字范围]
+  lure:
+    problem: >-
+      黑板上写着 1 到 11 这十一个数，规则不变。问最后剩下的数可能是 0 吗？最小可能是多少？
+    solution: 总和 66 是偶数，最后必为偶数；11 减 10、9 减 8、7 减 6、5 减 4、3 减 2 得到五个 1，与原来的 1 共六个 1，两两相消得到 0。
+    answer:
+      parts:
+        - {type: label, value: ZERO=YES}
+        - {type: label, value: MIN=0}
+    why_surface_similar: 同一游戏、同样规则，只多了一个数。
+    why_structurally_different: lure 的起点与 0 同类，目标的起点与 0 不同类。
+    wrong_schema_id: constructive-reachability-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: ZERO=YES}
+        - {type: label, value: MIN=0}
+    derivation: 觉得数够多总能两两抵消到 0，没有检查每步不变的量。
+  hints:
+    schema_name: 所有允许的操作都保持某个类别，不同类别的目标不可达
+    oracle_mindset:
+      insight: 找一步操作前后都不变的量（这里是总和的奇偶），用它判断终点能不能是 0。
+      when_to_use: 问某个状态能否通过一组固定操作到达时。
+    false_mindset:
+      insight: 只要能想到一种抵消办法，目标就能到达。
+      when_to_use: 只尝试构造而不检查约束时。
+  verification:
+    entrypoint: mindsetbench.verification.far_invariant_reachability:verify_far_invar_l0_01
+    method: exhaustive-multiset-search
+  provenance: original synthetic case
+  verified: 穷举全部多重集状态，1 到 10 的终值集合不含 0，最小为 1。
+
+- id: FAR-INVAR-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: B-不变量守恒
+  schema_id: far-invariant-reachability-v1
+  schema_name: 所有允许的操作都保持某个类别，不同类别的目标不可达
+  chain: far-invariant-reachability-v1
+  level: 1
+  source: *far_invar_source
+  target:
+    domain: 桌面翻杯游戏
+    problem: >-
+      桌上一排 7 个杯子全部口朝上。每一步必须同时翻转其中 4 个（可以任选哪 4 个），不能只翻少于 4 个。
+      问：能否让 7 个杯子全部口朝下？口朝上的杯子最少能剩几个？
+    answer_format: "ZERO=<YES|NO>;MIN=<最少朝上数>"
+    answer:
+      parts:
+        - {type: label, value: ZERO=NO}
+        - {type: label, value: MIN=1}
+  mapping:
+    objects: {黑板上的数: 杯子, 擦两数写差: 同时翻转四个, 总和的奇偶: 朝上杯数的奇偶, 最后一个数: 剩下朝上的杯数}
+    shared_relations: [每步保持某个奇偶, 终点与起点同类, 最小值是同类中最接近 0 的数]
+    varied: [从数字游戏换成实物翻转，被保持的量从总和变为朝上杯数]
+  lure:
+    problem: >-
+      同样 7 个口朝上的杯子，但每一步同时翻转其中 3 个。问能否全部口朝下？口朝上的最少剩几个？
+    solution: 先翻 3 个得 4 个朝上，再翻 3 个朝上的得 1 个朝上，再翻这 1 个加 2 个朝下的得 2 个朝上，最后……可以做到 0 个朝上，例如 7、4、3、0。
+    answer:
+      parts:
+        - {type: label, value: ZERO=YES}
+        - {type: label, value: MIN=0}
+    why_surface_similar: 同样的杯子与问法，只是每步翻转的数量不同。
+    why_structurally_different: 每步翻 3 个会改变朝上杯数的奇偶，翻 4 个不会。
+    wrong_schema_id: constructive-reachability-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: ZERO=YES}
+        - {type: label, value: MIN=0}
+    derivation: 觉得多翻几次总能全部朝下，没有注意每步朝上杯数的变化量总是偶数。
+  hints:
+    schema_name: 所有允许的操作都保持某个类别，不同类别的目标不可达
+    oracle_mindset:
+      insight: 翻 4 个杯子时朝上的数量变化是 4 减去两倍被翻的朝上杯数，总是偶数；起点 7 是奇数，终点必是奇数。
+      when_to_use: 每步操作作用于固定数量的对象时。
+    false_mindset:
+      insight: 多试几种翻法就能全部翻过去。
+      when_to_use: 只做局部尝试时。
+  verification:
+    entrypoint: mindsetbench.verification.far_invariant_reachability:verify_far_invar_l1_01
+    method: reachable-count-search
+  provenance: original synthetic case
+  verified: 可达的朝上杯数集合为 1、3、5、7；每步翻 3 个时可达 0。
+
+- id: FAR-INVAR-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: B-不变量守恒
+  schema_id: far-invariant-reachability-v1
+  schema_name: 所有允许的操作都保持某个类别，不同类别的目标不可达
+  chain: far-invariant-reachability-v1
+  level: 2
+  source: *far_invar_source
+  target:
+    domain: 国际象棋中马的走法
+    problem: >-
+      国际象棋棋盘上，一枚马从 a1 格出发要走到 h8 格，中途可以任意走。问：能否恰好 5 步到达 h8？
+      从 a1 到 h8 最少需要几步？
+    answer_format: "FIVE=<YES|NO>;MIN=<步数>"
+    answer:
+      parts:
+        - {type: label, value: FIVE=NO}
+        - {type: label, value: MIN=6}
+  mapping:
+    objects: {黑板上的数: 棋盘格, 擦两数写差: 马走一步, 总和的奇偶: 所在格子的深浅色, 最后一个数: 到达的格子}
+    shared_relations: [每步都改变一次某个二元类别, 走奇数步与偶数步到达的类别不同, 目标与起点的类别决定所需步数的奇偶, 最少步数由搜索给出但奇偶由类别决定]
+    varied: [从数字游戏跨到棋类, 被保持的量从总和奇偶变为格子颜色随步数交替, 问题从终值变为步数]
+  lure:
+    problem: >-
+      同一枚马从 a1 出发，这次目标是 h7 格。问能否恰好 5 步到达 h7？从 a1 到 h7 最少需要几步？
+    solution: a1 到 h7 最少 5 步，恰好 5 步可以到达。
+    answer:
+      parts:
+        - {type: label, value: FIVE=YES}
+        - {type: label, value: MIN=5}
+    why_surface_similar: 同一棋盘、同一起点、同样问法，目标只差一格。
+    why_structurally_different: h7 与 a1 颜色不同，奇数步可达；h8 与 a1 同色，只能偶数步到达。
+    wrong_schema_id: constructive-reachability-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: FIVE=YES}
+        - {type: label, value: MIN=5}
+    derivation: 按距离估计 5 步足够跨过棋盘，认为恰好 5 步可达、最少也是 5 步。
+  hints:
+    schema_name: 所有允许的操作都保持某个类别，不同类别的目标不可达
+    oracle_mindset:
+      insight: 马每走一步所在格子的颜色必定改变；a1 与 h8 同色，所以步数只能是偶数，再搜索最短路得 6。
+      when_to_use: 问能否恰好某个步数到达时。
+    false_mindset:
+      insight: 距离够近就能在给定步数内到达。
+      when_to_use: 只看距离不看走法的约束时。
+  verification:
+    entrypoint: mindsetbench.verification.far_invariant_reachability:verify_far_invar_l2_01
+    method: breadth-first-search-with-parity
+  provenance: original synthetic case
+  verified: 广度优先搜索 a1 到 h8 最短 6 步；a1 与 h8 同色，奇数步不可达；a1 到 h7 最短 5 步。
+
+- id: FAR-INVAR-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: B-不变量守恒
+  schema_id: far-invariant-reachability-v1
+  schema_name: 所有允许的操作都保持某个类别，不同类别的目标不可达
+  chain: far-invariant-reachability-v1
+  level: 3
+  source: *far_invar_source
+  target:
+    domain: 舞蹈排练中的队形变换
+    problem: >-
+      排练记录：8 名舞者站成一排，位置 1 到 8 依次站着 1 号到 8 号。编舞只允许一种走位：任选相邻三人，
+      让他们朝同一方向轮转一个位置（左边的到中间、中间的到右边、右边的到左边，或者反向）。
+      问：只用这种走位，能否最终得到“只交换 1 号与 2 号、其余不动”的队形？
+      若目标改为“1 号与 2 号互换、3 号与 4 号互换、其余不动”，最少需要几次走位？
+    answer_format: "SWAP=<YES|NO>;DOUBLE=<次数>"
+    answer:
+      parts:
+        - {type: label, value: SWAP=NO}
+        - {type: label, value: DOUBLE=2}
+  mapping:
+    objects: {黑板上的数: 舞者排列, 擦两数写差: 相邻三人轮转, 总和的奇偶: 排列的一种类别, 最后一个数: 目标队形, 终值 0: 只交换两人的队形}
+    shared_relations: [每步保持某个二元类别, 与起点不同类的目标不可达, 同类目标的最少步数由搜索给出, 判断可达性先看类别再搜索]
+    removed_relations: [被保持的量是数字总和的奇偶]
+    added_relations: [被保持的量是排列本身的一种类别：相邻三人轮转不改变它而交换两人改变它, 目标是整体排列而不是单个数值]
+    adaptation_required: [把“数字总和的奇偶”换成“排列的类别”, 认识到三人轮转等于两次两人交换因而不改变类别, 对同类目标用搜索求最少次数]
+    varied: [从数字跨到舞台走位, 对象从多重集变为排列, 操作从两数合并变为三人轮转]
+  lure:
+    problem: >-
+      同一次排练，编舞另外允许“相邻两人直接换位”这一走位。问能否得到“只交换 1 号与 2 号”的队形？
+      得到“1 号与 2 号互换、3 号与 4 号互换”的队形最少需要几次走位？
+    solution: 相邻两人直接换位一次即得第一个队形；第二个队形两次换位即得。
+    answer:
+      parts:
+        - {type: label, value: SWAP=YES}
+        - {type: label, value: DOUBLE=2}
+    why_surface_similar: 同一批舞者、同样两个目标队形。
+    why_structurally_different: lure 允许两人换位，它改变排列的类别；目标只允许三人轮转，类别永不改变。
+    wrong_schema_id: constructive-reachability-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: SWAP=YES}
+        - {type: label, value: DOUBLE=2}
+    derivation: 认为多轮转几次总能把两个人换过来，没有检查三人轮转保持的排列类别。
+  hints:
+    schema_name: 所有允许的操作都保持某个类别，不同类别的目标不可达
+    oracle_mindset:
+      insight: 三人轮转相当于连做两次两人交换，排列的类别不变；只交换两人的队形属于另一类，永远到不了；同类目标再用搜索求最少次数。
+      when_to_use: 操作是对一排对象的重新排列时。
+    false_mindset:
+      insight: 允许的走位足够多，任何队形都能凑出来。
+      when_to_use: 不检查操作保持的性质时。
+  verification:
+    entrypoint: mindsetbench.verification.far_invariant_reachability:verify_far_invar_l3_01
+    method: permutation-breadth-first-search
+  provenance: original synthetic case
+  verified: 对 8 名舞者的全部排列做广度优先搜索，仅 20160 种队形可达，单换位队形不可达；双换位队形最少 2 次。
+
+- id: FAR-INVAR-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P2
+  thread: B-不变量守恒
+  schema_id: far-invariant-reachability-v1
+  schema_name: 所有允许的操作都保持某个类别，不同类别的目标不可达
+  chain: far-invariant-reachability-v1
+  level: 4
+  source: *far_invar_source
+  target:
+    domain: 小店账目的可达性
+    problem: >-
+      一家小店的账本只有三个科目，也只允许三种记账动作：进货（库存增加 x，应付增加 x）、付款给供应商
+      （现金减少 x，应付减少 x）、按成本价售出（现金增加 x，库存减少 x），x 为任意正整数，动作可以任意次数、
+      任意顺序。期初账面为现金 50、库存 30、应付 20。老板希望期末账面为现金 40、库存 60、应付 35。
+      问：只用这三种动作能否做到？若不能，老板至少要另外注入多少现金才能做到？
+    answer_format: "REACHABLE=<YES|NO>;GAP=<金额>"
+    answer:
+      parts:
+        - {type: label, value: REACHABLE=NO}
+        - {type: label, value: GAP=5}
+  mapping:
+    objects: {黑板上的数: 三个科目的余额, 擦两数写差: 三种记账动作, 总和的奇偶: 现金加库存减应付, 最后一个数: 期末账面, 最小值: 需注入的现金}
+    shared_relations: [每种允许的操作都保持某个量, 目标若与起点在该量上不同则不可达, 最小差距由该量的差决定, 判断可达性不必穷举操作序列]
+    removed_relations: [被保持的量取两个值中的一个, 操作作用于离散对象的排列或多重集]
+    added_relations: [被保持的量是余额的线性组合可取任意整数, 差距本身有金额含义并对应一种未被允许的操作]
+    adaptation_required: [把“奇偶类别”推广为“线性组合的取值”, 找出三种动作共同保持的组合, 用目标与起点在该组合上的差直接给出所需注入额]
+    varied: [从游戏与走位跨到会计, 类别从二元变为整数, 问题多出“差多少”的量化部分]
+  lure:
+    problem: >-
+      同一家店、同样期初与三种动作，但老板希望的期末账面改为现金 45、库存 60、应付 45。问能否做到？若不能，至少注入多少现金？
+    solution: 进货 30、付款 5、售出 0 即得现金 45、库存 60、应付 45，无需注入。
+    answer:
+      parts:
+        - {type: label, value: REACHABLE=YES}
+        - {type: label, value: GAP=0}
+    why_surface_similar: 同一家店、同样期初与动作，目标数字接近。
+    why_structurally_different: lure 的目标与期初在“现金加库存减应付”上相等，目标的多了 5。
+    wrong_schema_id: constructive-reachability-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: REACHABLE=YES}
+        - {type: label, value: GAP=0}
+    derivation: 三个未知量三个方程，觉得总能解出一组进货、付款、售出的数量，没有发现三种动作都不改变现金加库存减应付。
+  hints:
+    schema_name: 所有允许的操作都保持某个类别，不同类别的目标不可达
+    oracle_mindset:
+      insight: 三种动作都不改变“现金加库存减应付”这个数；期初 60、目标 65，差的 5 只能靠注入现金补上。
+      when_to_use: 问一组账面能否只靠允许的交易达到时。
+    false_mindset:
+      insight: 未知数与方程一样多，解方程就行。
+      when_to_use: 不检查方程是否相容时。
+  verification:
+    entrypoint: mindsetbench.verification.far_invariant_reachability:verify_far_invar_l4_01
+    method: linear-invariant-with-brute-force-cross-check
+  provenance: original synthetic case
+  verified: 现金加库存减应付期初 60、目标 65，差 5；对进货与付款各 0 到 120 的穷举无解；替代目标可达。

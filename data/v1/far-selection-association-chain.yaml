@@ -1,0 +1,332 @@
+# Far-transfer family: a subset selected on either of two traits shows an association
+# the whole population does not have. Domains: hospital admission, health screening,
+# hiring, online-course reviews, a flux-limited star catalogue.
+# Decoy: read the observed subset's association as a fact about everyone.
+- id: FAR-BERK-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-因果拓扑
+  schema_id: far-selection-association-v1
+  schema_name: 按任一特征筛选出的子集会呈现全体中不存在的关联
+  chain: far-selection-association-v1
+  level: 0
+  source: &far_berk_source
+    domain: 镇医院的住院病例
+    problem: >-
+      某镇 100 名居民中：同时患糖尿病与胆囊炎的有 20 人，只患糖尿病的 20 人，只患胆囊炎的 30 人，
+      两种病都没有的 30 人。镇医院的收治规则是：只要患有其中任何一种病就住院。院内医生翻阅病历发现，
+      住院患者里，糖尿病患者中患胆囊炎的比例明显低于非糖尿病患者。
+      问：全镇居民中糖尿病与胆囊炎是正相关、无关还是负相关？住院患者中呢？能否据此认为糖尿病会降低胆囊炎的风险？
+    solution: >-
+      全镇：糖尿病患者 40 人中 20 人有胆囊炎，占一半；非糖尿病者 60 人中 30 人有胆囊炎，也占一半，两病无关。
+      住院者去掉了“两病都没有”的 30 人：糖尿病住院者 40 人中仍是 20 人有胆囊炎，占一半；非糖尿病住院者只剩
+      30 名胆囊炎患者，比例是百分之百。于是院内出现负相关，它完全来自“患任一种病就住院”这条筛选规则，
+      与糖尿病是否保护胆囊无关。凡是只能看到按两个特征之一筛选出来的子集，就会看到这种凭空出现的关联。
+    answer: POP=NONE;SEL=NEG;CAUSAL=NO
+  target:
+    domain: 镇医院的住院病例
+    problem: >-
+      另一个镇 100 名居民：同时患高血压与痛风 12 人，只患高血压 28 人，只患痛风 18 人，两者都没有 42 人。
+      镇医院只要出现其中任何一种病就收治住院。院内统计显示住院患者里高血压患者中患痛风的比例低于非高血压患者。
+      问：全镇居民中两病的关系是正相关、无关还是负相关？住院患者中呢？能否认为高血压降低痛风风险？
+    answer_format: "POP=<POS|NONE|NEG>;SEL=<POS|NONE|NEG>;CAUSAL=<YES|NO>"
+    answer:
+      parts:
+        - {type: label, value: POP=NONE}
+        - {type: label, value: SEL=NEG}
+        - {type: label, value: CAUSAL=NO}
+  mapping:
+    objects: {糖尿病: 高血压, 胆囊炎: 痛风, 住院规则: 住院规则, 全镇居民: 全镇居民}
+    shared_relations: [全体中两特征无关, 按任一特征筛选去掉了两者皆无的人, 子集中出现负关联, 子集关联不能推因果]
+    varied: [仅更换疾病与人数]
+  lure:
+    problem: >-
+      一项随机分配的试验：100 名受试者随机一半服用新药 A，结果同时服药且发生 B 症状的 5 人，服药未发生 B 的 35 人，
+      未服药发生 B 的 25 人，未服药也未发生 B 的 35 人。医院收治所有出现服药或 B 症状中任一情况的人。
+      问：全体受试者中服药与 B 症状的关系？住院者中呢？能否认为服药降低 B 症状？
+    solution: 服药者 40 人中 5 人发生 B，未服药者 60 人中 25 人发生 B，全体中负相关；住院者中同样负相关；随机分配下这是因果效应。
+    answer:
+      parts:
+        - {type: label, value: POP=NEG}
+        - {type: label, value: SEL=NEG}
+        - {type: label, value: CAUSAL=YES}
+    why_surface_similar: 同样的 2 乘 2 人数表、同样的住院规则与问法。
+    why_structurally_different: lure 的全体中确有负相关且由随机分配保证因果；目标的全体中无关，负相关只在住院子集中。
+    wrong_schema_id: subset-association-is-population-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: POP=NEG}
+        - {type: label, value: SEL=NEG}
+        - {type: label, value: CAUSAL=YES}
+    derivation: 把住院患者中看到的负相关当成全镇的事实并解释为保护作用。
+  hints:
+    schema_name: 按任一特征筛选出的子集会呈现全体中不存在的关联
+    oracle_mindset:
+      insight: 先问“我看到的这些人是怎么被选进来的”；按任一特征入选会删掉两者皆无的人，凭空造出负关联。
+      when_to_use: 只能看到被筛选过的子集时。
+    false_mindset:
+      insight: 病历里看到的比例差就是两种病之间的真实关系。
+      when_to_use: 忽略入选规则时。
+  verification:
+    entrypoint: mindsetbench.verification.far_selection_association:verify_far_berk_l0_01
+    method: finite-table-conditional-proportions
+  provenance: original synthetic case
+  verified: 全镇 12/40 与 18/60 均为 30%；住院 12/40 对 18/18，负相关。
+
+- id: FAR-BERK-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-因果拓扑
+  schema_id: far-selection-association-v1
+  schema_name: 按任一特征筛选出的子集会呈现全体中不存在的关联
+  chain: far-selection-association-v1
+  level: 1
+  source: *far_berk_source
+  target:
+    domain: 体检中心的复查名单
+    problem: >-
+      某单位 100 名员工体检：血压异常且血糖异常 15 人，只有血压异常 35 人，只有血糖异常 15 人，两项都正常 35 人。
+      体检中心把任一项指标异常的人列入复查名单。复查医生发现名单上血压异常者中血糖异常的比例低于血压正常者。
+      问：全体员工中两项异常的关系？复查名单中呢？能否认为血压异常降低血糖异常的可能？
+    answer_format: "POP=<POS|NONE|NEG>;SEL=<POS|NONE|NEG>;CAUSAL=<YES|NO>"
+    answer:
+      parts:
+        - {type: label, value: POP=NONE}
+        - {type: label, value: SEL=NEG}
+        - {type: label, value: CAUSAL=NO}
+  mapping:
+    objects: {糖尿病: 血压异常, 胆囊炎: 血糖异常, 住院规则: 复查名单规则, 全镇居民: 全体员工}
+    shared_relations: [全体中两特征无关, 按任一特征筛选去掉了两者皆无的人, 子集中出现负关联, 子集关联不能推因果]
+    varied: [从住院换成复查名单，措辞为体检指标]
+  lure:
+    problem: >-
+      一项随机分配的干预试验：100 名员工随机一半参加运动计划，结果参加且血糖异常 5 人，参加且血糖正常 45 人，
+      未参加且血糖异常 25 人，未参加且血糖正常 25 人。中心把参加计划或血糖异常中任一情况的人列入随访名单。
+      问：全体中参加计划与血糖异常的关系？名单中呢？能否认为参加计划降低血糖异常？
+    solution: 参加者 50 人中 5 人异常，未参加者 50 人中 25 人异常，全体负相关；名单中同样负相关；随机分配下为因果。
+    answer:
+      parts:
+        - {type: label, value: POP=NEG}
+        - {type: label, value: SEL=NEG}
+        - {type: label, value: CAUSAL=YES}
+    why_surface_similar: 同样的人数表结构、同样的名单规则与问法。
+    why_structurally_different: lure 全体中确有负相关且随机分配保证因果；目标全体中无关。
+    wrong_schema_id: subset-association-is-population-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: POP=NEG}
+        - {type: label, value: SEL=NEG}
+        - {type: label, value: CAUSAL=YES}
+    derivation: 把复查名单中的比例差当成全体的真实关系并解释为保护作用。
+  hints:
+    schema_name: 按任一特征筛选出的子集会呈现全体中不存在的关联
+    oracle_mindset:
+      insight: 名单的入选规则删掉了两项都正常的人，剩下的血压正常者必然全部血糖异常；比例差是规则造出来的。
+      when_to_use: 只能看到按任一特征入选的名单时。
+    false_mindset:
+      insight: 名单里的比例差反映真实关系。
+      when_to_use: 忽略入选规则时。
+  verification:
+    entrypoint: mindsetbench.verification.far_selection_association:verify_far_berk_l1_01
+    method: finite-table-conditional-proportions
+  provenance: original synthetic case
+  verified: 全体 15/50 与 15/50 均为 30%；名单 15/50 对 15/15，负相关。
+
+- id: FAR-BERK-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-因果拓扑
+  schema_id: far-selection-association-v1
+  schema_name: 按任一特征筛选出的子集会呈现全体中不存在的关联
+  chain: far-selection-association-v1
+  level: 2
+  source: *far_berk_source
+  target:
+    domain: 校园招聘的面试数据简报
+    problem: >-
+      人力资源部数据简报：本季 100 名应聘者中，笔试优秀且作品集优秀 16 人，只有笔试优秀 24 人，只有作品集优秀
+      24 人，两项都不优秀 36 人。筛选规则是任一项达到优秀即进入面试。面试官们的印象是：进入面试的人里，
+      笔试优秀者的作品集反而普遍不如笔试不优秀者，于是提议把笔试权重调低，理由是“笔试好的人作品集弱”。
+      问：全部应聘者中笔试优秀与作品集优秀的关系是正相关、无关还是负相关？进入面试者中呢？
+      能否据面试官的印象认为笔试成绩好会拉低作品集质量？
+    answer_format: "POP=<POS|NONE|NEG>;SEL=<POS|NONE|NEG>;CAUSAL=<YES|NO>"
+    answer:
+      parts:
+        - {type: label, value: POP=NONE}
+        - {type: label, value: SEL=NEG}
+        - {type: label, value: CAUSAL=NO}
+  mapping:
+    objects: {糖尿病: 笔试优秀, 胆囊炎: 作品集优秀, 住院规则: 任一项优秀即面试, 全镇居民: 全部应聘者, 院内医生: 面试官}
+    shared_relations: [全体中两特征无关, 按任一特征筛选去掉了两者皆无的人, 子集中出现负关联, 子集关联不能推因果, 基于子集关联的干预建议是错的]
+    varied: [从医疗跨到人力资源, 文体从病历改为数据简报, 关联被用于一项招聘政策建议]
+  lure:
+    problem: >-
+      同一公司为验证培训效果做了随机分配：100 名新人随机一半参加笔试强化培训，结果参加培训且作品集优秀 10 人，
+      参加且作品集不优秀 40 人，未参加且作品集优秀 30 人，未参加且不优秀 20 人。复盘会只召集参加培训或作品集优秀
+      中任一情况的新人。问：全体新人中参加培训与作品集优秀的关系？复盘会到场者中呢？能否认为培训降低了作品集质量？
+    solution: 参加者 50 人中 10 人优秀，未参加者 50 人中 30 人优秀，全体负相关；到场者中同样负相关；随机分配下为因果。
+    answer:
+      parts:
+        - {type: label, value: POP=NEG}
+        - {type: label, value: SEL=NEG}
+        - {type: label, value: CAUSAL=YES}
+    why_surface_similar: 同一公司、同样的人数表与“任一情况入选”规则。
+    why_structurally_different: lure 全体中确有负相关且随机分配保证因果；目标全体中两项无关，负相关来自面试筛选。
+    wrong_schema_id: subset-association-is-population-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: POP=NEG}
+        - {type: label, value: SEL=NEG}
+        - {type: label, value: CAUSAL=YES}
+    derivation: 把面试者中看到的负相关当成全部应聘者的事实并解释为笔试拉低作品集。
+  hints:
+    schema_name: 按任一特征筛选出的子集会呈现全体中不存在的关联
+    oracle_mindset:
+      insight: 面试名单是按“任一项优秀”筛的，笔试不优秀却进入面试的人必然作品集优秀；面试官看到的对比是筛选造出来的。
+      when_to_use: 依据通过筛选的人群做结论时。
+    false_mindset:
+      insight: 面试中观察到的对比反映应聘者的普遍规律。
+      when_to_use: 忽略进入面试的规则时。
+  verification:
+    entrypoint: mindsetbench.verification.far_selection_association:verify_far_berk_l2_01
+    method: finite-table-conditional-proportions
+  provenance: original synthetic case; company and figures are fictional
+  verified: 全体 16/40 与 24/60 均为 40%；面试者 16/40 对 24/24，负相关。
+
+- id: FAR-BERK-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-因果拓扑
+  schema_id: far-selection-association-v1
+  schema_name: 按任一特征筛选出的子集会呈现全体中不存在的关联
+  chain: far-selection-association-v1
+  level: 3
+  source: *far_berk_source
+  target:
+    domain: 在线课程平台的评论分析
+    problem: >-
+      平台复盘会材料：某门课 100 名学员中，对视频满意且对作业满意 30 人，只对视频满意 10 人，只对作业满意 20 人，
+      两项都不满意 40 人。平台的经验是，只有对任一项满意的学员才会留下评论，两项都不满意的人直接流失不留言。
+      运营同学读完评论后总结：评论里夸视频的学员对作业的满意率明显低于不夸视频的学员，建议“视频做得越精致，
+      作业就要越简单，否则学员会不满”。
+      问：全部学员中视频满意与作业满意的关系是正相关、无关还是负相关？留下评论的学员中呢？
+      能否据评论认为提高视频质量会降低学员对作业的满意度？
+    answer_format: "POP=<POS|NONE|NEG>;SEL=<POS|NONE|NEG>;CAUSAL=<YES|NO>"
+    answer:
+      parts:
+        - {type: label, value: POP=POS}
+        - {type: label, value: SEL=NEG}
+        - {type: label, value: CAUSAL=NO}
+  mapping:
+    objects: {糖尿病: 视频满意, 胆囊炎: 作业满意, 住院规则: 任一项满意才留评论, 全镇居民: 全部学员, 院内医生: 运营同学}
+    shared_relations: [按任一特征筛选去掉了两者皆无的人, 子集中出现负关联, 子集关联不能推因果, 基于子集关联的干预建议是错的]
+    removed_relations: [全体中两特征无关]
+    added_relations: [全体中两特征本来正相关, 筛选不仅制造关联还能把真实关联的方向翻转]
+    adaptation_required: [不能照搬“全体中无关”的结论，必须用全部学员的人数表重新计算方向, 认识到筛选能翻转而非只是制造关联]
+    varied: [从医疗跨到在线教育运营, 文体从病历改为复盘材料, 全体关系由无关改为正相关]
+  lure:
+    problem: >-
+      另一门课 100 名学员：两项都满意 24 人，只对视频满意 16 人，只对作业满意 36 人，两项都不满意 24 人，
+      同样只有任一项满意的学员才会留下评论。问全部学员中两项满意的关系、评论者中的关系，以及能否据评论认为
+      提高视频质量会降低作业满意度。
+    solution: 全体中视频满意者 40 人有 24 人作业满意、不满意者 60 人有 36 人，均为 60%，无关；评论者中 24/40 对 36/36，负相关；不能推因果。
+    answer:
+      parts:
+        - {type: label, value: POP=NONE}
+        - {type: label, value: SEL=NEG}
+        - {type: label, value: CAUSAL=NO}
+    why_surface_similar: 同一平台、同样的评论规则与问法。
+    why_structurally_different: lure 的全体中两项无关，目标的全体中两项正相关而评论中被翻成负相关。
+    wrong_schema_id: subset-artifact-means-no-association-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: POP=NONE}
+        - {type: label, value: SEL=NEG}
+        - {type: label, value: CAUSAL=NO}
+    derivation: 照搬源题结论“评论中的负相关是筛选造出来的，所以全体中无关”，没有用全部学员的人数重新算方向。
+  hints:
+    schema_name: 按任一特征筛选出的子集会呈现全体中不存在的关联
+    oracle_mindset:
+      insight: 筛选不只会凭空造出关联，还能把原本的正相关翻成负相关；一定要回到全部学员的人数表算方向，而不是套用“子集有关联则全体无关”。
+      when_to_use: 拿到被筛选过的评论、投诉或反馈时。
+    false_mindset:
+      insight: 子集里的关联是假象，所以全体里一定没有关联。
+      when_to_use: 把源题结论当作普适规则时。
+  verification:
+    entrypoint: mindsetbench.verification.far_selection_association:verify_far_berk_l3_01
+    method: finite-table-conditional-proportions
+  provenance: original synthetic case; platform and figures are fictional
+  verified: 全体 30/40 对 20/60 为正相关；评论者 30/40 对 20/20，负相关。
+
+- id: FAR-BERK-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-因果拓扑
+  schema_id: far-selection-association-v1
+  schema_name: 按任一特征筛选出的子集会呈现全体中不存在的关联
+  chain: far-selection-association-v1
+  level: 4
+  source: *far_berk_source
+  target:
+    domain: 恒星星表的亮度与距离
+    problem: >-
+      一份星表只收录视亮度不低于 1 的恒星，视亮度等于恒星的真实亮度除以距离的平方。设想一片天区：恒星的真实亮度
+      只有四档 1、4、9、16，距离只有四档 1、2、3、4，四档亮度与四档距离的每种组合各有 5 颗恒星，也就是全部
+      恒星中真实亮度与距离彼此无关。一位研究者只用星表数据发现：距离越远的恒星，真实亮度越大。
+      问：全部恒星中距离与真实亮度的关系是正相关、无关还是负相关？星表收录的恒星中呢？能否据星表推断远处的恒星本身普遍更亮？
+    answer_format: "POP=<POS|NONE|NEG>;CAT=<POS|NONE|NEG>;INFER=<YES|NO>"
+    answer:
+      parts:
+        - {type: label, value: POP=NONE}
+        - {type: label, value: CAT=POS}
+        - {type: label, value: INFER=NO}
+  mapping:
+    objects: {糖尿病: 距离, 胆囊炎: 真实亮度, 住院规则: 视亮度不低于 1 才收录, 全镇居民: 全部恒星, 院内医生: 只看星表的研究者}
+    shared_relations: [全体中两特征无关, 收录规则同时依赖两个特征, 被收录的子集中出现关联, 子集关联不能推广到全体]
+    removed_relations: [二元特征与按任一特征入选]
+    added_relations: [特征是多档数值, 入选条件是两特征的比值超过阈值, 子集中的关联为正而非负, 关联方向由阈值形状决定]
+    adaptation_required: [把“任一特征入选”改为“两特征组合超过阈值入选”, 逐格判断哪些组合被收录再判断方向, 认识到方向可以是正的]
+    varied: [从医疗跨到天文学, 特征从二元变为多档, 入选规则从并列改为比值阈值, 子集关联方向为正]
+  lure:
+    problem: >-
+      另一片天区做了完整巡天，星表收录全部恒星。这片天区近处是暗淡的星云区、远处是明亮的星团：距离 1 的恒星
+      真实亮度全为 1，距离 2 的全为 4，距离 3 的全为 9，距离 4 的全为 16，每档 20 颗。问全部恒星中距离与真实亮度的
+      关系、星表中的关系，以及能否据星表推断这片天区远处的恒星本身普遍更亮。
+    solution: 星表就是全体，两者都呈正相关，远处恒星确实更亮。
+    answer:
+      parts:
+        - {type: label, value: POP=POS}
+        - {type: label, value: CAT=POS}
+        - {type: label, value: INFER=YES}
+    why_surface_similar: 同样四档亮度与距离、同样的问法。
+    why_structurally_different: lure 的星表收录全部恒星且全体确有正相关；目标的星表只收录亮度除以距离平方不低于 1 的恒星，全体中无关。
+    wrong_schema_id: subset-association-is-population-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: POP=POS}
+        - {type: label, value: CAT=POS}
+        - {type: label, value: INFER=YES}
+    derivation: 把星表里的正相关当成全部恒星的规律，认为远处恒星本身更亮。
+  hints:
+    schema_name: 按任一特征筛选出的子集会呈现全体中不存在的关联
+    oracle_mindset:
+      insight: 先问哪些恒星进得了星表：远处只有最亮的几档能达到视亮度门槛，近处各档都进得来；星表里的正相关是门槛切出来的。
+      when_to_use: 数据来自一份有收录门槛的目录时。
+    false_mindset:
+      insight: 星表里的规律就是天区的规律。
+      when_to_use: 忽略收录门槛时。
+  verification:
+    entrypoint: mindsetbench.verification.far_selection_association:verify_far_berk_l4_01
+    method: threshold-grid-covariance-sign
+  provenance: original synthetic case
+  verified: 全部 16 种组合协方差为 0；被收录的 10 种组合协方差为正。
