@@ -1,6 +1,6 @@
 {
-  "name": "far50-transfer-candidates",
-  "description": "Ten far-domain fixed-source L0-L4 families built under docs/FAR_TRANSFER_PROTOCOL.md. Batch 3 stresses ultra-far domains: blackboard arithmetic -> chess -> dance -> bookkeeping; hospital -> hiring -> online courses -> star catalogues; animal heat loss -> kitchen -> bridge models -> cold-store economics. Targets share only the mindset with their source; L2+ pass the surface-distance gate.",
+  "name": "far50-screened-transfer-families",
+  "description": "Ten far-domain fixed-source L0-L4 families built under docs/FAR_TRANSFER_PROTOCOL.md. All pass structural and surface audits; after GPT-5.6-sol screening, L0-L1 remain calibration anchors and L2-L4 are sanity assets.",
   "datasets": [
     "../v1/far-evidence-independence-chain.yaml",
     "../v1/far-negative-evidence-chain.yaml",

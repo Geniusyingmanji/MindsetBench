@@ -1,0 +1,10 @@
+{
+  "name": "far-social-learning-sanity",
+  "description": "Three screened HSS sanity cases where public decisions and aggregate reports endogenously censor private evidence; GPT-5.6-sol was 9/9 in target-only and 9/9 with-both.",
+  "datasets": ["../v1/far-social-learning-seed.yaml"],
+  "case_ids": [
+    "FAR-HARD-SOCIAL-LEARNING-L4-01",
+    "FAR-HARD-SOCIAL-LEARNING-L3-02",
+    "FAR-HARD-SOCIAL-AGGREGATION-L4-03"
+  ]
+}

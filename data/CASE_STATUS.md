@@ -120,3 +120,31 @@ L2–L4 跨学科、跨文体、跨表征且通过 `mb audit --surface` 闸门�
 | calibration（P5 算力型 challenge） | 19 |
 | sanity | 82 |
 | dev（hard seeds） | 9 |
+
+## 2026-09-04 模型校准后的权威口径
+
+上面各批次记录保留构造时状态；本节覆盖其中“尚未模型校准”的旧描述。GPT-5.6-sol 对 `far50-hard` 的首轮结果为：
+
+- 前四家族 12 题 × 3：30/36 exact；
+- 后六家族 18 题 × 3：48/54 exact；
+- 逐条检查后，错误窗口都来自答案格式、年份/快照批次边界、时滞初态或时间线未写清；四个受影响 case 的定点复测为 12/12 exact，
+  另一个扩样窗口因标注冲突作废。
+
+因此 `far50` 的 30 道 L2–L4 全部改为 `sanity`，只保留 20 道 L0/L1 作为 calibration 锚点。随后新增并测试：
+
+| 新增远域资产 | 题数 | GPT-5.6-sol 结果 | 状态 |
+| --- | ---: | ---: | --- |
+| 制度边界与自适应证据 | 6 | target-only 18/18 | sanity |
+| 顺序社会学习与聚合摘要 | 3 | target-only 9/9；with-both 9/9 | sanity |
+| 潜在法律判准与共享潜变量 | 2 | target-only 10/10 | sanity |
+
+当前去重后的类型化题库为 171 题：
+
+| 状态 | 类型化题数 |
+| --- | ---: |
+| calibration | 39 |
+| sanity | 123 |
+| dev | 9 |
+
+完整故障审计、作废实验和下一轮交互式 seed gate 见
+[`docs/far50-calibration-report.md`](../docs/far50-calibration-report.md)。

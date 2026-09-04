@@ -1,0 +1,6 @@
+{
+  "name": "far-evidence-l2-invalidated-calibration",
+  "description": "Historical expanded-sample slice whose apparent difficulty was invalidated by a same-file versus same-snapshot-batch annotation mismatch.",
+  "datasets": ["../v1/far-evidence-independence-chain.yaml"],
+  "case_ids": ["FAR-INDEP-L2-01"]
+}

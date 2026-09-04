@@ -129,7 +129,7 @@
 
 - id: FAR-EXTREME-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P1
   thread: E-信噪判别
   schema_id: far-selection-extreme-v1
@@ -188,7 +188,7 @@
 
 - id: FAR-EXTREME-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P1
   thread: E-信噪判别
   schema_id: far-selection-extreme-v1
@@ -249,7 +249,7 @@
 
 - id: FAR-EXTREME-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P1
   thread: E-信噪判别
   schema_id: far-selection-extreme-v1

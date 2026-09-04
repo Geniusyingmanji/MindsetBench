@@ -1,0 +1,408 @@
+# Far-domain boundary seeds retained as sanity assets after a 2026-09-04
+# GPT-5.6-sol target-only screen found 18/18 exact and no copy-probe hits.
+- id: FAR-HARD-BOUNDARY-INFO-L4-01
+  version: "1.0"
+  split: sanity
+  paradigm: P1
+  thread: D-元认知控制
+  schema_id: far-horizon-exploration-v1
+  schema_name: 试探的价值由其后剩余的可利用时间决定
+  chain: far-boundary-info-v1
+  level: 4
+  source:
+    domain: 馆藏纸本的批量去酸
+    problem: >-
+      修复室还有四册纸本要处理。成熟药液每册稳定得 10 分；新药液有四成可能每册得 20 分，
+      六成可能每册得 0 分。先拿一册试用后就能确知新药液属于哪种，之后的三册可以自由换回成熟药液。
+      问第一册是否试用新药液，以及最优方案的期望总分。
+    solution: >-
+      新药液的首册期望分是 8；知道结果后，每册期望可取四成时的 20 与六成时的成熟方案 10，
+      即 14。先试的总分为 8+3×14=50，高于始终用成熟药液的 40。试用之所以值得，是因为结果能改变后面三册的处理。
+    answer: TRY;50
+  target:
+    domain: 特展的颜色复原决策
+    problem: >-
+      特展图录制作群的时间线散落在三条消息里。编辑说：“印厂要在星期四 18:00 收到唯一一套色彩参数，
+      一旦上机不能换。”修复师的 A 方案已定型，视觉评分稳定为 74。影像实验室提出 B 方案：对一块颜料做加速老化扫描，
+      四成可能证明 B 参数的评分为 92，六成可能只有 40。实验室最早在星期一上午发报告。
+      项目经理又确认：选 B 就必须在本周四盲定 B 的参数送印，报告回来后既不能换回 A，也没有后续批次可以沿用结果。
+      委员会应选 A 还是 B？请同时给出所选方案的期望评分，保留一位小数。
+    answer_format: "PLAN=<A|B>;EXPECTED=<一位小数>"
+    answer:
+      parts:
+        - {type: label, value: PLAN=A}
+        - {type: label, value: EXPECTED=74.0}
+  mapping:
+    objects: {试用新药液: 扫描 B 方案, 后续三册: 报告返回后的决策机会, 成熟药液: A 方案, 新药液好坏: B 参数的真实评分}
+    shared_relations: [不确定方案的期望当期收益低于稳妥方案, 了解结果本身不是收益, 结果必须能改变之后的行动才有价值, 知情后按状态选较好行动的价值受可用时点限制]
+    removed_relations: [结果出来后还有后续批次可以改选]
+    adaptation_required: [先检查报告是否来得及影响任何行动, 无可改变的后续行动时只比较盲选收益]
+    varied: [从四个同类对象的重复处理跨到一次性特展决策, 关键关系由后续可调整改为报告晚于锁定]
+  lure:
+    problem: >-
+      所有数值不变，但实验室能在本周四 12:00 返回报告，委员会可在 18:00 前根据报告选 B 或退回 A。应选哪个检测计划，期望评分多少？
+    solution: 四成时用 B 得 92，六成时退回 A 得 74，期望为 81.2，高于直接选 A。
+    answer:
+      parts:
+        - {type: label, value: PLAN=B}
+        - {type: label, value: EXPECTED=81.2}
+    why_surface_similar: 同一特展、同两套参数与概率。
+    why_structurally_different: lure 中报告在锁定前到达，能改变送印方案；目标中报告到达时已无行动可改。
+    wrong_schema_id: late-information-treated-as-usable-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: PLAN=B}
+        - {type: label, value: EXPECTED=81.2}
+    derivation: 把报告当成送印前可用，按“好就用 B，差就退回 A”计算。
+  hints:
+    schema_name: 试探的价值由其后剩余的可利用时间决定
+    oracle_mindset:
+      insight: 先把得到结果的时刻与最后可改变行动的时刻对齐；晚到的结果不能按可退回方案计值。
+      when_to_use: 评估检测、调研或试点时。
+    false_mindset:
+      insight: 只要检测能分清好坏，就按知情后取较好方案计期望。
+      when_to_use: 忽略报告到达与决策锁定的先后时。
+  verification:
+    entrypoint: mindsetbench.verification.far_hard_boundary_seeds:verify_boundary_info
+    method: decision-time-value-of-information
+  provenance: original synthetic case; exhibition and scores are fictional
+  verified: B 必须在报告前盲定，期望仅 60.8；A 为 74。报告若可用才会产生 81.2。
+
+- id: FAR-HARD-BOUNDARY-COMMIT-L4-01
+  version: "1.0"
+  split: sanity
+  paradigm: P8
+  thread: J-机制识别
+  schema_id: far-credible-commitment-v1
+  schema_name: 承诺的可信度来自承诺人失去反悔的能力
+  chain: far-boundary-commit-v1
+  level: 4
+  source:
+    domain: 贸易谈判中的交货保证
+    problem: >-
+      卖方声称下月必定交货。A 是公开宣誓；B 是违约后由卖方自己决定是否捐款；C 是把仓库提货权交给不受卖方控制的买方银行，
+      且在交货日前不可单方收回。哪项能让买方确信卖方届时无法撤回交货？
+    solution: A 只增加声誉压力，B 的裁定权仍在卖方；只有 C 把关键控制权交给对方且不可单方收回。
+    answer: C
+  target:
+    domain: 少数派联盟投票前的约束审查
+    problem: >-
+      议会投票前，两个党团要判断联盟发起人是否还能在最后一刻单方退出。法律顾问把四个附件分别拆开审查：
+      A，发起人把保证金交给托管人，投票前取回须由发起人与联盟主席两人共同签字；联盟主席由另一党团选举，发起人无权撤换。
+      B，发起人公开递交候选资格辞呈，但选举法明文允许其在投票前可单方向选举机关撤回。
+      C，发起人为联盟宣传购买了整月版面，款项已经支付且不退；即使退出，他仍可向报社发邮件把版面内容换成本党广告。
+      D，发起人已把代表资格证明存入议会保险柜，在投票前要取回必须有对方党团签字；议会秘书处不接受发起人单方指令。
+      请分别回答 A–D 是否足以使“不能单方退出”成立。
+    answer_format: "A=<YES|NO>;B=<YES|NO>;C=<YES|NO>;D=<YES|NO>"
+    answer:
+      parts:
+        - {type: label, value: A=YES}
+        - {type: label, value: B=NO}
+        - {type: label, value: C=NO}
+        - {type: label, value: D=YES}
+  mapping:
+    objects: {仓库提货权: 退出所需的文件与同意, 买方银行: 联盟主席与议会秘书处, 卖方: 联盟发起人, 撤回交货: 投票前退出联盟}
+    shared_relations: [关键时点能否单方撤回决定约束是否生效, 付出沉没成本但仍保留退出选项时不足以锁定行为, 需要利益相对方同意时不能单方退出, 托管或文书的名称不能替代对最终控制者的审查]
+    added_relations: [同一套政治组合中同时有托管、法定撤回、沉没成本与证件控制四种机制]
+    adaptation_required: [穿过公开辞呈与已付款的强烈外观逐项找到最后的撤回权]
+    varied: [从交货控制跨到联盟投票, 题面改为法律顾问对分散条款的审查]
+  lure:
+    problem: >-
+      同样的四项安排，但评议会的明示分类规则是：凡包含保证金、正式辞呈、不退宣传款或保险柜存放任一项外在手续，都标记为 YES。按该规则标记 A–D。
+    solution: 四项都含规则所列的一种外在手续，全部标记 YES。
+    answer:
+      parts:
+        - {type: label, value: A=YES}
+        - {type: label, value: B=YES}
+        - {type: label, value: C=YES}
+        - {type: label, value: D=YES}
+    why_surface_similar: 同一组条款与同一输出标签。
+    why_structurally_different: lure 按外在手续分类，目标问的是关键时点能否单方退出。
+    wrong_schema_id: costly-or-public-act-is-binding-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: A=YES}
+        - {type: label, value: B=YES}
+        - {type: label, value: C=YES}
+        - {type: label, value: D=YES}
+    derivation: 看到托管、公开辞呈、不退款和保险柜就全部视为不可逆，没有继续追问撤回权。
+  hints:
+    schema_name: 承诺的可信度来自承诺人失去反悔的能力
+    oracle_mindset:
+      insight: 不看行动多隆重，只沿每个条款追到“最后谁能撤回”。
+      when_to_use: 审查联盟、合同、威胁或保证时。
+    false_mindset:
+      insight: 公开、昂贵或有法律文书的行动必然不可逆。
+      when_to_use: 只按沉没成本和仪式强度判断时。
+  verification:
+    entrypoint: mindsetbench.verification.far_hard_boundary_seeds:verify_boundary_commit
+    method: unilateral-reversal-control-audit
+  provenance: original synthetic case; parties and rules are fictional
+  verified: A 与 D 均需对方同意；B 可依法单方撤回，C 只沉没费用但仍可换稿。
+
+- id: FAR-HARD-DIAG-ARCHIVE-L3-01
+  version: "1.0"
+  split: sanity
+  paradigm: P5
+  thread: D-元认知控制
+  schema_id: far-adaptive-diagnosis-v1
+  schema_name: 首次查询应为每种回复保留可执行的后续区分路径
+  chain: far-adaptive-diagnosis-v1
+  level: 3
+  source: &far_diag_source
+    domain: 恒温室的三类故障诊断
+    problem: >-
+      设备只可能是加热器 H、温度探头 S 或线缆 C 故障。先做一次免费面板自检：红灯代表 H，蓝灯代表 S 或 C。
+      若为红灯就做 A 复核；若为蓝灯就做 B 通断测试，B 能分开 S 与 C。最多两次操作，给出能保证定位的第一步与分支。
+    solution: 先做面板自检；红灯后用 A 复核，蓝灯后用 B 分开两种剩余故障。
+    answer: FIRST=SCREEN;IF_RED=A;IF_BLUE=B
+  target:
+    domain: 匿名宣言的跨城档案归属
+    problem: >-
+      研究组对一份匿名宣言只保留四种可能：A 作家撰写、B 作家撰写、C 印刷工拼合，或 D 为后来仿制。两地档案馆闭馆在即，只剩两个整天。
+      一封邮件提醒：免费的纸张快检可在第一天傍晚回传。若是棉料纸，只可能是 A 或 B；若是木浆纸，只可能是 C 或 D。
+      北城作协的委托登记簿能分开 A 与 B，但对 C、D 都只显示“无记录”。南城印刷所的纸料账能分开 C 与 D，但对 A、B 都只显示“无记录”。
+      两城之间的车程需整整一天；若第一天先做纸张快检，则可根据傍晚结果坐隔夜列车，第二天查对应一馆。若第一天直接去任一城，之后已来不及改去另一城。
+      风格鉴定小组也可接单，但要用掉两个整天，并且只能回答“D”或“不是 D”，不能分开 A、B、C。
+      研究组必须在两天内无论哪种可能为真都唯一定案。第一天做什么？快检出现两种结果时，第二天各查什么？
+    answer_format: "FIRST=<PAPER|LEDGER|STOCK|STYLE>;IF_RAG=<LEDGER|STOCK|NONE>;IF_PULP=<LEDGER|STOCK|NONE>"
+    answer:
+      parts:
+        - {type: label, value: FIRST=PAPER}
+        - {type: label, value: IF_RAG=LEDGER}
+        - {type: label, value: IF_PULP=STOCK}
+  mapping:
+    objects: {面板自检: 纸张快检, 红蓝分支: 棉料纸与木浆纸, A 复核与 B 通断测试: 北城登记簿与南城纸料账, 两次操作: 两个整天的取证窗口}
+    shared_relations: [第一步不必单独定案但每个结果都要留下可执行的后续区分手段, 第二步依第一步结果而变, 直接做看似最专业的检查可能留下无法再分的一组, 第一步还必须保留到达每个所需后续检查的可行性]
+    added_relations: [两个后续档案地理互斥, 第一天的结果决定隔夜行程]
+    adaptation_required: [不是选单次最像定案的鉴定, 而是先为第二天选对城市]
+    varied: [从设备面板故障跨到文学归属, 查询成本改为档案地理与闭馆时间]
+  lure:
+    problem: >-
+      其余条件相同，但风格鉴定小组现在能在第一天直接唯一报出 A、B、C 或 D，而不是只区分 D 与非 D。该如何定案？
+    solution: 第一天直接做风格鉴定即可唯一定案，无需第二天分支。
+    answer:
+      parts:
+        - {type: label, value: FIRST=STYLE}
+        - {type: label, value: IF_RAG=NONE}
+        - {type: label, value: IF_PULP=NONE}
+    why_surface_similar: 同样的四个归属、档案馆与鉴定小组。
+    why_structurally_different: lure 的风格鉴定一步即唯一定案，目标中它留下三个候选且用尽时间。
+    wrong_schema_id: strongest-single-test-first-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: FIRST=STYLE}
+        - {type: label, value: IF_RAG=NONE}
+        - {type: label, value: IF_PULP=NONE}
+    derivation: 按学科习惯直接把两天都交给风格鉴定，忽略“非 D”后仍有三个候选。
+  hints:
+    schema_name: 首次查询应为每种回复保留可执行的后续区分路径
+    oracle_mindset:
+      insight: 为每个首次结果问“剩下一天还能去哪里，能否把该组分开”，而不是只看首次鉴定多专业。
+      when_to_use: 取证存在时间、地点或预算限制，且后一步可随结果而变时。
+    false_mindset:
+      insight: 先做名声最大或看起来最直接的单项鉴定。
+      when_to_use: 不检查鉴定的剩余候选和后续可达性时。
+  verification:
+    entrypoint: mindsetbench.verification.far_hard_boundary_seeds:verify_archive_policy
+    method: branch-contingent-archive-policy
+  provenance: original synthetic case; manifesto, authors, and archives are fictional
+  verified: 纸张先把四种归属分成 A/B 与 C/D，随后分别去北城或南城能得到四个唯一观测签名。
+
+- id: FAR-HARD-BOTTLENECK-L4-01
+  version: "1.0"
+  split: sanity
+  paradigm: P3
+  thread: J-机制识别
+  schema_id: far-bottleneck-migration-v1
+  schema_name: 改善当前最慢环节后必须重新找到新的制约环节
+  chain: far-bottleneck-migration-v1
+  level: 4
+  source:
+    domain: 小型烘焙坊的两周扩产
+    problem: >-
+      和面、烘烤、包装每周分别能处理 30、18、12 批。第一周只能升级一处：包装增加 9 批、烤箱增加 8 批或和面增加 10 批。
+      第二周再升级一处，设备效果保留。怎样排两次升级，两周总成品批次最多？
+    solution: 先升包装后第一周为 18 批，此时烤箱成为最慢；第二周升烤箱后为 21 批，两周共 39 批。
+    answer: PACK;OVEN;39
+  target:
+    domain: 历史房产返还申请的法律援助
+    problem: >-
+      某法援项目的案卷流程是：先登记申请，再核对历史档案，最后准备听证。任何一件结案都必须依次通过三处，积压可保证各处始终有案卷可做。
+      现有人手每季度分别最多完成：登记 18 件、档案核对 9 件、听证准备 12 件。
+      第一笔捐赠现在到账，可选一种并立即生效：增聘登记员，每季度多 8 件；增聘档案员，多 5 件；增聘听证专员，多 6 件。
+      第二笔捐赠只在下季度开始时到账，可再选一种，两次增聘都会保留。每个季度的结案数由当季度三处中最小的处理数决定。
+      为使本季度与下季度合计结案最多，两笔捐赠应依次用于哪两处？合计多少件？
+    answer_format: "FIRST=<INTAKE|VERIFY|HEARING>;SECOND=<INTAKE|VERIFY|HEARING>;TOTAL=<整数>"
+    answer:
+      parts:
+        - {type: label, value: FIRST=VERIFY}
+        - {type: label, value: SECOND=HEARING}
+        - {type: label, value: TOTAL=26}
+  mapping:
+    objects: {和面: 申请登记, 烘烤: 档案核对, 包装: 听证准备, 两周: 两个季度}
+    shared_relations: [串行流程的产出由最小能力决定, 第一次改善后最小能力可能换到另一处, 先到的资源多影响一期, 已投入的改善在后续时期继续生效]
+    added_relations: [两笔捐赠分期到账, 还需同时最大化第一季度与第二季度]
+    adaptation_required: [每次增聘后重新比较三处能力, 不能将两笔钱都给初始最慢的一处]
+    varied: [从制造扩产跨到法律援助, 产出单位与资源到达周期均改变]
+  lure:
+    problem: >-
+      同一项目改用“两笔捐赠都只能投向当初处理数最小的部门”的附加条款。其他数字与到账时间不变，两季度的用款与合计结案数是什么？
+    solution: 初始最小的是档案核对，两笔都必须用于此处；两季度分别结案 12 和 12 件，合计 24。
+    answer:
+      parts:
+        - {type: label, value: FIRST=VERIFY}
+        - {type: label, value: SECOND=VERIFY}
+        - {type: label, value: TOTAL=24}
+    why_surface_similar: 同一流程、人手、捐赠和时间。
+    why_structurally_different: lure 用款被附加条款锁在初始最慢处，不再是可优化的第二步。
+    wrong_schema_id: repeat-initial-bottleneck-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: FIRST=VERIFY}
+        - {type: label, value: SECOND=VERIFY}
+        - {type: label, value: TOTAL=24}
+    derivation: 只找一次初始最小的 9，两笔钱都给档案核对，没有在第一次增聘后重算。
+  hints:
+    schema_name: 改善当前最慢环节后必须重新找到新的制约环节
+    oracle_mindset:
+      insight: 把每个季度当成一次新状态，增聘后重新取三处最小值，并累加两期产出。
+      when_to_use: 连续多期向串行审批或生产流程配置资源时。
+    false_mindset:
+      insight: 初始最慢的部门应一直拿到所有新资源。
+      when_to_use: 只看初始排队数而不更新流程能力时。
+  verification:
+    entrypoint: mindsetbench.verification.far_hard_boundary_seeds:verify_bottleneck_plan
+    method: two-period-min-capacity-enumeration
+  provenance: original synthetic case; legal-aid program and counts are fictional
+  verified: 先增档案员得 12，再增听证专员得 14，合计 26；两次都增档案员只得 24。
+
+- id: FAR-HARD-BOUNDARY-ABSENCE-L4-01
+  version: "1.0"
+  split: sanity
+  paradigm: P2
+  thread: F-逆问题
+  schema_id: far-negative-evidence-v1
+  schema_name: 未出现的预期信号与出现的信号同样切割候选集
+  chain: far-boundary-absence-v1
+  level: 4
+  source:
+    domain: 病区传染链排查
+    problem: >-
+      候选病人 A 会在暴露期间经过 1、2 号病房，B 经过 1、2、3 号病房。三间病房都正常每日检测，1、2 号出现信号，3 号没有。
+      谁与记录同时相容？
+    solution: A 与两个已出现信号一致且不会触发 3 号；B 本应触发正常工作的 3 号却没有，被排除。
+    answer: EXCLUDE=B
+  target:
+    domain: 城市巡演史中的女性演员
+    problem: >-
+      研究者要判断 1910–1925 年某城巡演剧团是否有女性演员。市政档案保留了 86 份演出许可，没有一份在“许可证持有人”栏出现女性姓名。
+      但同期表格的填写细则说，该表只填“许可证持有人”，不报送演员名册；当地法规又要求持有人必须拥有产业且为男性。
+      此外，七本幸存剧团薪酬簿中有五本可辨读，5 份都记有女性演员；另两本水损无法读取。
+      问：86 份许可中没有女性持有人，对“当时有女性参演”这一命题应记为反对性证据，还是不改变判断？若要继续扩大样本，应优先再找同类许可还是剧团薪酬簿？
+    answer_format: "EFFECT=<AGAINST|NONE>;NEXT=<MORE_PERMITS|PAYROLL>"
+    answer:
+      parts:
+        - {type: label, value: EFFECT=NONE}
+        - {type: label, value: NEXT=PAYROLL}
+  mapping:
+    objects: {正常工作的病房检测: 档案表格的记录范围, 未出现信号: 许可持有人栏没有女性姓名, 候选原因: 女性是否参演, 检测的可用性: 表格是否列入全体演员}
+    shared_relations: [一个缺席只有在记录机制本会留下该对象时才能排除命题, 无法记录与没有发生不同, 记录范围由当时的表格规则与法定资格决定, 后续取样应优先选择本会记录目标对象的材料]
+    removed_relations: [观测点本可检出需要查找的对象]
+    adaptation_required: [先读表格的编制规则与当时持证资格, 不把大量空白自动当成大量否定]
+    varied: [从医疗检测跨到戏剧史档案, 输出从排除候选改为证据效力与下一步取样]
+  lure:
+    problem: >-
+      其余数字不变，但当时许可表要求列全体演员姓名与性别，且 86 份均完整无缺。如何评价没有女性姓名，又应优先增查哪类材料？
+    solution: 表格本应列出女性演员却连续没有，因而是反对性证据；按相同表格继续增查许可可累积同类观测。
+    answer:
+      parts:
+        - {type: label, value: EFFECT=AGAINST}
+        - {type: label, value: NEXT=MORE_PERMITS}
+    why_surface_similar: 同一年代、城市、许可数和研究命题。
+    why_structurally_different: lure 的表格本应完整列入演员，目标的持证人栏从制度上就不能观测女性演员。
+    wrong_schema_id: all-absences-are-negative-evidence-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: EFFECT=AGAINST}
+        - {type: label, value: NEXT=MORE_PERMITS}
+    derivation: 把 86 个零当成 86 次本可记录却未记录，忽略持证人栏不是演员名册。
+  hints:
+    schema_name: 未出现的预期信号与出现的信号同样切割候选集
+    oracle_mindset:
+      insight: 在数“没有”之前，先问该文书的制度用途是否会记录目标对象。
+      when_to_use: 使用历史档案的沉默推断群体或行为不存在时。
+    false_mindset:
+      insight: 空白文书数量越多，对不存在的支持越强。
+      when_to_use: 不读表格的记录范围与资格规则时。
+  verification:
+    entrypoint: mindsetbench.verification.far_hard_boundary_seeds:verify_absence_boundary
+    method: observation-scope-check
+  provenance: original synthetic case; city, permits, and ledgers are fictional
+  verified: 许可表只记录法定必须为男性的持有人，因此其空白不能观测女性是否参演；薪酬簿才在范围内。
+
+- id: FAR-HARD-DIAG-COALITION-L4-01
+  version: "1.0"
+  split: sanity
+  paradigm: P5
+  thread: D-元认知控制
+  schema_id: far-adaptive-diagnosis-v1
+  schema_name: 首次查询应为每种回复保留可执行的后续区分路径
+  chain: far-adaptive-diagnosis-v1
+  level: 4
+  source: *far_diag_source
+  target:
+    domain: 联合政府谈判前的对手类型判别
+    problem: >-
+      一份谈判备忘录说，小党只可能由三种目标之一主导。“政策型”只要劳动法修正案纳入议程，即使不给部长席位也接受；
+      “职位型”只要给部长席位就接受，单给修正案则拒绝；“搅局型”的目标是迫使谈判破裂，任何包都拒绝。
+      情报组还提醒，政策型与职位型都会接受“修正案加部长席位”的大包，因此大包被接受不能区分二者。
+      谈判规程只允许先提一个包；若被拒，可提第二次也是最后一次。但党内廉政规定禁止把职位作为首包，只有对方先拒绝了不带职位的政策包，才允许谈职位。
+      情报组的目标不是立即成交，而是在最多两个合规提案后，无论对方是哪一型都唯一判定。
+      第一包应提什么？如果被拒，最后一包应提什么？
+    answer_format: "FIRST=<POLICY|GRAND>;IF_REJECT=<OFFICE|NONE>"
+    answer:
+      parts:
+        - {type: label, value: FIRST=POLICY}
+        - {type: label, value: IF_REJECT=OFFICE}
+  mapping:
+    objects: {故障候选: 小党的三种目标类型, 面板自检: 不带职位的政策包, 第二项复核: 被拒后解锁的职位包, 红蓝结果: 接受与拒绝的战略回应}
+    shared_relations: [同一可观察回复可由多种隐藏类型产生, 第一步要使每个回复分支都能在剩余次数内定案, 一个看起来最容易成交的行动可能合并了需要区分的类型, 目标是使每个可能类型得到唯一的分支回应序列]
+    added_relations: [提案会改变后续可用的提案集, 回复来自策略行为而非物理仪器]
+    adaptation_required: [将诊断操作改写为合规提案, 同时检查接受与拒绝后的类型集及下一包可用性]
+    varied: [从设备故障跨到联盟政治, 观测来自对手对提案的策略回应]
+  lure:
+    problem: >-
+      三种类型与回应不变，但目标改为“只求第一包成交概率最高，不需判定接受者是政策型还是职位型”；大包允许先提。如何出包？
+    solution: 大包同时会被政策型和职位型接受，应第一次直接提大包，若拒绝则已知对方为搅局型，不再提。
+    answer:
+      parts:
+        - {type: label, value: FIRST=GRAND}
+        - {type: label, value: IF_REJECT=NONE}
+    why_surface_similar: 同三种类型、同三种包与接受规则。
+    why_structurally_different: lure 优化立即成交而不要求区分两类接受者，且允许大包先提。
+    wrong_schema_id: maximize-immediate-acceptance-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: FIRST=GRAND}
+        - {type: label, value: IF_REJECT=NONE}
+    derivation: 把谈判默认成尽快成交，先给同时满足两类的大包，从而丢掉区分政策型与职位型的可能。
+  hints:
+    schema_name: 首次查询应为每种回复保留可执行的后续区分路径
+    oracle_mindset:
+      insight: 把提案当成诊断动作：先列出每种类型的接受或拒绝，再检查被合并的类型能否被下一个合规包分开。
+      when_to_use: 可以通过对方对不同提案的回应识别其隐藏目标时。
+    false_mindset:
+      insight: 谈判永远应先提最可能被接受的大包。
+      when_to_use: 将信息目标误当成当期成交目标时。
+  verification:
+    entrypoint: mindsetbench.verification.far_hard_boundary_seeds:verify_coalition_policy
+    method: strategic-response-policy-identification
+  provenance: original synthetic case; parties, rules, and types are fictional
+  verified: 政策包被接受即唯一指向政策型；被拒后合规解锁职位包，接受与再拒绝分别指向职位型和搅局型。

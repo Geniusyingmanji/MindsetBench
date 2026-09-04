@@ -126,7 +126,7 @@
 
 - id: FAR-NEG-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P2
   thread: F-逆问题
   schema_id: far-negative-evidence-v1
@@ -188,7 +188,7 @@
 
 - id: FAR-NEG-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P2
   thread: F-逆问题
   schema_id: far-negative-evidence-v1
@@ -205,6 +205,7 @@
       它没有记载 1471 年座堂大火，那场火灾烧毁了半个中殿，是该城教会史上最大的灾变；
       它没有记载 1468 年邻国主教会议的决议，但据另一史料，该决议的消息直到 1475 年才传至该城；
       它也没有记载 1469 年该城获得的商贸特许状，那是一件震动全城的世俗大事。
+      本题以完整公历年为离散单位：若某年发生且按体例必记的事件没有出现，成书年份至多记为前一年。
       问：这部编年史最早和最晚可能成书于哪一年？
     answer_format: "<最早成书年份>;<最晚成书年份>"
     answer:
@@ -252,7 +253,7 @@
 
 - id: FAR-NEG-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P2
   thread: F-逆问题
   schema_id: far-negative-evidence-v1

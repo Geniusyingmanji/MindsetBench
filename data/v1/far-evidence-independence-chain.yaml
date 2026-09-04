@@ -146,7 +146,7 @@
 
 - id: FAR-INDEP-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P7
   thread: E-证据独立性
   schema_id: far-evidence-independence-v1
@@ -158,8 +158,8 @@
     domain: 代码仓库的自动合并门禁
     problem: >-
       仓库 ledger-core 的自动合并门禁（MERGE_POLICY.md）规定：PR 至少需要 4 个相互独立的绿色检查；
-      凡判定结果取决于同一份由本 PR 重新生成的预期文件（fixtures 目录下的快照）的检查，不论有几个，
-      合计只算 1 个绿色检查。
+      凡判定结果取决于同一次由本 PR 重新生成的 fixtures 快照批次，不论具体读取该批次中的同一文件还是不同文件，
+      也不论有几个检查，合计只算 1 个绿色检查。
 
       ci.yml 节选：
       lint：运行 ruff check src；
@@ -230,7 +230,7 @@
 
 - id: FAR-INDEP-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P7
   thread: E-证据独立性
   schema_id: far-evidence-independence-v1
@@ -320,7 +320,7 @@
 
 - id: FAR-INDEP-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P7
   thread: E-证据独立性
   schema_id: far-evidence-independence-v1
@@ -343,7 +343,7 @@
       A 再加一只同样用 PC-7 校准的开关 S4，改为任意两只报高即关阀；
       B 将 S2 送计量室按固定基准重新校准；
       C 把 S3 更换为随机漏报概率 0.05 的高等级开关。
-    answer_format: "PFD=<四位小数>;BEST=<A|B|C>"
+    answer_format: "<四位小数>;<A|B|C>"
     answer:
       parts:
         - {type: number, value: "0.0766", abs_tolerance: "0.0002"}

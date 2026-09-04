@@ -138,7 +138,7 @@
 
 - id: FAR-BERK-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P3
   thread: H-因果拓扑
   schema_id: far-selection-association-v1
@@ -201,7 +201,7 @@
 
 - id: FAR-BERK-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P3
   thread: H-因果拓扑
   schema_id: far-selection-association-v1
@@ -268,7 +268,7 @@
 
 - id: FAR-BERK-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P3
   thread: H-因果拓扑
   schema_id: far-selection-association-v1

@@ -33,3 +33,10 @@ def test_answer_format_must_not_embed_complete_multipart_gold() -> None:
     leaked.target.answer_format = leaked.target.answer.legacy_value()
     report = validate_dataset([leaked])
     assert any(issue.code == "answer-format-leaks-gold" for issue in report.errors)
+
+
+def test_answer_format_prefix_must_match_gold_part() -> None:
+    case = load_cases()[0].model_copy(deep=True)
+    case.target.answer_format = "VALUE=<答案>"
+    report = validate_dataset([case])
+    assert any(issue.code == "answer-format-prefix-mismatch" for issue in report.errors)

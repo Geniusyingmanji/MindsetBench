@@ -123,7 +123,7 @@
 
 - id: FAR-INVAR-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P2
   thread: B-不变量守恒
   schema_id: far-invariant-reachability-v1
@@ -178,7 +178,7 @@
 
 - id: FAR-INVAR-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P2
   thread: B-不变量守恒
   schema_id: far-invariant-reachability-v1
@@ -239,7 +239,7 @@
 
 - id: FAR-INVAR-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P2
   thread: B-不变量守恒
   schema_id: far-invariant-reachability-v1

@@ -154,7 +154,7 @@
 
 - id: FAR-COMMIT-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P8
   thread: J-机制识别
   schema_id: far-credible-commitment-v1
@@ -222,7 +222,7 @@
 
 - id: FAR-COMMIT-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P8
   thread: J-机制识别
   schema_id: far-credible-commitment-v1
@@ -292,7 +292,7 @@
 
 - id: FAR-COMMIT-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P8
   thread: J-机制识别
   schema_id: far-credible-commitment-v1

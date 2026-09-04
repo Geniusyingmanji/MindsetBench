@@ -133,7 +133,7 @@ L1_PHRASES = ("三个周期前", "1.0、0.4、0.1", "19 到 21", "20 个周期")
 
 L2_GAINS = (F(1), F(1, 2), F(1, 5))
 L2_E0, L2_DELAY, L2_HORIZON, L2_BAND = F(-400), 1, 12, F(20)
-L2_PHRASES = ("两周后到货", "1.0、0.5、0.2", "580 到 620", "12 周")
+L2_PHRASES = ("下单两周后", "上一周周一盘点时也是 200", "1.0、0.5、0.2", "580 到 620", "12 周")
 
 
 # ---------------------------------------------- L3: correction against a decaying level
@@ -194,7 +194,7 @@ def max_dip(speeds: Sequence[Sequence[Fraction]], car: int, cruise: Fraction) ->
 
 L4_GAINS = (F(1), F(3, 5), F(3, 10))
 L4_CARS, L4_STEPS, L4_CRUISE, L4_DIP, L4_DIP_FROM, L4_DIP_LEN = 5, 30, F(60), F(10), 2, 2
-L4_PHRASES = ("60 公里", "50 公里", "前一秒", "1.0、0.6、0.3", "第五辆")
+L4_PHRASES = ("60 公里", "50 公里", "第 2 秒末", "1.0、0.6、0.3", "第五辆")
 
 
 def platoon_answer(gain: Fraction) -> tuple[Fraction, Fraction]:

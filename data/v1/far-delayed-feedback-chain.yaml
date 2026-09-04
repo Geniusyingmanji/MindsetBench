@@ -130,7 +130,7 @@
 
 - id: FAR-DELAY-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P3
   thread: H-时滞反馈
   schema_id: far-delayed-feedback-v1
@@ -143,7 +143,9 @@
     problem: >-
       采购部备忘录节选。备件 R-17 的安全库存需从当前在库 200 件提到 600 件。公司补货模板：每周一盘点后
       下一次订单，订货量取“600 减当前在库量”乘以固定系数；模板允许的系数有 1.0、0.5、0.2 三档。
-      供应商两周后到货，也就是周一下的订单会在两周后的那个周一盘点之前入库；此期间该备件没有消耗。
+      供应商恰好在下单两周后的周一盘点前到货。今天记为第 0 周，盘点后的当前在库量是 200 件；
+      上一周周一盘点时也是 200 件，当时已按将要选定的同一系数下了一笔在途订单，该笔会在第 1 周盘点前入库。
+      第 0 周今天新下的订单则在第 2 周盘点前入库，以后依次类推。此期间该备件没有消耗，也没有其他在途订单。
       请回复：采用哪一档系数，可以让在库量在 12 周内落到 580 到 620 件之间并从此不再离开这一范围，同时任何一周都不超出 620 件？
       采用该档时，在库量从第几周起稳定在这一范围内？
     answer_format: "GAIN=<1.0|0.5|0.2>;SETTLE=<周数>"
@@ -165,7 +167,7 @@
         - {type: label, value: GAIN=1.0}
         - {type: label, value: SETTLE=1}
     why_surface_similar: 同一备件、同一模板与候选系数。
-    why_structurally_different: lure 中订货即时入库，目标中两周后才入库，足额订货会重复下单造成大幅超储。
+    why_structurally_different: lure 中订货即时入库，目标中两周后才入库且已有一笔在途，足额订货会重复下单造成大幅超储。
     wrong_schema_id: full-correction-without-delay-01
   copy_probe:
     answer:
@@ -185,11 +187,11 @@
     entrypoint: mindsetbench.verification.far_delayed_feedback:verify_far_delay_l2_01
     method: delayed-proportional-correction-simulation
   provenance: original synthetic case
-  verified: 两周到货时 0.2 在第 10 周进入 580 到 620 且不越过；0.5 第 3 周冲到 700；1.0 在 200 与 1000 之间摆动。
+  verified: 两周到货且第 1 周已有一笔同规则订单入库时，0.2 在第 10 周进入 580 到 620 且不越过；0.5 第 3 周冲到 700；1.0 在 200 与 1000 之间摆动。
 
 - id: FAR-DELAY-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P3
   thread: H-时滞反馈
   schema_id: far-delayed-feedback-v1
@@ -249,7 +251,7 @@
 
 - id: FAR-DELAY-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P3
   thread: H-时滞反馈
   schema_id: far-delayed-feedback-v1
@@ -261,8 +263,10 @@
     domain: 高速公路上的车队跟驰
     problem: >-
       五辆车在高速上列队以 60 公里每小时匀速行驶。头车因前方障碍在第 2 秒和第 3 秒把车速降到 50 公里每小时，
-      之后恢复 60。后车司机的反应有一秒延迟：每一秒，后车把自己的车速改变“前一秒前车车速减去前一秒自己车速”的
-      k 倍。候选系数 1.0、0.6、0.3。
+      之后恢复 60。后车司机看到仪表差值后，动作要再过整整一秒才生效：每秒末的新车速，
+      是在上一秒末自身车速上，加上 k 倍的“前一秒仪表记下的前车车速减自身车速”。
+      例如，第 4 秒末生效的改变叠加在第 3 秒末车速上，但使用的是第 2 秒末的两车速度差，不是第 3 秒末的速度差。
+      候选系数 1.0、0.6、0.3。
       问：哪个系数能让第五辆车的最大减速幅度不超过头车的 10 公里每小时？该系数下第五辆车的最大减速幅度是多少
       （公里每小时，保留一位小数）？
     answer_format: "GAIN=<1.0|0.6|0.3>;<第五辆车的最大减速幅度，一位小数>"

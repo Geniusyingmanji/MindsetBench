@@ -1,11 +1,7 @@
 {
-  "name": "far50-screened-l2-l4-slice",
-  "description": "Historical 30-case L2-L4 screening slice. All cases are now sanity after GPT-5.6-sol calibration and failure audit; retained for reproducibility and regression testing.",
+  "name": "far50-batch23-screened-slice",
+  "description": "Historical eighteen-case L2-L4 screening slice added after far20. All cases are now sanity; retained to reproduce the GPT-5.6-sol audit.",
   "datasets": [
-    "../v1/far-evidence-independence-chain.yaml",
-    "../v1/far-negative-evidence-chain.yaml",
-    "../v1/far-horizon-exploration-chain.yaml",
-    "../v1/far-credible-commitment-chain.yaml",
     "../v1/far-delayed-feedback-chain.yaml",
     "../v1/far-selection-extreme-chain.yaml",
     "../v1/far-threshold-cascade-chain.yaml",
@@ -14,18 +10,6 @@
     "../v1/far-scaling-law-chain.yaml"
   ],
   "case_ids": [
-    "FAR-INDEP-L2-01",
-    "FAR-INDEP-L3-01",
-    "FAR-INDEP-L4-01",
-    "FAR-NEG-L2-01",
-    "FAR-NEG-L3-01",
-    "FAR-NEG-L4-01",
-    "FAR-HORIZON-L2-01",
-    "FAR-HORIZON-L3-01",
-    "FAR-HORIZON-L4-01",
-    "FAR-COMMIT-L2-01",
-    "FAR-COMMIT-L3-01",
-    "FAR-COMMIT-L4-01",
     "FAR-DELAY-L2-01",
     "FAR-DELAY-L3-01",
     "FAR-DELAY-L4-01",

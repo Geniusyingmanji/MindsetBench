@@ -134,7 +134,7 @@
 
 - id: FAR-HORIZON-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P1
   thread: D-元认知控制
   schema_id: far-horizon-exploration-v1
@@ -195,7 +195,7 @@
 
 - id: FAR-HORIZON-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P1
   thread: D-元认知控制
   schema_id: far-horizon-exploration-v1
@@ -259,7 +259,7 @@
 
 - id: FAR-HORIZON-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P1
   thread: D-元认知控制
   schema_id: far-horizon-exploration-v1

@@ -1,0 +1,5 @@
+{
+  "name": "far-latent-mechanism-sanity",
+  "description": "Two screened sanity cases whose target response matrix or shared latent action likelihood must be recovered before planning; GPT-5.6-sol target-only was 10/10.",
+  "datasets": ["../v1/far-latent-mechanism-seeds.yaml"]
+}

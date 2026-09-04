@@ -1,0 +1,13 @@
+{
+  "name": "far-hard-boundary-seeds",
+  "description": "Six far-domain boundary and adaptive-evidence sanity cases; the first GPT-5.6-sol target-only screen was 18/18.",
+  "datasets": ["../v1/far-hard-boundary-seeds.yaml"],
+  "case_ids": [
+    "FAR-HARD-BOUNDARY-INFO-L4-01",
+    "FAR-HARD-BOUNDARY-COMMIT-L4-01",
+    "FAR-HARD-DIAG-ARCHIVE-L3-01",
+    "FAR-HARD-BOTTLENECK-L4-01",
+    "FAR-HARD-BOUNDARY-ABSENCE-L4-01",
+    "FAR-HARD-DIAG-COALITION-L4-01"
+  ]
+}

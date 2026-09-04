@@ -1,6 +1,6 @@
 {
-  "name": "far35-hard-slice",
-  "description": "The 21 cross-domain targets (L2-L4) of the far35 families: the slice to run first for target-only / with-source / with-lure / with-both calibration.",
+  "name": "far35-screened-l2-l4-slice",
+  "description": "Historical 21-case L2-L4 screening slice. All cases are now sanity after GPT-5.6-sol calibration and failure audit.",
   "datasets": [
     "../v1/far-evidence-independence-chain.yaml",
     "../v1/far-negative-evidence-chain.yaml",

@@ -31,7 +31,13 @@ def test_far_commit_chain_is_strict_audited_surface_clean_and_verified() -> None
     cases = load_cases(DATASET)
     assert len(cases) == 5
     assert [case.level for case in cases] == list(range(5))
-    assert {case.split for case in cases} == {Split.CALIBRATION}
+    assert {case.level: case.split for case in cases} == {
+        0: Split.CALIBRATION,
+        1: Split.CALIBRATION,
+        2: Split.SANITY,
+        3: Split.SANITY,
+        4: Split.SANITY,
+    }
     assert validate_dataset(cases, strict_v1=True).ok
     audit = validate_transfer_design(cases, require_complete_chains=True)
     assert audit.ok, audit.issues

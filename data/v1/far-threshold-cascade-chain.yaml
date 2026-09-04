@@ -131,7 +131,7 @@
 
 - id: FAR-CASCADE-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P3
   thread: H-阈值级联
   schema_id: far-threshold-cascade-v1
@@ -191,7 +191,7 @@
 
 - id: FAR-CASCADE-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P3
   thread: H-阈值级联
   schema_id: far-threshold-cascade-v1
@@ -252,7 +252,7 @@
 
 - id: FAR-CASCADE-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P3
   thread: H-阈值级联
   schema_id: far-threshold-cascade-v1

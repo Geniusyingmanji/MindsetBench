@@ -182,6 +182,8 @@ L2_REMEDIES: dict[str, Callable[[dict[str, str]], dict[str, str]]] = {
 }
 L2_PHRASES = (
     "至少需要 4 个相互独立的绿色检查",
+    "同一次由本 PR 重新生成的 fixtures 快照批次",
+    "该批次中的同一文件还是不同文件",
     "make snapshots",
     "expected_api.json 作为 oracle",
     "main 分支上的 expected_api.json",

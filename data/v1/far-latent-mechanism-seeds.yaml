@@ -1,0 +1,183 @@
+# Latent-mechanism attempts retained as sanity after both were solved 5/5 by
+# GPT-5.6-sol target-only on 2026-09-04.
+- id: FAR-LATENT-PRECEDENT-L4-01
+  version: "1.0"
+  split: sanity
+  paradigm: P4
+  thread: D-元认知控制
+  schema_id: far-costed-active-identification-v1
+  schema_name: 主动查询须按完整分支的可辨识性与代价选择，而非只看第一步平衡度
+  chain: far-latent-precedent-v1
+  level: 4
+  source:
+    domain: 三色诊断台的最坏代价策略
+    problem: >-
+      控制器只可能处于六种模式 1–6。探针 P、Q、R、S、T 的费用依次为 3、2、4、5、6；
+      每次返回红、蓝或白。六种模式下，五个探针的返回依次如下（每一列对应模式 1–6）：
+      P=白红白白红白，Q=红蓝白白白白，R=蓝蓝红白白蓝，
+      S=红蓝蓝红白白，T=蓝蓝蓝红红蓝。
+      最多用两个不同探针，目标是无论哪种模式为真都能唯一识别，并使最坏情况下的总费用最小。
+      给出第一探针、其三种返回后的第二探针（已经唯一时写 STOP）以及最坏费用。
+    solution: >-
+      先用 R：红只剩模式 3；蓝留下 1、2、6，随后 Q 分别返回红、蓝、白；
+      白留下 4、5，随后 P 返回白、红。最坏费用是 4+max(2,3)=7。
+      虽然 S 首步恰分成三组各两种，但它的费用为 5，完成分支最坏要 8。
+    answer: R;IF_RED=STOP;IF_BLUE=Q;IF_WHITE=P;7
+  target:
+    domain: 行政法院内部判准的定向判例调阅
+    problem: >-
+      一项新法的上诉案件目前只可能由六份内部备忘录之一支配。书记员把备忘录内容抄成如下文字，
+      其中 E 表示存在法定紧急状态，L 表示相对人已发生信赖改变，N 表示送达了正式通知；
+      裁判结果只有准许、驳回、发回三种。
+
+      甲：有 E 就驳回；无 E 时，有 N 就准许，无 N 但有 L 也驳回，三者都没有则发回。
+      乙：仅在 E、L、N 三者都没有时准许，其余一律驳回。
+      丙：有 E 就驳回；无 E 且无 L 就发回；无 E、有 L 时，无 N 准许、有 N 驳回。
+      丁：有 E，或同时有 L 与 N 时准许；其余发回。
+      戊：有 E，或 E、L、N 三者都没有时准许；其余发回。
+      己：有 E，或有 L 但无 N 时驳回；其余发回。
+
+      档案馆有五卷已审结但裁判结果被封存的先例。V 卷三项事实都没有，调阅费 3；W 卷只有 N，费用 2；
+      X 卷只有 L，费用 4；Y 卷有 L 与 N、无 E，费用 5；Z 卷只有 E，费用 6。
+      调阅一卷会看到其真实裁判结果。最多调阅两个不同卷宗；第二卷可依据第一卷的结果改变。
+      目标是在任何备忘录为真时都唯一识别它，并使最坏情况下的调阅费总和最小。
+      请给出第一卷，以及第一卷结果为准许、驳回、发回时各自的下一步；若已唯一识别写 STOP。
+    answer_format: "FIRST=<V|W|X|Y|Z>;IF_ALLOW=<V|W|X|Y|Z|STOP>;IF_DENY=<V|W|X|Y|Z|STOP>;IF_REMAND=<V|W|X|Y|Z|STOP>;WORST=<整数>"
+    answer:
+      parts:
+        - {type: label, value: FIRST=X}
+        - {type: label, value: IF_ALLOW=STOP}
+        - {type: label, value: IF_DENY=W}
+        - {type: label, value: IF_REMAND=V}
+        - {type: label, value: WORST=7}
+  mapping:
+    objects: {六种控制器模式: 六份内部备忘录, 三色返回: 准许/驳回/发回, 探针费用: 卷宗调阅费, 分支探针: 看到首份裁判后再选的卷宗}
+    shared_relations: [首个查询的每种回复都必须留下可由至多一次查询分开的候选集, 策略目标最小化完整树的最坏路径代价, 首步最均衡不保证总代价最小, 已形成单例的分支应立即停止]
+    added_relations: [卷宗结果矩阵未直接给出而要把六套文字判准逐一应用于五组事实, 同一三值回复在不同备忘录下由不同规则分支产生]
+    adaptation_required: [先从自然语言判准恢复观测矩阵, 再比较所有首卷的分支可辨识性与后续费用]
+    varied: [从显式三色矩阵跨到法条式条件层级与封存判例, 从查表规划变为规则解释加主动调阅]
+  lure:
+    problem: >-
+      同样的六份备忘录、五卷事实和调阅费，但研究合同规定第一卷必须使三种裁判结果下剩余的备忘录数量完全相等；
+      在满足该首步平衡条件后，再用一卷完成识别。给出策略及其最坏调阅费。
+    solution: >-
+      Y 卷把六份备忘录分成三组各两份；准许与驳回分支查 W，发回分支查 V，最坏费用为 5+3=8。
+    answer:
+      parts:
+        - {type: label, value: FIRST=Y}
+        - {type: label, value: IF_ALLOW=W}
+        - {type: label, value: IF_DENY=W}
+        - {type: label, value: IF_REMAND=V}
+        - {type: label, value: WORST=8}
+    why_surface_similar: 同一组备忘录、卷宗、裁判结果与费用。
+    why_structurally_different: lure 把首步三等分设为硬约束；目标优化的是整棵自适应树的最坏总费用。
+    wrong_schema_id: first-step-balance-over-total-policy-cost-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: FIRST=Y}
+        - {type: label, value: IF_ALLOW=W}
+        - {type: label, value: IF_DENY=W}
+        - {type: label, value: IF_REMAND=V}
+        - {type: label, value: WORST=8}
+    derivation: 只比较第一卷的三组大小，看到 Y 为 2/2/2 后停止比较完整分支代价。
+  hints:
+    schema_name: 主动查询须按完整分支的可辨识性与代价选择，而非只看第一步平衡度
+    oracle_mindset:
+      insight: 对每个候选首卷，先恢复三种裁判结果留下的备忘录集合，再检查每个集合能否由一卷分开，并取完整树的最坏路径费用。
+      when_to_use: 主动查档、实验设计或诊断的后续动作可以依首轮结果改变，且各动作代价不同时。
+    false_mindset:
+      insight: 第一轮把候选数量分得最平均的查询必然最优。
+      when_to_use: 忽略后续可辨识性和不同查询费用时。
+  verification:
+    entrypoint: mindsetbench.verification.far_latent_mechanism:verify_latent_precedent
+    method: infer-rule-response-matrix-and-minimax-query-tree
+  provenance: original synthetic case; memoranda and precedents are fictional
+  verified: X 的三分支为单例丙、甲乙己、丁戊；后两组分别由 W、V 分开，最坏费用 7，且穷举确认 X 是唯一最优首卷。
+
+- id: FAR-LATENT-SOCIAL-CORRELATED-L4-02
+  version: "1.0"
+  split: sanity
+  paradigm: P7
+  thread: E-证据独立性
+  schema_id: far-social-learning-cascade-v1
+  schema_name: 公开判断是共享与私人证据的内生压缩，不能当成独立原始信号
+  chain: far-latent-social-correlated-v1
+  level: 4
+  source:
+    domain: 工业控制台的共源告警
+    problem: >-
+      故障与正常事前各占一半。中央探头判对率 80%，两个屏幕徽标都只是这个探头结果的复制；
+      另有一支独立探头判对率 90%。现三个显示都报故障。共有几份独立证据？故障后验概率是多少，保留四位小数？
+    solution: >-
+      两个徽标只有一个共同根，不能平方计算；再加一支独立探头，共两份独立证据。
+      后验赔率为 (0.8/0.2)×(0.9/0.1)=36，概率为 36/37=0.9730。
+    answer: 2;0.9730
+  target:
+    domain: 历史建筑真伪评议中的相关证言与公开表态
+    problem: >-
+      某建筑为原址真迹 T 或近代仿建 F，事前各占一半。两位研究员各自决定是否公开支持 T。
+      两人都收到同一份目录年代线索 C；在 T 下 C 指向 T 的概率为 70%，在 F 下 C 指向 F 的概率也为 70%。
+      此外，每位研究员各自访谈两名只向本人作证的见证人；四份私人证言在给定 T/F 后彼此独立，
+      每份指向真实状态的概率均为 65%，并且它们与 C 条件独立。
+
+      每位研究员只看到共同的 C 和自己的两份私人证言，使用上述概率与一半先验做贝叶斯更新；
+      后验大于 1/2 才公开支持 T，否则反对。公众看不到 C 和四份原始证言。现观察到两位研究员都公开支持 T。
+      随后第三位专家看到这两项公开表态，再独立取得一份判对率 90% 的材质检验，并按相同的后验过半规则表态；
+      现又观察到第三位也支持 T。
+
+      请计算“前两位同时支持”在 T 下和 F 下的概率，各保留四位小数；判断前两项公开支持在给定状态后是否可按相互独立处理，
+      判断第三位的公开支持是否仍透露其私人材质检验方向，并给出观察三项公开支持后 T 的后验概率，保留四位小数。
+    answer_format: "LIKE_T=<四位小数>;LIKE_F=<四位小数>;PAIR_INDEPENDENT=<YES|NO>;THIRD_INFORMATIVE=<YES|NO>;POSTERIOR=<四位小数>"
+    answer:
+      parts:
+        - {type: label, value: LIKE_T=0.5926}
+        - {type: label, value: LIKE_F=0.1106}
+        - {type: label, value: PAIR_INDEPENDENT=NO}
+        - {type: label, value: THIRD_INFORMATIVE=YES}
+        - {type: label, value: POSTERIOR=0.9797}
+  mapping:
+    objects: {中央探头: 共同目录线索 C, 两个复制徽标: 两位研究员的相关公开表态, 独立探头: 第三位专家的材质检验, 故障状态: 建筑是否为原址真迹}
+    shared_relations: [多个表面观测共享潜在上游时不能按独立似然连乘, 应对共享根与私人分支联合边缘化, 公开行动还经过决策规则压缩, 后续行动是否有信息取决于两种私人信号能否改变行动]
+    added_relations: [前两项观测不是共同线索的直接复制而是共同线索与各自两份私证共同生成的行动, 第三位看到的是前序行动而非原始证据]
+    adaptation_required: [枚举共同线索一次并在其下独立枚举两人的私人证言, 从行动事件计算联合似然而不是把行动边际概率平方, 再推导第三位两种私检对应的公开动作]
+    varied: [从直接复制的设备徽标跨到研究者的内生公开判断, 从两根简单赔率更新变为含共享潜变量的行动似然积分]
+  lure:
+    problem: >-
+      其余规则相同，但两位研究员各自收到一份互相独立的 70% 目录线索，而不是共用同一份 C。
+      仍观察到三位都公开支持 T。计算相同五项。
+    solution: >-
+      单个研究员支持的概率在 T/F 下为 0.741/0.259；两人的线索与私证全部独立，
+      因而同时支持的似然为 0.5491/0.0671。第三位的检验仍改变动作，三项支持后后验为 0.9866。
+    answer:
+      parts:
+        - {type: label, value: LIKE_T=0.5491}
+        - {type: label, value: LIKE_F=0.0671}
+        - {type: label, value: PAIR_INDEPENDENT=YES}
+        - {type: label, value: THIRD_INFORMATIVE=YES}
+        - {type: label, value: POSTERIOR=0.9866}
+    why_surface_similar: 同样的研究员、证言准确率、公开规则和三项支持。
+    why_structurally_different: lure 为两人分别抽取目录线索，目标中两人共享同一个 C，故公开行动在给定状态后仍相关。
+    wrong_schema_id: correlated-public-actions-treated-as-conditionally-independent-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: LIKE_T=0.5491}
+        - {type: label, value: LIKE_F=0.0671}
+        - {type: label, value: PAIR_INDEPENDENT=YES}
+        - {type: label, value: THIRD_INFORMATIVE=YES}
+        - {type: label, value: POSTERIOR=0.9866}
+    derivation: 先算单个研究员的支持边际概率，再错误平方，等价于为两人各重抽一次共同目录线索。
+  hints:
+    schema_name: 公开判断是共享与私人证据的内生压缩，不能当成独立原始信号
+    oracle_mindset:
+      insight: 共同目录线索只枚举一次；在每个共同线索分支下再枚举两人的私证和公开动作，最后对共同分支求和。
+      when_to_use: 多个判断者共享上游材料、又各自加入私有材料后公开决策时。
+    false_mindset:
+      insight: 两位不同的人作出相同公开判断，就可把单人判断的似然平方。
+      when_to_use: 忽略他们共用的档案、模型或消息源时。
+  verification:
+    entrypoint: mindsetbench.verification.far_social_learning:verify_correlated_social_actions
+    method: shared-latent-action-likelihood-enumeration
+  provenance: original synthetic case; building, witnesses, and committee are fictional
+  verified: 联合枚举给出似然 94809/160000 与 17689/160000；第三项行动透露正向私检，最终后验为 853281/870970。

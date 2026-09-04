@@ -1,0 +1,6 @@
+{
+  "name": "far-delay-repair-check",
+  "description": "The two delayed-feedback cases whose time semantics were clarified after error audit.",
+  "datasets": ["../v1/far-delayed-feedback-chain.yaml"],
+  "case_ids": ["FAR-DELAY-L2-01", "FAR-DELAY-L4-01"]
+}

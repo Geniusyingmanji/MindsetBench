@@ -15,7 +15,7 @@ L4 只保留 mindset 而更换 Model 与 Method。目标题只问该领域的自
 
 ## 当前进度（2026-09-04）
 
-### 正式校准候选：far50，十个远域家族、50 题
+### 远域资产：far50，十个家族、50 题
 
 | 家族 | 范式 | mindset | L0 → L1 → L2 → L3 → L4 的领域 |
 | --- | --- | --- | --- |
@@ -30,19 +30,29 @@ L4 只保留 mindset 而更换 Model 与 Method。目标题只问该领域的自
 | `far-selection-association-v1` | P3 | 按任一特征筛选出的子集会呈现全体中不存在的关联 | 镇医院住院 → 体检复查 → 校招面试 → 课程评论 → 恒星星表 |
 | `far-scaling-law-v1` | P1 | 几何放大时面积按平方、体积按立方变化，比例外推失效 | 动物食量 → 鸟卵冷却 → 厨房晾汤 → 桥梁缩比模型 → 冷库造价 |
 
-- 50/50 通过严格校验、schema card 校验、transfer-design 审计与表面距离闸门，50/50 有可执行 verifier；每个 lure 世界
-  都由同一形式世界复算并确认使 copy probe 成立。
-- `data/manifests/far50-hard.json` 是其中 30 道 L2–L4，是模型校准的首跑切片。
-- **尚未进行模型校准。** 构造报告：[`far20`](docs/far20-report.md)、[`far35`](docs/far35-report.md)、[`far50`](docs/far50-report.md)；
-  构造协议与十条规则：[`docs/FAR_TRANSFER_PROTOCOL.md`](docs/FAR_TRANSFER_PROTOCOL.md)。
+- 50/50 通过严格校验、schema card、transfer-design、表面距离和可执行 verifier。
+- `far50-hard.json` 的 30 道 L2–L4 已完成 GPT-5.6-sol 小样本校准。原始非满分经逐条审计均可归因于格式契约、年份/快照批次口径或时滞初态歧义；
+  修复后的定点复测全部通过，因此这 30 题已降为 `sanity`，不再作为正式难度证据。
+- 十个家族的 L0/L1 共 20 题保留为链锚点。完整复盘见 [`far50 校准报告`](docs/far50-calibration-report.md)；
+  构造过程见 [`far20`](docs/far20-report.md)、[`far35`](docs/far35-report.md)、[`far50`](docs/far50-report.md)。
+
+### 新一轮高难 seed
+
+| 批次 | 题目 case | GPT-5.6-sol 冷启动 | 状态 |
+| --- | --- | ---: | --- |
+| 制度边界/自适应证据 | 颜色复原信息时点、联盟撤回控制、跨城查档、法援瓶颈、许可记录覆盖、战略响应 | 18/18 | sanity |
+| 社会学习 | 异质门槛、信息级联、OR 聚合摘要 | 9/9；with-both 9/9 | sanity |
+| 潜机制 | 六套法律判准→调阅树；共享档案线索→相关公开行动似然 | 10/10 | sanity |
+
+结果说明“换到人文社科 + 把矩阵藏进叙述”仍不够难。下一构造单元改为部分可观测 episode、会改变后续世界的查询、
+面向最终行动的 regret 和开放式方案生成；先做 4–6 个 seed，只有 target-only 落入 20%–60% 才扩题。
 
 ### 题库口径
 
 | 状态 | 类型化题数 | 内容 |
 | --- | ---: | --- |
-| calibration（far50） | 50 | 上表十个家族 |
-| calibration（P5 算力型 challenge） | 19 | 潜在操作 L4、latent certificates/staged/seeds、certificate outages/policy-joint；用于定位搜索失败，不作为迁移距离证据 |
-| sanity | 82 | `formal` 六条链、latent L0–L3、`expansion20`、`hss20`、`hss-active8`：目标题是 source 同一形式化系统的重命名或把形式结构原样写进题面，按 SPEC 只翻了 Surface，GPT-5.6-sol 上全部天花板；仍可运行、仍过 verifier，但不计入迁移距离统计 |
+| calibration | 39 | far50 的 20 道 L0/L1 锚点 + 19 道 P5 算力型 challenge；后者只定位搜索失败，不作迁移距离证据 |
+| sanity | 123 | 旧类型化 82 题 + far50 L2–L4 30 题 + 本轮远域 seed 11 题；全部可运行、过 verifier，但模型预筛已天花板 |
 | dev（hard seeds） | 9 | AR 管线产出的早期 seed |
 | legacy | 85 | `data/all.jsonl` 的原始题库，含七线程、两条固定源链与六条多跳链 |
 
@@ -54,7 +64,7 @@ L4 只保留 mindset 而更换 Model 与 Method。目标题只问该领域的自
   长位串、竖线表）或字符 bigram Jaccard 大于 0.12 为 ERROR；lure 比 source 更远为 WARNING；`--surface-table` 打印逐题指标。
   阈值以旧题库校准：远域题在 0.01 到 0.09，改名链在 0.15 到 0.8。
 - `with-both` 条件与指标 `with_both_gain`、`selection_loss`、`lure_answer_rate_by_condition`。
-- `scripts/run_far20_calibration.sh`：预注册的两阶段校准跑批（先 target-only，再三个配对条件），默认数据集 `far50-hard.json`。
+- `scripts/run_far20_calibration.sh`：可复现的两阶段跑批（先 target-only，再三个配对条件），默认历史切片为 `far50-hard.json`。
 
 ## 为什么重做（2026-09-03 复盘）
 
@@ -75,16 +85,20 @@ far 系列改为考框架型 mindset：识别难、执行易；目标题写情�
 **不变量与可达性 L3（黑板消数 → 舞蹈编排）**：8 名舞者只允许相邻三人轮转。只交换 1 号与 2 号的队形永远到不了，因为三人轮转
 不改变排列的类别；1、2 互换加 3、4 互换的队形最少两次走位。verifier 对全部排列做广度优先搜索，恰有 20160 种可达。
 
-## 历史校准快照（均为 GPT-5.6-sol 小样本，对象现已降为 sanity 或 challenge）
+## 评测快照（GPT-5.6-sol 小样本）
 
 | 数据 | 条件 | 整题 exact | 结论 |
 | --- | --- | ---: | --- |
 | formal35 L0–L3 单样本预筛 | target-only | 4/5 | 天花板 |
 | hss20 L3/L4 三条件三样本 | target-only / with-source / with-lure | 24/24 各 | 天花板，降为 sanity |
 | hss-active8 两层 | target-only | 24/24 | 天花板，降为 sanity |
+| far20-hard 初始切片 | target-only | 30/36 | 低分来自格式、年份与快照批次口径；修复定点 6/6，另一个扩样窗口因标注冲突作废，降为 sanity |
+| far50 后六家族初始切片 | target-only | 48/54 | 错误全在时滞口径；修复定点 6/6，降为 sanity |
+| 新增边界、社会学习、潜机制 seed | target-only | 37/37 | 真实求解天花板，降为 sanity |
 | P5 联合证书题 | target-only / with-source / with-lure | 0/3 各 | 算力地板，source 无增益，保留为 challenge |
 
-这些结果只说明旧构造法测不到迁移；far50 的校准尚未开始，任何迁移增益结论都要等它跑完。
+当前没有可用于正式迁移增益估计的高难 L2–L4 子集。可报告的结论是静态封闭题构造已被 GPT-5.6-sol 做穿；
+下一轮必须先改变任务接口，再谈规模化。
 
 ## 快速开始
 
@@ -141,7 +155,7 @@ data/manifests/      可组合的数据集清单（far50 / far50-cards / far50-h
 data/schema_cards/   每个 mindset 的构造规范：必需关系、无效变体、五级计划、诱饵与 verifier 说明
 src/mindsetbench/    校验、表面距离审计、判分、runner、指标和 verifier
 scripts/             sanity 降级脚本与校准跑批脚本
-tests/               自动化测试（236 项）
+tests/               自动化测试
 docs/                协议、构造报告、复盘与调研
 harness/             兼容旧版 85 题数据的接口
 ```

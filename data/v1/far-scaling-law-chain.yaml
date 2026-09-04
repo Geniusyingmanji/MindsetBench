@@ -120,7 +120,7 @@
 
 - id: FAR-SCALE-L2-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P1
   thread: A-尺度约束
   schema_id: far-scaling-law-v1
@@ -173,7 +173,7 @@
 
 - id: FAR-SCALE-L3-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P1
   thread: A-尺度约束
   schema_id: far-scaling-law-v1
@@ -233,7 +233,7 @@
 
 - id: FAR-SCALE-L4-01
   version: "1.0"
-  split: calibration
+  split: sanity
   paradigm: P1
   thread: A-尺度约束
   schema_id: far-scaling-law-v1

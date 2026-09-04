@@ -1,0 +1,200 @@
+- id: FAR-HARD-SOCIAL-LEARNING-L4-01
+  version: "1.0"
+  split: sanity
+  paradigm: P7
+  thread: E-证据独立性
+  schema_id: far-social-learning-cascade-v1
+  schema_name: 顺序公开的行动在足以压过私人信号后不再提供新证据
+  chain: far-social-learning-cascade-v1
+  level: 4
+  source: &social_learning_source
+    domain: Bayesian sequential-action toy model
+    problem: >-
+      Let theta be either R or B with prior odds 1:1. Agents 1 through 4 move in order.
+      Agent i observes an iid private signal whose likelihood ratio is 7/3 in favor
+      of the matching state, sees earlier binary actions but not earlier signals, and
+      chooses the state with posterior odds above one; at exact equality the agent
+      follows the private signal. The observed action history is R,R,R,R. How many
+      actions have a likelihood different under the two states, and what is P(theta=R
+      | R,R,R,R) to four decimals?
+    solution: >-
+      The first R reveals a positive signal. After it, a negative signal would make
+      agent 2 follow B at the tie, so the second R also reveals a positive signal.
+      Public odds are then 49:9. Either signal makes agents 3 and 4 choose R, so their
+      actions have likelihood ratio one. Only two actions are informative and the
+      posterior is 49/(49+9)=0.8448.
+    answer: 2;0.8448
+  target:
+    domain: 未署名历史社论的顺序真伪评审
+    problem: >-
+      某档案委员会审核一篇未署名社论是否为当年原稿。在看到任何检验前，委员们同意“真实”与“后仿”事前各占一半。
+      四位委员依次表决，每人在表决前都单独拿到一份未公开的材料检验结果。在给定真伪后，四份检验相互独立。
+      前两位和第四位所用方法的判对率均为 70%：原稿有七成给“真”，后仿有七成给“伪”。
+      第三位使用更强的纸纤维检验，两种状态下的判对率都是 90%。每位委员都知道这些准确率，看不到前人的原始检验，
+      但看得到前面已公布的表决。他们都投给结合私人检验与已公布表决后概率更高的一方；若恰好各半，就跟自己的私人检验。
+      公开记录依次是：四人全部认为真实。问：其中有几个公开表决真正传递了新的私人检验信息？
+      看完全部公开表决后，该社论为原稿的后验概率是多少（四位小数）？
+    answer_format: "INFORMATIVE=<整数>;POSTERIOR=<四位小数>"
+    answer:
+      parts:
+        - {type: label, value: INFORMATIVE=3}
+        - {type: label, value: POSTERIOR=0.9800}
+  mapping:
+    objects: {红型与蓝型: 原稿与后仿, 私人提示: 未公开的材料检验, 公开猜测: 顺序表决, 提示准确率: 鉴定方法判对率}
+    shared_relations: [后来者看到前序公开行动但看不到原始私人信号, 公开行动是对私人信号与前序信息的内生压缩, 当两种私人信号都导致同一行动时该行动不更新后验, 后验只对仍会因私人信号而改变的公开行动作似然更新]
+    added_relations: [第三位的检验更准，可打破已形成的公开倾向, 第四位的较弱检验又不足以改变前三票后的选择]
+    adaptation_required: [不能把“前两票后开始级联”机械地套到异质专家, 需逐位检查该人的两种私人结果是否会改变公开表决]
+    varied: [从抽象彩球猜测跨到历史文本鉴定, 参与者准确率由同质改为异质, 第三位可暂时打破前序倾向]
+  lure:
+    problem: >-
+      四份检验的准确率仍为 70%、70%、90%、70%，但四位委员同时秘密投票，任何人投票前都看不到他人选择。开票后四票都为真。
+      有几票传递私人检验，后验概率多少？
+    solution: 密封同时投票时每票都直接透露各自检验结果；后验赔率为 (7/3)³×9，概率为 343/346=0.9913。
+    answer:
+      parts:
+        - {type: label, value: INFORMATIVE=4}
+        - {type: label, value: POSTERIOR=0.9913}
+    why_surface_similar: 同一社论、四位委员、检验准确率与四票真。
+    why_structurally_different: lure 的投票互不可见，每一票都直接反映私人检验；目标的后来者会被前序公开票影响。
+    wrong_schema_id: public-votes-equal-independent-tests-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: INFORMATIVE=4}
+        - {type: label, value: POSTERIOR=0.9913}
+    derivation: 把四个公开真票都当成各委员的独立私人检验为真，直接连乘四个似然比。
+  hints:
+    schema_name: 顺序公开的行动在足以压过私人信号后不再提供新证据
+    oracle_mindset:
+      insight: 每走到一位委员都分别假设他拿到真与伪两种私人结果；只有两者会导致不同公开票时，实际公开票才透露了该检验。
+      when_to_use: 专家、审稿人或群体成员顺序公开表态时。
+    false_mindset:
+      insight: 每位委员都有独立检验，所以每个一致公开票都是一份独立证据。
+      when_to_use: 忽略公开行动会使后来者的选择不再跟私人检验一一对应时。
+  verification:
+    entrypoint: mindsetbench.verification.far_social_learning:verify_social_learning
+    method: endogenous-action-likelihood-update
+  provenance: original synthetic case; editorial, tests, and reviewers are fictional
+  verified: 前两票透露 70% 检验为真；第三位的 90% 检验仍足以在为伪时投反对，所以第三票也透露为真；此时后验赔率为 49，第四位即使拿到伪也会投真，概率停在 49/50=0.9800。
+
+- id: FAR-HARD-SOCIAL-LEARNING-L3-02
+  version: "1.0"
+  split: sanity
+  paradigm: P7
+  thread: E-证据独立性
+  schema_id: far-social-learning-cascade-v1
+  schema_name: 顺序公开的行动在足以压过私人信号后不再提供新证据
+  chain: far-social-learning-threshold-v1
+  level: 3
+  source: *social_learning_source
+  target:
+    domain: 历史原稿入藏委员会的证据门槛
+    problem: >-
+      入藏委员会对一份未署名原稿顺序表决。真与仿的事前概率各为一半。四位委员各有一份在给定真伪后相互独立的私人检验；
+      前两位与第四位检验的判对率为 70%，第三位的判对率为 90%。每人都看得到早先公开票、看不到早先的私人检验。
+      前三位按“结合所有可见信息后，哪一方的概率超过一半就投哪一方；恰好各半则跟私人检验”表决。
+      第四位是法定把关人：章程规定，他只有在自己结合全部可见信息后认为原稿为真的概率至少达到 99% 时，才能投“真”；否则必须投“仿”，若恰好达到门槛则跟私检结果。
+      公开记录是四人全部认为真实。有几票真正透露了新的私人检验？看完四票后原稿为真的后验概率是多少（四位小数）？
+    answer_format: "INFORMATIVE=<整数>;POSTERIOR=<四位小数>"
+    answer:
+      parts:
+        - {type: label, value: INFORMATIVE=4}
+        - {type: label, value: POSTERIOR=0.9913}
+  mapping:
+    objects: {R 状态: 真原稿, B 状态: 后仿, 私人提示: 材料检验, 公开猜测: 入藏表决}
+    shared_relations: [后来者只看到早先行动而看不到原始信号, 行动是私人信号与公开历史的联合函数, 只有两种私人信号会导致不同行动时行动才透露信号, 后验更新必须使用行动在两种真实状态下的似然]
+    added_relations: [最后一位的制度门槛为 99% 而不是概率过半]
+    adaptation_required: [在第四位重新计算两种私人检验下是否达到 99%, 不能照搬普通多数规则下第四票无信息的结论]
+    varied: [从盒子猜测跨到文化财产入藏, 最后一位的行动函数由最可能选择改为法定高证据门槛]
+  lure:
+    problem: >-
+      所有概率与前三位规则不变，但第四位也只按概率过半的普通规则表决，没有 99% 门槛。同样观察到四票全真。有几票透露私检，后验多少？
+    solution: 前两票与第三位的强检验透露三份真信号，此时赔率为 49；普通第四位在两种私检下都投真，概率停在 49/50=0.9800。
+    answer:
+      parts:
+        - {type: label, value: INFORMATIVE=3}
+        - {type: label, value: POSTERIOR=0.9800}
+    why_surface_similar: 同一份原稿、四位委员、准确率与公开票。
+    why_structurally_different: lure 中第四位按过半规则，目标中他只在达到 99% 时投真。
+    wrong_schema_id: fixed-majority-action-rule-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: INFORMATIVE=3}
+        - {type: label, value: POSTERIOR=0.9800}
+    derivation: 沿用普通多数规则，认为第四位的 70% 检验不足以推翻前三票，因而忽略其投票。
+  hints:
+    schema_name: 顺序公开的行动在足以压过私人信号后不再提供新证据
+    oracle_mindset:
+      insight: 公开行动的信息性由“两种私人信号是否导致不同行动”决定；一旦制度门槛变了，必须重算行动映射。
+      when_to_use: 观察顺序表决且参与者面对不同法定或激励门槛时。
+    false_mindset:
+      insight: 一旦前序票已很强，后来的弱检验表决必然不含信息。
+      when_to_use: 假设所有人的行动门槛相同时。
+  verification:
+    entrypoint: mindsetbench.verification.far_social_learning:verify_social_learning_high_bar
+    method: threshold-dependent-action-likelihood-update
+  provenance: original synthetic case; manuscript, rules, and reviewers are fictional
+  verified: 前三票后赔率为 49。第四位私检为真时后验 343/346=99.13% 能过门槛，为伪时为 21/22=95.45% 不能，因而第四票真透露了私检为真。
+
+- id: FAR-HARD-SOCIAL-AGGREGATION-L4-03
+  version: "1.0"
+  split: sanity
+  paradigm: P7
+  thread: E-证据独立性
+  schema_id: far-social-learning-cascade-v1
+  schema_name: 顺序公开的行动在足以压过私人信号后不再提供新证据
+  chain: far-social-learning-aggregation-v1
+  level: 4
+  source: *social_learning_source
+  target:
+    domain: 历史街区保护评审中的线索摘要
+    problem: >-
+      委员会要判断某处旧址是否确为秘密印刷所，起初认为“是”与“不是”各占一半。两位田野调查员各自独立寻访了一条口述线索；
+      在给定旧址真实性后，两条线索互不影响，且每条判对“是”或“不是”的概率都是 70%。
+      项目协调员的保密规则是：她不公开两份原始记录；只要两份中至少一份支持“是”，就向后续专家发一句“田野组有支持线索”的摘要；
+      只有两份都支持“不是”时才保持沉默。现在记录显示她确实发了该摘要。
+      第三位是碑刻断代专家，他在看到摘要后才做自己的私人检验。该检验在两种真实状态下的判对率都是 90%，并与两条口述线索条件独立。
+      他把摘要与自己检验结合，公开表示支持当时认为概率更高的一方，恰好各半时跟自己检验。他最后公开表示支持“是”。
+      问：第三位的公开支持是否还透露了他的私人检验方向？观察到协调员摘要和专家公开支持后，旧址确为印刷所的后验概率是多少（四位小数）？
+    answer_format: "THIRD=<YES|NO>;POSTERIOR=<四位小数>"
+    answer:
+      parts:
+        - {type: label, value: THIRD=YES}
+        - {type: label, value: POSTERIOR=0.9414}
+  mapping:
+    objects: {隐藏盒型: 旧址真实性, 私人提示: 口述线索与碑刻检验, 公开猜测: 协调员摘要与专家表态, 提示准确率: 口述与碑刻方法的判对率}
+    shared_relations: [后来者只看到前序公开消息而看不到原始信号, 公开消息是原始信号的内生压缩, 压缩后的消息必须用其在两种状态下的整体似然更新, 后续公开行动是否含新信息取决于两种私人检验是否导致不同行动]
+    added_relations: [前两份私人线索被非对称的“至少一份支持”摘要合并, 第三位看到的是聚合摘要而非两个原始行动]
+    adaptation_required: [先对“至少一份”事件计算似然而不把摘要误读成两份支持, 再检查第三位在两种私检下的表态]
+    varied: [从单人行动序列跨到田野线索先聚合再进入专家决策, 观测不再与单个私人线索一一对应]
+  lure:
+    problem: >-
+      其他条件不变，但协调员只在两份田野记录都支持“是”时才发摘要。现观察到摘要与第三位的公开支持。第三票是否透露私检，后验多少？
+    solution: 摘要此时直接透露两份 70% 线索都支持；第三位的 90% 检验仍能在反向时改变表态，所以他的支持也透露正向私检。后验为 49/50=0.9800。
+    answer:
+      parts:
+        - {type: label, value: THIRD=YES}
+        - {type: label, value: POSTERIOR=0.9800}
+    why_surface_similar: 同一旧址、两位调查员、一位专家和相同准确率。
+    why_structurally_different: lure 的摘要表示两份原始记录均支持，目标摘要只表示至少一份支持。
+    wrong_schema_id: aggregate-summary-treated-as-unanimity-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: THIRD=YES}
+        - {type: label, value: POSTERIOR=0.9800}
+    derivation: 将“田野组有支持线索”误读成两份口述线索都支持，然后按三份正向私人检验连乘。
+  hints:
+    schema_name: 顺序公开的行动在足以压过私人信号后不再提供新证据
+    oracle_mindset:
+      insight: 先问公开摘要是哪个原始结果集合的函数，对这个集合事件更新；再问后续专家的两种私检是否会导致不同公开表态。
+      when_to_use: 原始证言或投票被组织者先聚合成简报，后来者只看到简报时。
+    false_mindset:
+      insight: “某组有支持”等于该组每个成员都支持。
+      when_to_use: 忽略组织者的摘要发布规则时。
+  verification:
+    entrypoint: mindsetbench.verification.far_social_learning:verify_social_learning_aggregation
+    method: aggregated-action-likelihood-update
+  provenance: original synthetic case; site, interviews, and committee are fictional
+  verified: 摘要似然为 0.91 对 0.51，赔率变为 91/51；第三位私检为反时会投反对，故公开支持透露正向私检，赔率再乘9，后验为 273/290=0.9414。

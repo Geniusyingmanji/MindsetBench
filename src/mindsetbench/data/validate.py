@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -250,6 +251,21 @@ def _validate_case(case: Case, report: ValidationReport, *, strict_v1: bool) -> 
                 "answer format must contain placeholders, not the complete gold answer",
                 case.id,
             )
+    if answer_format:
+        clauses = [clause.strip() for clause in answer_format.split(";")]
+        if len(clauses) == len(case.target.answer.parts):
+            for index, (clause, part) in enumerate(
+                zip(clauses, case.target.answer.parts, strict=True)
+            ):
+                prefix = re.match(r"^([^<>{}|]+?=)<", clause)
+                if prefix and not part.value.startswith(prefix.group(1)):
+                    report.add(
+                        Severity.ERROR,
+                        "answer-format-prefix-mismatch",
+                        f"format part {index + 1} requires prefix {prefix.group(1)!r} "
+                        f"but gold part is {part.value!r}",
+                        case.id,
+                    )
     if strict_v1:
         if not case.version.startswith("1."):
             report.add(Severity.ERROR, "legacy-version", "strict v1 requires version 1.x", case.id)
