@@ -1,142 +1,90 @@
 # MindsetBench
 
-MindsetBench 用于测量 LLM/agent 能否把一个问题中的认知图式迁移到新问题，而不只是复用表面模式。题目按迁移距离分为 L0–L4：从同域同型逐步增加重命名、关系编辑和跨表征变化。
+MindsetBench 测量 LLM/agent 能否把一个问题中的认知图式（mindset）迁移到一个表面完全不同的新问题，而不只是复用表面模式。
+每个 mindset 以一条固定源的 L0–L4 链呈现：L0/L1 是同域锚点，L2 跨学科同构，L3 加入一条由领域语义带出的 broken relation，
+L4 只保留 mindset 而更换 Model 与 Method。目标题只问该领域的自然决策，预注册的诱饵是该领域自己的标准做法，
+答案全部由可执行 verifier 从形式世界重算。
 
 每道题支持配对评测：
 
 - `target-only`：只看目标题；
 - `with-source`：附带共享正确图式的已解源题；
 - `with-lure`：附带表面相似但结构错误的已解题；
-- oracle/false mindset：只提供正确或错误的程序性规则，用于进一步诊断。
+- `with-both`：source 与 lure 同时给出、不标注、顺序由 case id 决定，测量表面竞争下的结构选择；
+- oracle/false mindset（H0–H5 提示阶梯）：只提供正确或错误的程序性规则，用于剂量-响应诊断。
 
-答案、结构约束和关键构造均可由程序验证。
+## 当前进度（2026-09-04）
 
-## 2026-09-03 更新：降级与远域批次
+### 正式校准候选：far50，十个远域家族、50 题
 
-- 复盘发现 `formal35`、`hss20`、`hss-active8` 与 `expansion20` 的 L2–L4 目标题要么是 source 同一形式化系统的
-  重命名，要么把关系图和规则层级原样写进题面，按 SPEC 定义只翻了 Surface，且在 GPT-5.6-sol 上全部天花板。
-  这 82 题现改为 `split: sanity`，保留为执行力与格式 sanity 集，不再计入迁移距离统计（[题库状态](data/CASE_STATUS.md)）。
-- 新增 `mb audit --surface`：对 calibration/test 的 L2+ 题做表面距离闸门（共享记法模板、字符 bigram 重合大于
-  0.12 为 ERROR；lure 比 source 更远为 WARNING）。
-- 新增评测条件 `with-both`（source 与 lure 同时给出、不标注）及指标 `with_both_gain`、`selection_loss`、
-  `lure_answer_rate_by_condition`，直接测量表面竞争下的结构选择。
-- 新增 `far20`：四个框架型 mindset 家族（证据独立性、阴性证据、剩余地平线、可信承诺）各一条 L0–L4 链，
-  L2–L4 跨学科、跨文体、跨表征，目标题只问领域自然决策，诱饵是目标领域的标准做法，20/20 有可执行 verifier。
-  构造协议见 [`docs/FAR_TRANSFER_PROTOCOL.md`](docs/FAR_TRANSFER_PROTOCOL.md)，报告见
-  [`docs/far20-report.md`](docs/far20-report.md)。尚未做模型校准。
-- 2026-09-04 新增第二批三个家族（时滞下的过度修正、极值选择效应、门槛分布的缺口决定扩散终点），合计 `far35`：
-  七个家族 35 题，`far35-hard.json` 为 21 道 L2–L4。报告见 [`docs/far35-report.md`](docs/far35-report.md)。
-- 同日新增第三批三个超远域家族（不变量与可达性：黑板消数到象棋、舞蹈、记账；筛选造出的关联：住院到校招、课程评论、
-  星表；面积与体积的尺度律：动物食量到晾汤、桥梁模型、冷库造价），合计 `far50`：十个家族 50 题，`far50-hard.json` 为
-  30 道 L2–L4。报告见 [`docs/far50-report.md`](docs/far50-report.md)。
+| 家族 | 范式 | mindset | L0 → L1 → L2 → L3 → L4 的领域 |
+| --- | --- | --- | --- |
+| `far-evidence-independence-v1` | P7 | 共享同一上游的一致信号只构成一份证据 | 方志考订 → 宗祠口述 → CI 合并门禁 → 手术排期审核 → 储罐联锁共因失效 |
+| `far-negative-evidence-v1` | P2 | 未出现的预期信号与出现的信号同样切割候选集 | 食品溯源 → 院内感染 → 故障定位 → 编年史成书区间 → 红外相机路线 |
+| `far-horizon-exploration-v1` | P1 | 试探的价值由其后剩余的可利用时间决定 | 越冬觅食 → 休渔渔场 → 施工队选择 → 术前用药 → 截止前投稿 |
+| `far-credible-commitment-v1` | P8 | 承诺的可信度来自承诺人失去反悔的能力 | 接口停用 → 分成承诺 → 零售退差价 → 边境停火 → 罢工威胁收益 |
+| `far-delayed-feedback-v1` | P3 | 有时滞时按当前误差足额修正会越过目标并摆动 | 淋浴调温 → 地暖温控 → 备件补货 → 药物滴定 → 五车跟驰 |
+| `far-selection-extreme-v1` | P1 | 许多相似单位中的极值本身不是证据 | 门店差评 → 坐席投诉 → 统考通报 → 规模不等学校 → 校招录用预测 |
+| `far-threshold-cascade-v1` | P3 | 扩散的终点由门槛分布的缺口决定而非平均门槛 | 抗议集会 → 业主联名 → 银行挤兑 → 环形村落推广 → 长梁支柱失效 |
+| `far-invariant-reachability-v1` | P2 | 所有允许的操作都保持某个类别，不同类别的目标不可达 | 黑板消数 → 翻杯 → 象棋马步 → 舞蹈队形 → 三科目记账 |
+| `far-selection-association-v1` | P3 | 按任一特征筛选出的子集会呈现全体中不存在的关联 | 镇医院住院 → 体检复查 → 校招面试 → 课程评论 → 恒星星表 |
+| `far-scaling-law-v1` | P1 | 几何放大时面积按平方、体积按立方变化，比例外推失效 | 动物食量 → 鸟卵冷却 → 厨房晾汤 → 桥梁缩比模型 → 冷库造价 |
 
-```bash
-.venv/bin/mb validate data/manifests/far50.json --strict-v1
-.venv/bin/mb validate-cards data/manifests/far50-cards.json data/manifests/far50.json
-.venv/bin/mb audit data/manifests/far50.json --require-complete-chains --surface-table
-.venv/bin/mb verify all --dataset data/manifests/far50.json
-.venv/bin/mb plan-run --dataset data/manifests/far50-hard.json \
-  --conditions target-only with-source with-lure with-both --samples-per-item 3
-```
+- 50/50 通过严格校验、schema card 校验、transfer-design 审计与表面距离闸门，50/50 有可执行 verifier；每个 lure 世界
+  都由同一形式世界复算并确认使 copy probe 成立。
+- `data/manifests/far50-hard.json` 是其中 30 道 L2–L4，是模型校准的首跑切片。
+- **尚未进行模型校准。** 构造报告：[`far20`](docs/far20-report.md)、[`far35`](docs/far35-report.md)、[`far50`](docs/far50-report.md)；
+  构造协议与十条规则：[`docs/FAR_TRANSFER_PROTOCOL.md`](docs/FAR_TRANSFER_PROTOCOL.md)。
 
-## 当前任务
+### 题库口径
 
-类型化开发集包含以下主要范式：
+| 状态 | 类型化题数 | 内容 |
+| --- | ---: | --- |
+| calibration（far50） | 50 | 上表十个家族 |
+| calibration（P5 算力型 challenge） | 19 | 潜在操作 L4、latent certificates/staged/seeds、certificate outages/policy-joint；用于定位搜索失败，不作为迁移距离证据 |
+| sanity | 82 | `formal` 六条链、latent L0–L3、`expansion20`、`hss20`、`hss-active8`：目标题是 source 同一形式化系统的重命名或把形式结构原样写进题面，按 SPEC 只翻了 Surface，GPT-5.6-sol 上全部天花板；仍可运行、仍过 verifier，但不计入迁移距离统计 |
+| dev（hard seeds） | 9 | AR 管线产出的早期 seed |
+| legacy | 85 | `data/all.jsonl` 的原始题库，含七线程、两条固定源链与六条多跳链 |
 
-| 范式 | 测量内容 | 代表 case |
-| --- | --- | --- |
-| P2 | 参数变化与系统响应的灵敏度 | [`FORMAL-P2-SENS-L1-01`](data/v1/formal-p2-sensitivity-chain.yaml) |
-| P3 | 因果路径、干预与效应传播 | [`FORMAL-P3-CAUSAL-L1-01`](data/v1/formal-p3-causal-chain.yaml) |
-| P4 | 规则闭包和异常传播 | [`FORMAL-P4-CLOSURE-L1-01`](data/v1/formal-p4-closure-chain.yaml) |
-| HSS/P4 | 默认规范、成对例外与先例关系恢复 | [`HSS-P4-NORM-PRECEDENT-L4-01`](data/v1/hss-p4-norm-precedent-chain.yaml) |
-| HSS/P7 | 证据谱系去重、攻击传播与独立性修订 | [`HSS-P7-ARG-EVIDENCE-L4-01`](data/v1/hss-p7-argument-evidence-chain.yaml) |
-| HSS/P6 | 因果角色系统映射与致命关系反转 | [`HSS-P6-HIST-ANALOGY-L4-01`](data/v1/hss-p6-historical-analogy-chain.yaml) |
-| HSS/P8 | 可信承诺、分离信号与成本承担关系 | [`HSS-P8-INST-MECHANISM-L4-01`](data/v1/hss-p8-institutional-mechanism-chain.yaml) |
-| HSS/Active | 决策相关的单步查询与成本敏感条件策略 | [`HSS-ADAPTIVE-P7-ORAL-L4-01`](data/v1/hss-adaptive-policy-seeds.yaml) |
-| P5 | 有状态操作规划、潜在操作恢复与最优性证明 | [`FORMAL-P5-CERT-POLICY-JOINT-01`](data/v1/formal-p5-certificate-policy-joint.yaml) |
-| P6 | 多对象联合图对齐 | [`FORMAL-P6-ALIGN-L1-01`](data/v1/formal-p6-alignment-chain.yaml) |
+详细分诊与降级理由见 [`data/CASE_STATUS.md`](data/CASE_STATUS.md)。
 
-`Formal25/30/35` 是累计校准包名称，数字表示题目数量，并不是三种独立方法：
+### 工具链
 
-| 数据包 | 内容 |
-| --- | --- |
-| `formal25` | P2/P3/P4/P5/P6 五条 L0–L4 链，共 25 题 |
-| `formal30` | `formal25` + 一条“潜在操作恢复”P5 链，共 30 题 |
-| `formal35` | `formal30` + 一条“规划最优性证书”P5 链，共 35 题 |
+- `mb audit --surface`：对 calibration/test 的 L2+ 题做表面距离闸门。source 与 target 共享记法模板（边表、`LABEL=CODE`、
+  长位串、竖线表）或字符 bigram Jaccard 大于 0.12 为 ERROR；lure 比 source 更远为 WARNING；`--surface-table` 打印逐题指标。
+  阈值以旧题库校准：远域题在 0.01 到 0.09，改名链在 0.15 到 0.8。
+- `with-both` 条件与指标 `with_both_gain`、`selection_loss`、`lure_answer_rate_by_condition`。
+- `scripts/run_far20_calibration.sh`：预注册的两阶段校准跑批（先 target-only，再三个配对条件），默认数据集 `far50-hard.json`。
 
-其中：
+## 为什么重做（2026-09-03 复盘）
 
-- **潜在操作与跨表征规划**：模型先从日志中恢复匿名操作规则，再把规则迁移到另一种表示中完成规划；最高难度会在“位排列/异或”和“集合取位/对称差”之间转换。
-- **有状态规划最优性证书**：模型不仅要找一条可行路径，还要报告最优成本、唯一最优路径、低成本零命中、最优层路径数，以及次优成本和路径数。
+字符 bigram 审计显示，旧 85 题库的 L2/L3/L4 源目标文字重合为 0.09/0.04/0.03 且逐级下降，而 2026-09 的类型化扩展 L3/L4 为
+0.16/0.22，比旧库 L1 还近；类型化 L3/L4 共 65 题中有 43 题，目标题与 source 的符号重合不低于与 lure 的重合。根因是那些链考的
+是算法（矩阵树、SCM 传播、不动点闭包、最短路证书），算法需要同一种输入表示，所以目标题只能换名字，难度只能靠规模，于是
+要么天花板、要么算力地板，source 给的是计算脚手架而不是框架。
 
-它们目前都是 calibration/challenge 数据，用于定位失败模式，不代表已经得到稳定的正迁移结论。
-
-## Humanities/Social-20
-
-现有正式题仍偏系数计算、组合枚举和路径搜索。`hss20` 已完成四条人文社科 L0–L4 链，共 20 题：规范与判例、论证与证据、历史类比、制度机制。20/20 为非数值结构答案并具有可执行 verifier；8 个 L3/L4 均跨文体、跨表征，其中技术→HSS 与 HSS→HSS 各半。GPT-5.6 三样本校准中三条件均为 100%，所以它们目前是 sanity/calibration 资产，不是正式高难集。
-
-L3/L4 的 source 与 target 必须同时跨学科、跨文体和跨表征，不能只是替换名词；至少 16/20 使用标签、集合、排序、三值或角色映射作答，全部保留可执行 verifier。
-
-难度将主要来自“从自然语言材料恢复关系—判断哪些关系可迁移—适配一条被改变的核心关系”，而不是增加算术长度。完整目标、候选题对和代码交付计划见 [`docs/HUMANITIES_SOCIAL_EXPANSION.md`](docs/HUMANITIES_SOCIAL_EXPANSION.md)。
-
-新增 `hss-active8`：4 题把输出改为单次档案/实验选择，4 题要求提交两阶段自适应策略树，覆盖残卷、舞谱、
-广播剧、木偶戏、装置艺术、口传史和外交礼物。每题的正确 mindset 与表面捷径都会导出不同首查；不过
-GPT-5.6-sol 的两轮 target-only 预筛仍全部正确，因此这 8 题也暂归 calibration。完整构造和下一步交互式方向见
-[`docs/active-learning-report.md`](docs/active-learning-report.md)。
+far 系列改为考框架型 mindset：识别难、执行易；目标题写情境不写换装的形式系统；问句只问领域自然决策；诱饵是目标领域的标准做法；
+关键事实靠可行性推断而非陈述；source 对目标在计算上无用。完整论证与规则见协议文档第 1、2 节。
 
 ## 题目示例
 
-**Case 1：线性因果总效应（P3/L1）**
+**证据独立性 L3（历史考订 → 临床治理）**：规程要求三份相互独立且结论一致的评估，独立的定义是签署前接触过一手证据且非主刀。
+病程记录显示影像原片 14:00 起才可调阅，三位会诊在 11 到 12 点签署，因此只能依据同一份报告；独立评估只有影像科与
+15:30 调阅原片的会诊两份。Gold 为不能排期，六项补救中只有让 A 调阅原片重签与外院专家远程阅片有效；诱饵是数六份一致意见。
 
-```text
-A = 2T + ε_A
-B = -T + 3A + ε_B
-Y = -2T + 4A + 5B + ε_Y
-求 ∂E[Y | do(T=t)] / ∂t。
-```
+**不变量与可达性 L3（黑板消数 → 舞蹈编排）**：8 名舞者只允许相邻三人轮转。只交换 1 号与 2 号的队形永远到不了，因为三人轮转
+不改变排列的类别；1、2 互换加 3、4 互换的队形最少两次走位。verifier 对全部排列做广度优先搜索，恰有 20160 种可达。
 
-正确图式是沿 DAG 传播响应：`d_A=2`，`d_B=-1+3×2=5`，所以答案为
-`-2+4×2+5×5=31`。`with-source` 提供同类已解结构；`with-lure` 使用同一张图却只数四条路径，答案为 4，用于检测模型是否忽略边权。完整 case 见 [`FORMAL-P3-CAUSAL-L1-01`](data/v1/formal-p3-causal-chain.yaml)。
+## 历史校准快照（均为 GPT-5.6-sol 小样本，对象现已降为 sanity 或 challenge）
 
-**Case 2：属性谓词联合规划（P5/L4）**
+| 数据 | 条件 | 整题 exact | 结论 |
+| --- | --- | ---: | --- |
+| formal35 L0–L3 单样本预筛 | target-only | 4/5 | 天花板 |
+| hss20 L3/L4 三条件三样本 | target-only / with-source / with-lure | 24/24 各 | 天花板，降为 sanity |
+| hss-active8 两层 | target-only | 24/24 | 天花板，降为 sanity |
+| P5 联合证书题 | target-only / with-source / with-lure | 0/3 各 | 算力地板，source 无增益，保留为 challenge |
 
-目标给出 16 张带前置、禁止、置位、清除和费用的操作卡。模型先根据三条集合谓词分别定位唯一卡，再从完整基线独立冻结该卡，计算最优与次优路径层：
-
-```text
-α → K13：最优成本 17，次优成本 18，次优路径 2 条
-β → K2 ：最优成本 17，次优成本 19，次优路径 3 条
-γ → K6 ：最优成本 18，次优成本 19，次优路径 3 条
-```
-
-三次冻结不能叠加；路径首次满足完整目标就必须停止。最终答案包含 3 个七段 block，共 21 段。完整题面见 [`FORMAL-P5-CERT-POLICY-JOINT-01`](data/v1/formal-p5-certificate-policy-joint.yaml)。
-
-**更多紧凑 case**
-
-| Case | 目标题摘要 | Gold | Lure / 常见错误 |
-| --- | --- | --- | --- |
-| [`P2/L1`](data/v1/formal-p2-sensitivity-chain.yaml) | 四个节点各选一条带权出边，全部最终汇入根，求恰好两条蓝边的方案数 | `500` | 允许内部四环，得到 `548` |
-| [`P4/L1`](data/v1/formal-p4-closure-chain.yaml) | 对四份申请递归应用三层派生规则，再判断未授权违规 | `P2` | 只检查一轮初始事实，误报 `P1;P2;P3` |
-| [`P6/L1`](data/v1/formal-p6-alignment-chain.yaml) | 在含噪声边的两张图间联合恢复节点映射与关系码字典 | `B1;B2;%;@` | 先按出现顺序固定码字典，得到 `B2;B1;@;%` |
-
-## 评测快照
-
-以下均为 GPT-5.6-sol 的小样本 calibration 结果，不是排行榜成绩：
-
-| 实验 | 条件 | 样本 | 整题 exact | 逐段正确 | 7 段 block |
-| --- | --- | ---: | ---: | ---: | ---: |
-| Formal35 单样本预筛 | target-only | 5 题×1 | 4/5 | 29/30 | — |
-| 联合题 solved-reference | target-only | 3 | 0/3 | 50/63 | 1/9 |
-| 联合题 solved-reference | with-source | 3 | 0/3 | 34/63 | 2/9 |
-| 联合题 solved-reference | with-lure | 3 | 1/3 | 54/63 | 4/9 |
-| 联合题 procedure-only | oracle mindset | 3 | 0/3 | 52/63 | 2/9 |
-| 联合题 procedure-only | false mindset | 3 | 0/3 | 44/63 | 0/9 |
-| HSS20 L3/L4 v2 | target-only | 8题×3 | 24/24 | 168/168 | — |
-| HSS20 L3/L4 v2 | with-source | 8题×3 | 24/24 | 168/168 | — |
-| HSS20 L3/L4 v2 | with-lure | 8题×3 | 24/24 | 168/168 | — |
-| HSS 单步主动查询 | target-only | 4题×3 | 12/12 | 48/48 | — |
-| HSS 两阶段条件策略 | target-only | 4题×3 | 12/12 | 84/84 | — |
-
-Formal35 的 L0–L3 已接近天花板。HSS20 在修复答案格式契约并扩充关系干扰后仍是 100%，说明纯文本加长不能产生迁移难度。联合题中 solved source 没有稳定增益；procedure-only oracle 相对 false mindset 改善局部搜索，但整题 exact 仍为 0。当前所有结果都不足以声称已实现稳定 schema transfer。
+这些结果只说明旧构造法测不到迁移；far50 的校准尚未开始，任何迁移增益结论都要等它跑完。
 
 ## 快速开始
 
@@ -146,74 +94,57 @@ Formal35 的 L0–L3 已接近天花板。HSS20 在修复答案格式契约并�
 python3 -m venv .venv
 .venv/bin/python -m pip install -e '.[dev]'
 
-.venv/bin/mb validate data/manifests/formal35.json --strict-v1
-.venv/bin/mb validate-cards \
-  data/manifests/formal35-cards.json \
-  data/manifests/formal35.json
-.venv/bin/mb audit data/manifests/formal35.json --require-complete-chains
-.venv/bin/mb verify all --dataset data/manifests/formal35.json
+.venv/bin/mb validate data/manifests/far50.json --strict-v1
+.venv/bin/mb validate-cards data/manifests/far50-cards.json data/manifests/far50.json
+.venv/bin/mb audit data/manifests/far50.json --require-complete-chains --surface-table
+.venv/bin/mb verify all --dataset data/manifests/far50.json
 .venv/bin/pytest -q
-```
-
-最新的属性谓词联合反事实题可单独验证：
-
-```bash
-.venv/bin/mb validate \
-  data/manifests/formal-p5-certificate-policy-joint.json \
-  --strict-v1
-.venv/bin/mb audit data/manifests/formal-p5-certificate-policy-joint.json
-.venv/bin/mb verify all \
-  --dataset data/manifests/formal-p5-certificate-policy-joint.json
 ```
 
 ## 运行模型评测
 
-API 凭据只通过环境变量或终端隐藏输入传入，不应写入命令参数、配置或结果库：
+API 凭据只通过环境变量传入，不写入命令参数、配置或结果库。`matrixllm.alipay.com` 端点需要能访问 Alipay 办公网关的网络。
 
 ```bash
 export MINDSETBENCH_API_KEY='...'
-
-.venv/bin/mb run \
-  --dataset data/manifests/formal35.json \
-  --database artifacts/runs/example.sqlite \
-  --experiment-id example-v1 \
-  --model MODEL_ID \
-  --endpoint https://example.com/v1/chat/completions
-
-.venv/bin/mb report \
-  --database artifacts/runs/example.sqlite \
-  --experiment-id example-v1 \
-  --calibration-gates \
-  --min-samples 3
+scripts/run_far20_calibration.sh gpt-5.6-sol                      # 两阶段：先 target-only，再 with-source / with-lure / with-both
+scripts/run_far20_calibration.sh gpt-5.6-sol "$ENDPOINT" target   # 只跑 target-only 预筛，30 题 × 3 样本
+DATASET=data/manifests/far20-hard.json scripts/run_far20_calibration.sh gpt-5.6-sol   # 只跑前四个家族
 ```
 
-多段答案可用 `--part-details` 查看逐段结果；联合查询可用 `--part-group-size N` 按固定长度 block 计算 exact accuracy 和 coverage。运行结果写入可恢复的 SQLite，`artifacts/` 默认不进入 Git。
+手动等价命令：
 
-## 当前结论
+```bash
+.venv/bin/mb run \
+  --dataset data/manifests/far50-hard.json \
+  --database artifacts/runs/far50-hard.sqlite \
+  --experiment-id far50-hard-target-s3-v1 \
+  --model gpt-5.6-sol \
+  --endpoint https://matrixllm.alipay.com/v1/chat/completions \
+  --conditions target-only --samples-per-item 3 --max-output-tokens 4096
 
-- 2026-09-03：类型化扩展的 L2–L4 不满足 SPEC 对 Model/Method 变化的要求，已整体降为 sanity；下一阶段的迁移
-  测量以 `far20` 这类“识别难、执行易、诱饵为领域标准做法”的远域家族为主，先跑 target-only 校准再谈增益。
-- 显式规则题对强模型普遍偏简单，容易出现天花板效应。
-- HSS20 的首轮假低分来自未明示的答案前缀；修复后 72/72 全对，现已明确降为 sanity/calibration。
-- 远域换皮加主动查询仍不足：单步与两阶段策略共 24/24 全对；增加显式矩阵搜索只显著增加 tokens/延迟。
-- 潜在操作题已跨多个同构实例复现难度，但 solved source 的正增益尚不稳定。
-- 最新联合证书题稳定暴露了 first-hit stopping-time 错误：模型会把首次满足目标后的冗余操作误计为新路径。
-- procedure-only oracle 能改善部分字段和答案完整性，但整题 exact 仍未改善，因此暂不声称稳定 schema transfer。
+.venv/bin/mb report \
+  --database artifacts/runs/far50-hard.sqlite \
+  --experiment-id far50-hard-target-s3-v1 \
+  --calibration-gates --min-samples 3 --part-details
+```
 
-详细结果见[远域主动学习报告](docs/active-learning-report.md)、[Humanities/Social-20 报告](docs/hss20-report.md)、
-[潜在操作报告](docs/formal30-report.md)、[最优性证书报告](docs/formal35-report.md)和
-[属性谓词联合证书报告](docs/p5-certificate-policy-joint-report.md)。
+预注册判读（协议第 7 节）：整题 exact 落在 20% 到 60% 且错误回答集中命中 copy probe 的题保留并继续配对条件；
+≥ 80% 的题降为 sanity 并按协议第 8 节调节难度旋钮（关键事实埋深、诱饵数字、跨文档拼接），而不是加规模。
+`with-source − target-only`、`with_both_gain`、`selection_loss` 作为独立结果如实报告，不作为删题门槛。
 
 ## 仓库结构
 
 ```text
-data/v1/             题目 YAML
-data/manifests/      可组合的数据集清单
-data/schema_cards/   范式与构造规范
-src/mindsetbench/    校验、判分、runner、指标和 verifier
-tests/               自动化测试
-docs/                设计文档与实验报告
+data/v1/             题目 YAML（far-*.yaml 为正式校准候选，其余多为 sanity）
+data/manifests/      可组合的数据集清单（far50 / far50-cards / far50-hard 等）
+data/schema_cards/   每个 mindset 的构造规范：必需关系、无效变体、五级计划、诱饵与 verifier 说明
+src/mindsetbench/    校验、表面距离审计、判分、runner、指标和 verifier
+scripts/             sanity 降级脚本与校准跑批脚本
+tests/               自动化测试（236 项）
+docs/                协议、构造报告、复盘与调研
 harness/             兼容旧版 85 题数据的接口
 ```
 
-进一步阅读：[总体计划](PLAN.md)、[任务规范](docs/SPEC.md)、[构造方法](docs/METHODS.md)、[范式调研](docs/PARADIGMS.md)、[题库状态](data/CASE_STATUS.md)。
+进一步阅读：[总体计划](PLAN.md)、[构造协议](docs/FAR_TRANSFER_PROTOCOL.md)、[任务规范](docs/SPEC.md)、[构造方法](docs/METHODS.md)、
+[范式调研](docs/PARADIGMS.md)、[题库状态](data/CASE_STATUS.md)。
