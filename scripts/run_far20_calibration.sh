@@ -3,9 +3,10 @@
 #
 #   MINDSETBENCH_API_KEY=... scripts/run_far20_calibration.sh [model] [endpoint] [stage]
 #
-# stage = target   : target-only only (3 samples x 12 L2-L4 targets = 36 calls)
-# stage = paired   : with-source, with-lure, with-both on the same slice (108 calls)
+# stage = target   : target-only only (3 samples x 21 L2-L4 targets = 63 calls)
+# stage = paired   : with-source, with-lure, with-both on the same slice (189 calls)
 # stage = all      : both stages in sequence (default)
+# DATASET=data/manifests/far20-hard.json restricts the run to the first four families.
 #
 # Results land in artifacts/runs/ (git-ignored). The API key is read from the
 # environment only; never pass it on the command line or write it into the repo.
@@ -14,9 +15,9 @@ set -euo pipefail
 MODEL="${1:-gpt-5.6-sol}"
 ENDPOINT="${2:-https://matrixllm.alipay.com/v1/chat/completions}"
 STAGE="${3:-all}"
-DATASET="data/manifests/far20-hard.json"
-DB="artifacts/runs/far20-hard-${MODEL}.sqlite"
-EXP="far20-hard-${MODEL}-s3-v1"
+DATASET="${DATASET:-data/manifests/far35-hard.json}"
+DB="artifacts/runs/$(basename "$DATASET" .json)-${MODEL}.sqlite"
+EXP="$(basename "$DATASET" .json)-${MODEL}-s3-v1"
 MB="${MB:-.venv/bin/mb}"
 
 if [[ -z "${MINDSETBENCH_API_KEY:-}" ]]; then

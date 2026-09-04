@@ -1,0 +1,311 @@
+# Far-transfer family: with a delay between correction and its visible effect, closing
+# the whole observed gap each period overshoots and oscillates; the gentle correction
+# that never crosses the target is the one that settles. Decoy: "close the gap now".
+- id: FAR-DELAY-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-时滞反馈
+  schema_id: far-delayed-feedback-v1
+  schema_name: 有时滞时按当前误差足额修正会越过目标并来回摆动
+  chain: far-delayed-feedback-v1
+  level: 0
+  source: &far_delay_source
+    domain: 老式淋浴的水温调节
+    problem: >-
+      一台老式淋浴的水温读数比实际水温滞后两步：你每一步看到的温度，是两步前的真实水温。目标 40 度，
+      起始真实水温 20 度，起始读数也是 20 度。每一步你把阀门的调整量设为“看到的温差”的 k 倍，
+      调整会立即改变真实水温。候选系数 1.0、0.5、0.2。
+      问：哪个系数能在 12 步内让真实水温进入 39 到 41 度并此后一直保持在这个范围内，且过程中从不超过 41 度？
+      该系数下，真实水温第几步首次进入并保持？
+    solution: >-
+      系数 1.0 看似一步到位：第 1 步真实水温已经是 40 度，但读数还停在 20 度，于是你继续加到 60 度，
+      两步后读数才追上来，你又猛降回 20 度，如此往复永不收敛。系数 0.5 在第 3 步把水温冲到 45 度，越过了目标。
+      系数 0.2 每步只补两成：真实水温依次为 24、28、32、35.2、37.6、39.2，第 6 步进入 39 到 41 度并从此保持，
+      最高只到 40.8 度。有滞后时，按当前看到的误差足额修正正是来回摆动的原因；补得慢的那一档反而最先稳住。
+    answer: GAIN=0.2;SETTLE=6
+  target:
+    domain: 老式淋浴的水温调节
+    problem: >-
+      另一台淋浴的读数只滞后一步：每一步看到的是一步前的真实水温。目标 40 度、起始 20 度、读数起始也是 20 度，
+      每步调整量为看到的温差的 k 倍，立即生效。候选系数 1.0、0.6、0.3。
+      问：哪个系数能在 12 步内让真实水温进入 39 到 41 度并此后一直保持，且从不超过 41 度？该系数下第几步首次进入并保持？
+    answer_format: "GAIN=<1.0|0.6|0.3>;SETTLE=<步数>"
+    answer:
+      parts:
+        - {type: label, value: GAIN=0.3}
+        - {type: label, value: SETTLE=5}
+  mapping:
+    objects: {两步滞后的读数: 一步滞后的读数, 阀门系数: 阀门系数, 目标水温: 目标水温, 稳定区间: 稳定区间}
+    shared_relations: [看到的误差是过去的误差, 足额修正会越过目标并摆动, 只有不越过目标的系数才能保持在区间内]
+    varied: [仅更换滞后步数与候选系数]
+  lure:
+    problem: >-
+      同一台淋浴换上了即时温度计，读数没有任何滞后；目标 40 度、起始 20 度，候选系数 1.0、0.6、0.3。
+      问哪个系数能在 12 步内进入 39 到 41 度并保持且从不超过 41 度，以及第几步首次进入并保持。
+    solution: 没有滞后时，系数 1.0 第 1 步就把水温调到 40 度并从此保持。
+    answer:
+      parts:
+        - {type: label, value: GAIN=1.0}
+        - {type: label, value: SETTLE=1}
+    why_surface_similar: 同一淋浴、同样的目标与候选系数。
+    why_structurally_different: lure 中读数即时，足额修正一步到位；目标中读数滞后，足额修正会摆动。
+    wrong_schema_id: full-correction-without-delay-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: GAIN=1.0}
+        - {type: label, value: SETTLE=1}
+    derivation: 误差多少就补多少，认为系数 1.0 一步到位并保持。
+  hints:
+    schema_name: 有时滞时按当前误差足额修正会越过目标并来回摆动
+    oracle_mindset:
+      insight: 先问读数落后几步，再逐步模拟；只有不越过目标的系数才可能保持在区间内。
+      when_to_use: 修正的效果或读数存在延迟时。
+    false_mindset:
+      insight: 差多少补多少，最快到位。
+      when_to_use: 把有延迟的系统当作即时系统时。
+  verification:
+    entrypoint: mindsetbench.verification.far_delayed_feedback:verify_far_delay_l0_01
+    method: delayed-proportional-correction-simulation
+  provenance: original synthetic case
+  verified: 滞后一步时 0.3 在第 5 步进入区间且不越过；0.6 第 2 步冲到 44；1.0 在 20 与 60 之间摆动。
+
+- id: FAR-DELAY-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-时滞反馈
+  schema_id: far-delayed-feedback-v1
+  schema_name: 有时滞时按当前误差足额修正会越过目标并来回摆动
+  chain: far-delayed-feedback-v1
+  level: 1
+  source: *far_delay_source
+  target:
+    domain: 木屋地暖的温控
+    problem: >-
+      寒夜里木屋室温 0 度，目标 20 度。温度计装在离地暖管最远的墙角，你每个周期看到的读数是三个周期前的真实室温，
+      起始读数也是 0 度。每个周期你把加热量设为“看到的温差”的 k 倍，加热立即改变真实室温。候选系数 1.0、0.4、0.1。
+      问：哪个系数能在 20 个周期内让真实室温进入 19 到 21 度并此后保持，且从不超过 21 度？该系数下第几个周期首次进入并保持？
+    answer_format: "GAIN=<1.0|0.4|0.1>;SETTLE=<周期数>"
+    answer:
+      parts:
+        - {type: label, value: GAIN=0.1}
+        - {type: label, value: SETTLE=18}
+  mapping:
+    objects: {淋浴读数: 墙角温度计读数, 阀门系数: 加热系数, 目标水温: 目标室温, 稳定区间: 19 到 21 度}
+    shared_relations: [看到的误差是过去的误差, 足额修正会越过目标并摆动, 滞后越长可容忍的系数越小]
+    varied: [从淋浴换成地暖，滞后从两步变为三个周期，区间与候选系数更换]
+  lure:
+    problem: >-
+      同一间木屋把温度计移到地暖管旁边，读数即时反映真实室温；目标 20 度、起始 0 度，候选系数 1.0、0.4、0.1。
+      问哪个系数能在 20 个周期内进入 19 到 21 度并保持且从不超过 21 度，以及第几个周期首次进入并保持。
+    solution: 读数即时时，系数 1.0 第 1 个周期就把室温加到 20 度并保持。
+    answer:
+      parts:
+        - {type: label, value: GAIN=1.0}
+        - {type: label, value: SETTLE=1}
+    why_surface_similar: 同一木屋、同样目标与候选系数。
+    why_structurally_different: lure 中读数即时，目标中读数落后三个周期。
+    wrong_schema_id: full-correction-without-delay-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: GAIN=1.0}
+        - {type: label, value: SETTLE=1}
+    derivation: 认为差 20 度就一次加 20 度，一个周期到位。
+  hints:
+    schema_name: 有时滞时按当前误差足额修正会越过目标并来回摆动
+    oracle_mindset:
+      insight: 滞后三个周期意味着前三次调整都基于同一个旧读数；只有很小的系数才不会叠加过头。
+      when_to_use: 读数落后多个周期时。
+    false_mindset:
+      insight: 差多少补多少。
+      when_to_use: 忽略读数延迟时。
+  verification:
+    entrypoint: mindsetbench.verification.far_delayed_feedback:verify_far_delay_l1_01
+    method: delayed-proportional-correction-simulation
+  provenance: original synthetic case
+  verified: 滞后三个周期时 0.1 在第 18 个周期进入区间且不越过；0.4 第 3 个周期冲到 24；1.0 发散摆动。
+
+- id: FAR-DELAY-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-时滞反馈
+  schema_id: far-delayed-feedback-v1
+  schema_name: 有时滞时按当前误差足额修正会越过目标并来回摆动
+  chain: far-delayed-feedback-v1
+  level: 2
+  source: *far_delay_source
+  target:
+    domain: 备件仓的安全库存补货
+    problem: >-
+      采购部备忘录节选。备件 R-17 的安全库存需从当前在库 200 件提到 600 件。公司补货模板：每周一盘点后
+      下一次订单，订货量取“600 减当前在库量”乘以固定系数；模板允许的系数有 1.0、0.5、0.2 三档。
+      供应商两周后到货，也就是周一下的订单会在两周后的那个周一盘点之前入库；此期间该备件没有消耗。
+      请回复：采用哪一档系数，可以让在库量在 12 周内落到 580 到 620 件之间并从此不再离开这一范围，同时任何一周都不超出 620 件？
+      采用该档时，在库量从第几周起稳定在这一范围内？
+    answer_format: "GAIN=<1.0|0.5|0.2>;SETTLE=<周数>"
+    answer:
+      parts:
+        - {type: label, value: GAIN=0.2}
+        - {type: label, value: SETTLE=10}
+  mapping:
+    objects: {滞后的水温读数: 未计入在途货的在库量, 阀门调整: 每周订货量, 目标水温: 目标库存 600, 稳定区间: 580 到 620 件, 步: 周}
+    shared_relations: [修正的效果延迟出现, 按当前误差足额修正会越过目标并摆动, 只有不越过目标的系数能保持在区间内, 修正效果的延迟长度决定可容忍的系数]
+    varied: [从家用温控跨到供应链采购, 文体从题面改为采购备忘, 延迟从读数滞后改为到货滞后]
+  lure:
+    problem: >-
+      同一备件、同一份补货模板，但换成了本地供应商，周一下单当天即可入库。候选系数 1.0、0.5、0.2。
+      问哪个系数能在 12 周内让在库量进入 580 到 620 件并保持且从不超过 620 件，以及第几周首次进入并保持。
+    solution: 当天入库时，系数 1.0 第 1 周就把在库量补到 600 件并保持。
+    answer:
+      parts:
+        - {type: label, value: GAIN=1.0}
+        - {type: label, value: SETTLE=1}
+    why_surface_similar: 同一备件、同一模板与候选系数。
+    why_structurally_different: lure 中订货即时入库，目标中两周后才入库，足额订货会重复下单造成大幅超储。
+    wrong_schema_id: full-correction-without-delay-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: GAIN=1.0}
+        - {type: label, value: SETTLE=1}
+    derivation: 缺多少订多少，认为第 1 周下单 400 件就补齐并保持。
+  hints:
+    schema_name: 有时滞时按当前误差足额修正会越过目标并来回摆动
+    oracle_mindset:
+      insight: 在库量还没算上路上的货，按缺口足额下单会在到货后超储再反向少订；先按到货延迟逐周模拟。
+      when_to_use: 决策的效果要过一段时间才反映在你观察的指标上时。
+    false_mindset:
+      insight: 库存缺多少就订多少，最快补齐。
+      when_to_use: 把到货延迟当作即时时。
+  verification:
+    entrypoint: mindsetbench.verification.far_delayed_feedback:verify_far_delay_l2_01
+    method: delayed-proportional-correction-simulation
+  provenance: original synthetic case
+  verified: 两周到货时 0.2 在第 10 周进入 580 到 620 且不越过；0.5 第 3 周冲到 700；1.0 在 200 与 1000 之间摆动。
+
+- id: FAR-DELAY-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-时滞反馈
+  schema_id: far-delayed-feedback-v1
+  schema_name: 有时滞时按当前误差足额修正会越过目标并来回摆动
+  chain: far-delayed-feedback-v1
+  level: 3
+  source: *far_delay_source
+  target:
+    domain: 慢性病药物的浓度滴定
+    problem: >-
+      某药物在患者体内每个周期消散 20%；每次给药要到下一个周期才进入血液并计入浓度。门诊采用比例滴定：
+      每个周期先测浓度，再给药，给药量等于 0.3 倍的（目标 100 减去本周期测得的浓度）。起始浓度为 0。
+      问：按此规则长期滴定后，浓度会稳定在多少？若希望稳定在目标 100，每个周期应固定给多少维持量？
+    answer_format: "STEADY=<浓度>;MAINT=<每周期维持量>"
+    answer:
+      parts:
+        - {type: label, value: STEADY=60}
+        - {type: label, value: MAINT=20}
+  mapping:
+    objects: {滞后的读数: 上一周期测得的浓度, 阀门调整: 给药量, 目标水温: 目标浓度 100, 真实水温: 血药浓度}
+    shared_relations: [修正效果延迟一期出现, 修正按当前误差的比例进行, 是否收敛与收敛到何处取决于系统而非目标, 足额修正会摆动而小系数收敛]
+    removed_relations: [被调节量在无干预时保持不变]
+    added_relations: [被调节量每期自行消散两成, 维持目标需要持续的固定输入]
+    adaptation_required: [把“比例修正终会收敛到目标”改为求带消散的稳态：稳态满足消散量等于当期给药量, 在比例项之外补一个抵消消散的维持量]
+    varied: [从温控跨到临床药理, 被调节量增加了自身衰减, 问题从选系数改为求稳态与维持量]
+  lure:
+    problem: >-
+      另一种药物在体内长期滞留、不会消散，其余条件相同：给药下一周期进入血液，每周期给药量为 0.3 倍的
+      （目标 100 减去本周期测得的浓度），起始浓度 0。问长期稳定在多少，以及稳定在 100 需要多少固定维持量。
+    solution: 不消散时比例滴定收敛到目标 100，不需要额外维持量。
+    answer:
+      parts:
+        - {type: label, value: STEADY=100}
+        - {type: label, value: MAINT=0}
+    why_surface_similar: 同一门诊规则、同样系数与目标。
+    why_structurally_different: lure 中浓度不消散，比例修正收敛到目标；目标中每期消散两成，比例修正停在 60。
+    wrong_schema_id: proportional-correction-reaches-target-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: STEADY=100}
+        - {type: label, value: MAINT=0}
+    derivation: 照搬源题结论，认为只要系数不大比例修正总会收敛到目标，忽略每期消散两成需要持续补充。
+  hints:
+    schema_name: 有时滞时按当前误差足额修正会越过目标并来回摆动
+    oracle_mindset:
+      insight: 稳态时每期给药量恰好等于消散量；把这一条件写成方程就能看出比例滴定停在 60，而维持目标需要每期固定补 20。
+      when_to_use: 被调节量会自行衰减或流失时。
+    false_mindset:
+      insight: 比例修正总会把偏差修到零。
+      when_to_use: 忽略被调节量自身的消散时。
+  verification:
+    entrypoint: mindsetbench.verification.far_delayed_feedback:verify_far_delay_l3_01
+    method: decaying-level-steady-state
+  provenance: original synthetic case; drug and clinic are fictional
+  verified: 稳态 0.3×100 除以（0.2 加 0.3）等于 60；维持量 0.2×100 等于 20；60 周期模拟收敛到 60。
+
+- id: FAR-DELAY-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-时滞反馈
+  schema_id: far-delayed-feedback-v1
+  schema_name: 有时滞时按当前误差足额修正会越过目标并来回摆动
+  chain: far-delayed-feedback-v1
+  level: 4
+  source: *far_delay_source
+  target:
+    domain: 高速公路上的车队跟驰
+    problem: >-
+      五辆车在高速上列队以 60 公里每小时匀速行驶。头车因前方障碍在第 2 秒和第 3 秒把车速降到 50 公里每小时，
+      之后恢复 60。后车司机的反应有一秒延迟：每一秒，后车把自己的车速改变“前一秒前车车速减去前一秒自己车速”的
+      k 倍。候选系数 1.0、0.6、0.3。
+      问：哪个系数能让第五辆车的最大减速幅度不超过头车的 10 公里每小时？该系数下第五辆车的最大减速幅度是多少
+      （公里每小时，保留一位小数）？
+    answer_format: "GAIN=<1.0|0.6|0.3>;<第五辆车的最大减速幅度，一位小数>"
+    answer:
+      parts:
+        - {type: label, value: GAIN=0.3}
+        - {type: number, value: "3.1", abs_tolerance: "0.05"}
+  mapping:
+    objects: {滞后的读数: 前一秒的车速差, 阀门调整: 每秒车速改变量, 目标水温: 前车车速, 被调节量: 后车车速, 单个调节者: 五辆车组成的链}
+    shared_relations: [修正依据的是过去的偏差, 足额修正会越过目标并摆动, 小系数不越过目标, 摆动会随环节传递而放大]
+    removed_relations: [单个调节者与固定目标, 逐步进入区间并保持的判据]
+    added_relations: [目标本身在变化并沿车队逐级传递, 每辆车的摆动成为下一辆车的输入, 判据变为末尾环节的幅度是否超过源头]
+    adaptation_required: [把单环节的“是否越过目标”改为多环节链上的“幅度是放大还是衰减”, 逐秒模拟五辆车而不是一辆, 比较末尾幅度与头车幅度]
+    varied: [从家用温控跨到交通流, 模型从单环节调节变为反应链, 方法从进入区间的步数变为幅度传递比较]
+  lure:
+    problem: >-
+      同样五辆车与同样的头车减速，但司机没有反应延迟：每一秒后车按“当前前车车速减去当前自己车速”的 k 倍
+      改变车速。候选系数 1.0、0.6、0.3。问哪个系数能最快跟上前车且第五辆车的最大减速幅度不超过 10 公里每小时，
+      以及该系数下第五辆车的最大减速幅度。
+    solution: 没有延迟时，系数 1.0 让每辆车下一秒精确复制前车车速，减速幅度原样传递为 10，不放大。
+    answer:
+      parts:
+        - {type: label, value: GAIN=1.0}
+        - {type: number, value: "10.0", abs_tolerance: "0.05"}
+    why_surface_similar: 同样的车队、头车动作与候选系数。
+    why_structurally_different: lure 中反应即时，足额跟随只是复制；目标中反应延迟一秒，足额跟随逐车放大。
+    wrong_schema_id: full-correction-without-delay-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: GAIN=1.0}
+        - {type: number, value: "10.0", abs_tolerance: "0.05"}
+    derivation: 认为反应越快越好、完全跟随前车最稳，减速幅度原样传到第五辆车为 10。
+  hints:
+    schema_name: 有时滞时按当前误差足额修正会越过目标并来回摆动
+    oracle_mindset:
+      insight: 每辆车都在按一秒前的差距修正，足额修正让每辆车的摆动大于前车；逐秒模拟五辆车，只有小系数让幅度逐级衰减。
+      when_to_use: 多个带延迟的调节环节串联，一个环节的输出是下一个环节的目标时。
+    false_mindset:
+      insight: 反应越灵敏、跟得越紧越安全。
+      when_to_use: 忽略反应延迟与逐级放大时。
+  verification:
+    entrypoint: mindsetbench.verification.far_delayed_feedback:verify_far_delay_l4_01
+    method: delayed-reaction-chain-simulation
+  provenance: original synthetic case
+  verified: 系数 0.3 下第五辆车最大减速约 3.1；0.6 下约 27.9；1.0 下逐车翻倍以上，失控。

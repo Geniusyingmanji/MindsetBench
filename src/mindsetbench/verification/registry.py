@@ -38,9 +38,12 @@ def _load_builtin_verifiers() -> None:
     from mindsetbench.verification import (  # noqa: F401
         expansion_cases,
         far_credible_commitment,
+        far_delayed_feedback,
         far_evidence_independence,
         far_horizon_exploration,
         far_negative_evidence,
+        far_selection_extreme,
+        far_threshold_cascade,
         formal_p2_chain,
         formal_p3_chain,
         formal_p4_chain,

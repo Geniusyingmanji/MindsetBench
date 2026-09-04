@@ -24,13 +24,15 @@ MindsetBench 用于测量 LLM/agent 能否把一个问题中的认知图式迁�
   L2–L4 跨学科、跨文体、跨表征，目标题只问领域自然决策，诱饵是目标领域的标准做法，20/20 有可执行 verifier。
   构造协议见 [`docs/FAR_TRANSFER_PROTOCOL.md`](docs/FAR_TRANSFER_PROTOCOL.md)，报告见
   [`docs/far20-report.md`](docs/far20-report.md)。尚未做模型校准。
+- 2026-09-04 新增第二批三个家族（时滞下的过度修正、极值选择效应、门槛分布的缺口决定扩散终点），合计 `far35`：
+  七个家族 35 题，`far35-hard.json` 为 21 道 L2–L4。报告见 [`docs/far35-report.md`](docs/far35-report.md)。
 
 ```bash
-.venv/bin/mb validate data/manifests/far20.json --strict-v1
-.venv/bin/mb validate-cards data/manifests/far20-cards.json data/manifests/far20.json
-.venv/bin/mb audit data/manifests/far20.json --require-complete-chains --surface-table
-.venv/bin/mb verify all --dataset data/manifests/far20.json
-.venv/bin/mb plan-run --dataset data/manifests/far20-hard.json \
+.venv/bin/mb validate data/manifests/far35.json --strict-v1
+.venv/bin/mb validate-cards data/manifests/far35-cards.json data/manifests/far35.json
+.venv/bin/mb audit data/manifests/far35.json --require-complete-chains --surface-table
+.venv/bin/mb verify all --dataset data/manifests/far35.json
+.venv/bin/mb plan-run --dataset data/manifests/far35-hard.json \
   --conditions target-only with-source with-lure with-both --samples-per-item 3
 ```
 

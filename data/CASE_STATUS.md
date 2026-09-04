@@ -92,3 +92,17 @@ L2–L4 跨学科、跨文体、跨表征且通过 `mb audit --surface` 闸门�
 | calibration（P5 算力型 challenge） | 19 |
 | sanity | 82 |
 | dev（hard seeds） | 9 |
+
+## 2026-09-04 第二批远域家族（far35）
+
+新增三个家族、15 题，全部 calibration：`far-delayed-feedback-v1`（P3，时滞下的过度修正）、`far-selection-extreme-v1`
+（P1，极值选择效应）、`far-threshold-cascade-v1`（P3，门槛分布的缺口决定扩散终点）。`far35.json` 汇总七个家族 35 题，
+`far35-hard.json` 为其中 21 道 L2–L4；三道 L2 的第一稿被 `mb audit --surface` 拦下并改写。报告见
+[`docs/far35-report.md`](../docs/far35-report.md)。尚未做模型校准。
+
+| 状态 | 类型化题数 |
+| --- | ---: |
+| calibration（far35） | 35 |
+| calibration（P5 算力型 challenge） | 19 |
+| sanity | 82 |
+| dev（hard seeds） | 9 |

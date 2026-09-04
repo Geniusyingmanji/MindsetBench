@@ -1,0 +1,312 @@
+# Far-transfer family: a cascade spreads through the gaps of the threshold (or margin)
+# distribution, not through its average; near-identical averages stop at very different
+# sizes, and the same seeds placed differently take everything or nothing.
+# Decoy: compare averages or totals and predict "about the same".
+- id: FAR-CASCADE-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-阈值级联
+  schema_id: far-threshold-cascade-v1
+  schema_name: 扩散的终点由门槛分布的缺口决定而非平均门槛
+  chain: far-threshold-cascade-v1
+  level: 0
+  source: &far_cascade_source
+    domain: 两个镇的抗议集会
+    problem: >-
+      两个镇各有 100 人，每人只在“已经参加的人数达到自己的门槛”时才加入集会，加入后不再退出。
+      镇 A：5 人门槛为 0，一开始就到场；10 人要看到 5 人已经参加；15 人要看到 12 人；20 人要看到 30 人；
+      50 人要看到 40 人。镇 B 与镇 A 唯一的差别是那 15 人要看到 16 人。
+      问：两镇的集会最终各有多少人参加？
+    solution: >-
+      镇 A：5 人到场后，门槛 5 的 10 人加入，达到 15；门槛 12 的 15 人加入，达到 30；门槛 30 的 20 人加入，
+      达到 50；门槛 40 的 50 人加入，全部 100 人到场。镇 B：5 人到场，10 人加入达到 15；但下一组要看到 16 人，
+      15 人凑不到 16，集会停在 15 人，后面 70 人永远等不到自己的门槛。两镇平均门槛只差 0.6，结局却是 100 对 15：
+      扩散能走多远取决于每一步“已到人数”能否跨过下一组人的门槛，中间有一处缺口就全部停住，与平均门槛无关。
+    answer: A=100;B=15
+  target:
+    domain: 两个镇的抗议集会
+    problem: >-
+      另外两个镇各 100 人，规则相同。镇 C：4 人门槛为 0；6 人要看到 4 人已经参加；10 人要看到 10 人；
+      30 人要看到 20 人；50 人要看到 45 人。镇 D 与镇 C 唯一的差别是那 50 人要看到 51 人。
+      问：两镇最终各有多少人参加？
+    answer_format: "C=<人数>;D=<人数>"
+    answer:
+      parts:
+        - {type: label, value: C=100}
+        - {type: label, value: D=50}
+  mapping:
+    objects: {镇 A: 镇 C, 镇 B: 镇 D, 各组门槛: 各组门槛, 已参加人数: 已参加人数}
+    shared_relations: [已参加人数逐轮与下一组门槛比较, 一处跨不过的缺口使扩散停住, 平均门槛不决定终点]
+    varied: [仅更换分组与门槛]
+  lure:
+    problem: >-
+      同样两镇、同样分组与门槛，但两镇的组织者事先都公布“据调查预计会有 30 人到场”，居民只把这个预计数
+      与自己的门槛比较，一次性决定是否参加，之后不再观察。问两镇最终各有多少人参加。
+    solution: 只与预计数 30 比较时，门槛不超过 30 的人参加：两镇都是 4 加 6 加 10 加 30，各 50 人。
+    answer:
+      parts:
+        - {type: label, value: C=50}
+        - {type: label, value: D=50}
+    why_surface_similar: 同样两镇、同样分组、门槛与人数。
+    why_structurally_different: lure 中人人只与一个公布的数字比较一次，目标中已参加人数逐轮累积并跨越门槛。
+    wrong_schema_id: compare-with-average-once-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: C=50}
+        - {type: label, value: D=50}
+    derivation: 用平均门槛约 30 一次性筛人，门槛不超过 30 的人都算参加，两镇各 50。
+  hints:
+    schema_name: 扩散的终点由门槛分布的缺口决定而非平均门槛
+    oracle_mindset:
+      insight: 逐轮把已参加人数与下一组门槛比较，哪一步跨不过就停在哪里；不要用平均数一次性筛。
+      when_to_use: 个体的加入取决于已经加入者的数量时。
+    false_mindset:
+      insight: 门槛低于平均水平的人会参加，其余不会。
+      when_to_use: 只看门槛的平均值时。
+  verification:
+    entrypoint: mindsetbench.verification.far_threshold_cascade:verify_far_cascade_l0_01
+    method: threshold-fixed-point-iteration
+  provenance: original synthetic case
+  verified: 镇 C 逐轮 4、10、20、50、100；镇 D 在 50 人处停住，最后一组要看到 51 人。
+
+- id: FAR-CASCADE-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-阈值级联
+  schema_id: far-threshold-cascade-v1
+  schema_name: 扩散的终点由门槛分布的缺口决定而非平均门槛
+  chain: far-threshold-cascade-v1
+  level: 1
+  source: *far_cascade_source
+  target:
+    domain: 两栋楼的业主联名签字
+    problem: >-
+      两栋楼各 60 户，业主只在“已签名的户数达到自己的门槛”时才签名，签后不撤回。
+      楼 A：3 户门槛为 0，率先签名；7 户要看到 3 户已签名；10 户要看到 10 户；20 户要看到 21 户；20 户要看到 41 户。
+      楼 B 与楼 A 的差别是后两组分别为 20 户要看到 20 户、20 户要看到 40 户。
+      问：两栋楼最终各有多少户签名？
+    answer_format: "A=<户数>;B=<户数>"
+    answer:
+      parts:
+        - {type: label, value: A=20}
+        - {type: label, value: B=60}
+  mapping:
+    objects: {镇: 楼, 居民: 业主, 参加集会: 签名, 已参加人数: 已签名户数}
+    shared_relations: [已签名户数逐轮与下一组门槛比较, 一处跨不过的缺口使扩散停住, 平均门槛不决定终点]
+    varied: [从集会换成联名，人数与门槛更换，两楼在两组上略有差别]
+  lure:
+    problem: >-
+      同样两栋楼、同样分组与门槛，但发起人事先在两楼公告“预计会有 22 户签名”，业主只把这个预计数与自己的门槛
+      比较一次决定是否签名。问两栋楼最终各有多少户签名。
+    solution: 只与 22 比较时，门槛不超过 22 的户签名：两楼都是 3 加 7 加 10 加 20，各 40 户。
+    answer:
+      parts:
+        - {type: label, value: A=40}
+        - {type: label, value: B=40}
+    why_surface_similar: 同样两楼、同样分组与门槛。
+    why_structurally_different: lure 中只与一个公告数字比较一次，目标中已签名数逐轮累积。
+    wrong_schema_id: compare-with-average-once-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: A=40}
+        - {type: label, value: B=40}
+    derivation: 用平均门槛约 22 一次性筛人，两楼各 40 户。
+  hints:
+    schema_name: 扩散的终点由门槛分布的缺口决定而非平均门槛
+    oracle_mindset:
+      insight: 楼 A 走到 20 户时下一组要看到 21 户，差一户就全停；楼 B 同一处刚好跨过，走到底。
+      when_to_use: 个体的加入取决于已加入者数量时。
+    false_mindset:
+      insight: 两楼门槛平均值几乎一样，结果也差不多。
+      when_to_use: 只比较平均值时。
+  verification:
+    entrypoint: mindsetbench.verification.far_threshold_cascade:verify_far_cascade_l1_01
+    method: threshold-fixed-point-iteration
+  provenance: original synthetic case
+  verified: 楼 A 逐轮 3、10、20 后停住；楼 B 逐轮 3、10、20、40、60。
+
+- id: FAR-CASCADE-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-阈值级联
+  schema_id: far-threshold-cascade-v1
+  schema_name: 扩散的终点由门槛分布的缺口决定而非平均门槛
+  chain: far-threshold-cascade-v1
+  level: 2
+  source: *far_cascade_source
+  target:
+    domain: 两家小银行的储户取款
+    problem: >-
+      监管简报摘录。两家小银行各有 200 名储户。传言出现后，每名储户心里都有一条线：其他储户中已经取走存款的
+      人数一旦达到这条线，他就去取款，取走后不再存回。
+      X 银行的储户构成：10 人不等任何消息立即取款；20 人的心理线是 10 人；30 人的心理线是 30 人；60 人的心理线是 60 人；
+      80 人的心理线是 110 人。Y 银行：10 人立即取款；20 人的心理线是 10 人；30 人的心理线是 30 人；60 人的心理线是 61 人；
+      80 人的心理线是 121 人。
+      请估算两家银行最终各有多少名储户取款。
+    answer_format: "X=<人数>;Y=<人数>"
+    answer:
+      parts:
+        - {type: label, value: X=200}
+        - {type: label, value: Y=60}
+  mapping:
+    objects: {镇: 银行, 居民: 储户, 参加集会: 取款, 已参加人数: 已取款人数, 门槛: 心里的数字}
+    shared_relations: [已取款人数逐轮与下一组门槛比较, 一处跨不过的缺口使扩散停住, 平均门槛不决定终点, 两组几乎相同的分布可以有完全不同的终点]
+    varied: [从社会集会跨到银行挤兑, 文体从题面改为监管简报, 门槛以心里的数字表述]
+  lure:
+    problem: >-
+      同样两家银行与同样的储户分组，但监管部门在传言出现当天公开通报“预计约 70 名储户会取款”，储户只把这个
+      通报数与自己心里的数字比较一次决定是否取款。问两家银行最终各有多少名储户取款。
+    solution: 只与 70 比较时，心里数字不超过 70 的储户取款：两家都是 10 加 20 加 30 加 60，各 120 人。
+    answer:
+      parts:
+        - {type: label, value: X=120}
+        - {type: label, value: Y=120}
+    why_surface_similar: 同样两家银行、同样分组与数字。
+    why_structurally_different: lure 中只与一个通报数字比较一次，目标中已取款人数逐轮累积并跨越门槛。
+    wrong_schema_id: compare-with-average-once-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: X=120}
+        - {type: label, value: Y=120}
+    derivation: 用平均心理数字约 70 一次性筛人，两家各 120 人。
+  hints:
+    schema_name: 扩散的终点由门槛分布的缺口决定而非平均门槛
+    oracle_mindset:
+      insight: 逐轮把已取款人数与下一组的数字比较；Y 银行在 60 人处差一人跨不过，X 银行同一处刚好跨过并走到全部取空。
+      when_to_use: 个体的行动取决于已行动者数量时。
+    false_mindset:
+      insight: 两家储户心理数字的平均值差不多，取款人数也差不多。
+      when_to_use: 只比较平均值时。
+  verification:
+    entrypoint: mindsetbench.verification.far_threshold_cascade:verify_far_cascade_l2_01
+    method: threshold-fixed-point-iteration
+  provenance: original synthetic case; both banks are fictional
+  verified: X 逐轮 10、30、60、120、200；Y 在 60 人处停住。
+
+- id: FAR-CASCADE-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-阈值级联
+  schema_id: far-threshold-cascade-v1
+  schema_name: 扩散的终点由门槛分布的缺口决定而非平均门槛
+  chain: far-threshold-cascade-v1
+  level: 3
+  source: *far_cascade_source
+  target:
+    domain: 村庄滴灌技术的推广试点
+    problem: >-
+      推广站工作记录：某村 12 户农户的田块围成一圈，编号 1 到 12 依次相邻，12 号与 1 号相邻。农户只看得到
+      自己两侧各两户的田块，当这四户中至少两户已经改用滴灌时，该户才跟着改用，改用后不再放弃。
+      推广站只能免费为两户安装。方案一：给 1 号和 2 号安装；方案二：给 1 号和 7 号安装。
+      问：两种方案最终各有多少户改用滴灌？
+    answer_format: "ADJ=<方案一户数>;OPP=<方案二户数>"
+    answer:
+      parts:
+        - {type: label, value: ADJ=12}
+        - {type: label, value: OPP=2}
+  mapping:
+    objects: {镇: 村, 居民: 农户, 参加集会: 改用滴灌, 已参加人数: 邻近已改用户数, 门槛: 四户中至少两户}
+    shared_relations: [个体加入取决于已加入者的数量, 逐轮比较直到没有新加入者, 一处跨不过的缺口使扩散停住, 平均门槛不决定终点]
+    removed_relations: [人人看到全村的已加入人数]
+    added_relations: [每户只看到两侧各两户, 同样两户种子的位置决定能否形成跨过门槛的连续带]
+    adaptation_required: [把全村计数改为每户各自的邻域计数, 逐轮更新每户邻域内的已改用数, 比较两种种子位置而不是两个门槛分布]
+    varied: [从社会集会跨到农业技术推广, 门槛从全局人数改为局部邻域, 差异从门槛分布改为种子位置]
+  lure:
+    problem: >-
+      同一个村的另一项技术推广：农户看的是全村已改用的户数，只要全村至少两户已改用就跟着改用。
+      推广站同样只能免费安装两户，方案一给 1 号和 2 号，方案二给 1 号和 7 号。问两种方案最终各有多少户改用。
+    solution: 看全村计数时，两户种子一到位其余 10 户立即满足条件，两种方案都是 12 户。
+    answer:
+      parts:
+        - {type: label, value: ADJ=12}
+        - {type: label, value: OPP=12}
+    why_surface_similar: 同一个村、同样 12 户、同样两种安装方案。
+    why_structurally_different: lure 中农户看全村计数，目标中农户只看两侧各两户。
+    wrong_schema_id: global-count-threshold-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: ADJ=12}
+        - {type: label, value: OPP=12}
+    derivation: 照搬源题的全村计数：两户已改用就满足“至少两户”，认为两种方案都会扩散到全村。
+  hints:
+    schema_name: 扩散的终点由门槛分布的缺口决定而非平均门槛
+    oracle_mindset:
+      insight: 门槛是按每户自己的四个邻居算的；相邻两户能让 3 号和 12 号同时看到两户，沿圈一路推进；相对的两户各自只给邻居贡献一户，谁也跨不过门槛。
+      when_to_use: 个体只观察局部邻居而不是全体时。
+    false_mindset:
+      insight: 只要全村有两户改用，条件就满足了。
+      when_to_use: 把局部门槛当作全局门槛时。
+  verification:
+    entrypoint: mindsetbench.verification.far_threshold_cascade:verify_far_cascade_l3_01
+    method: ring-neighbourhood-threshold-simulation
+  provenance: original synthetic case; village is fictional
+  verified: 相邻种子沿圈逐户推进到 12 户；相对种子的每个邻居只看到一户改用，停在 2 户。
+
+- id: FAR-CASCADE-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P3
+  thread: H-阈值级联
+  schema_id: far-threshold-cascade-v1
+  schema_name: 扩散的终点由门槛分布的缺口决定而非平均门槛
+  chain: far-threshold-cascade-v1
+  level: 4
+  source: *far_cascade_source
+  target:
+    domain: 桥式长梁的支柱失效评估
+    problem: >-
+      一根长梁由排成一列的 8 根柱支撑，每根柱承担 10 单位荷载。有两种设计方案。设计 P：8 根柱承载力都是 14。
+      设计 Q：8 根柱承载力依次为 10、25、10、25、10、10、10、12，总承载力与 P 相同。
+      若第 3 根柱被车辆撞毁，其荷载会均分给左右两侧最近的仍完好的柱；一侧已没有完好的柱时，荷载全部转给另一侧。
+      荷载超过承载力的柱随即失效，其全部荷载按同样规则继续转移。问：两种设计最终各失去多少根柱（含被撞毁的那根）？
+    answer_format: "P=<柱数>;Q=<柱数>"
+    answer:
+      parts:
+        - {type: label, value: P=8}
+        - {type: label, value: Q=1}
+  mapping:
+    objects: {居民: 支柱, 门槛: 承载力余量, 已参加人数: 转移过来的荷载, 参加集会: 失效, 门槛分布: 各柱余量的分布}
+    shared_relations: [一个单元的变化推动邻近单元跨过各自门槛, 扩散逐轮进行直到没有新单元跨过门槛, 终点由门槛的分布与位置决定, 总量或平均值相同不意味着终点相同]
+    removed_relations: [离散的人数计数与全局或邻域的已加入人数]
+    added_relations: [传递的是连续的荷载且随失效累积增大, 荷载只流向最近的完好单元, 大余量的单元能吸收荷载并阻断传递]
+    adaptation_required: [把“已加入人数与门槛比较”改为“累积荷载与承载力比较”, 按最近完好柱的规则逐轮重新分配荷载, 比较两种余量分布而不是两个门槛分布]
+    varied: [从社会扩散跨到结构工程, 计数模型变为荷载再分配模型, 判据从人数变为承载力]
+  lure:
+    problem: >-
+      同一根长梁、同样的荷载与转移规则，但设计 P 的 8 根柱承载力都是 16，设计 Q 仍为 10、25、10、25、10、10、10、12。
+      第 3 根柱被撞毁。问两种设计最终各失去多少根柱（含被撞毁的那根）。
+    solution: P 的相邻两柱各接 5 后为 15，不超过 16，停住；Q 的两侧 25 承载力柱接 5 后为 15，停住；两种设计都只失去 1 根。
+    answer:
+      parts:
+        - {type: label, value: P=1}
+        - {type: label, value: Q=1}
+    why_surface_similar: 同样的梁、荷载、撞击位置与转移规则。
+    why_structurally_different: lure 中 P 的余量 6 大于转移来的 5；目标中 P 的余量只有 4，相邻柱接 5 即失效并逐根传下去。
+    wrong_schema_id: total-capacity-exceeds-total-load-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: P=1}
+        - {type: label, value: Q=1}
+    derivation: 两种设计总承载力 112 都大于总荷载 80，认为都只失去被撞的那根。
+  hints:
+    schema_name: 扩散的终点由门槛分布的缺口决定而非平均门槛
+    oracle_mindset:
+      insight: 关键不是总承载力而是撞毁点两侧邻柱的余量：P 每根只多 4，接 5 就失效并把更大荷载传给下一根；Q 把大余量放在两侧邻柱，一次吸收就停住。
+      when_to_use: 荷载、压力或损失会转移给邻近单元时。
+    false_mindset:
+      insight: 总承载力大于总荷载就不会连续失效。
+      when_to_use: 只比较总量时。
+  verification:
+    entrypoint: mindsetbench.verification.far_threshold_cascade:verify_far_cascade_l4_01
+    method: nearest-standing-load-redistribution-simulation
+  provenance: original synthetic case
+  verified: P 逐轮失效 2、4 两侧邻柱并向两端传递直到 8 根全部失效；Q 两侧 25 承载力柱吸收后停住，只失去 1 根。

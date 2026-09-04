@@ -1,0 +1,305 @@
+# Far-transfer family: the most extreme of many similar noisy units looks alarming even
+# when every unit is ordinary; the number of units ranked decides whether the extreme is
+# evidence, and a value picked because it was the maximum overstates the unit's level.
+# Decoy: judge the worst unit as if it had been singled out in advance.
+- id: FAR-EXTREME-L0-01
+  version: "1.0"
+  split: calibration
+  paradigm: P1
+  thread: E-信噪判别
+  schema_id: far-selection-extreme-v1
+  schema_name: 许多相似单位中的极值本身不是证据
+  chain: far-selection-extreme-v1
+  level: 0
+  source: &far_extreme_source
+    domain: 连锁餐饮的门店差评问责
+    problem: >-
+      某连锁餐饮有 25 家门店，上月每家各完成约 200 单。按历史经验，门店正常运营时每一单被差评的概率为 15%。
+      月度差评榜首门店有 43 单差评。总部规则：只有当“所有门店都正常运营时，仍然至少有一家门店差评数达到该值”
+      的概率低于 5%，才对榜首门店启动整改。问：是否启动整改？差评数至少达到多少单才应启动？
+    solution: >-
+      单看这家店，200 单里出 43 单差评在正常时的概率约 0.9%，看起来很罕见。但榜首是从 25 家里挑出来的：
+      25 家都正常时，至少有一家达到 43 单的概率是 1 减去 0.991 的 25 次方，约 20%，一点也不罕见。
+      因此不启动整改；要让“25 家都正常却至少一家达到该数”的概率低于 5%，差评数至少要 46 单。
+      被挑出来的极值需要用“从多少个里挑”来折算，不能当成事先指定的一家去看。
+    answer: ACT=NO;MIN_COUNT=46
+  target:
+    domain: 连锁餐饮的门店差评问责
+    problem: >-
+      另一家连锁有 30 家门店，上月每家各完成约 150 单，正常运营时每单差评概率为 12%。差评榜首门店有 29 单差评。
+      总部规则相同：只有当所有门店都正常时至少一家达到该差评数的概率低于 5%，才启动整改。
+      问：是否启动？差评数至少多少单才应启动？
+    answer_format: "ACT=<YES|NO>;MIN_COUNT=<整数>"
+    answer:
+      parts:
+        - {type: label, value: ACT=NO}
+        - {type: label, value: MIN_COUNT=32}
+  mapping:
+    objects: {25 家门店: 30 家门店, 200 单: 150 单, 15% 差评率: 12% 差评率, 榜首门店: 榜首门店}
+    shared_relations: [榜首是从多个单位中挑出的极值, 判断标准是全部正常时至少一个单位达到该值的概率, 单个单位的罕见概率要按单位数折算]
+    varied: [仅更换门店数、单量与差评率]
+  lure:
+    problem: >-
+      同一连锁的另一次检查：总部事先只指定抽查一家门店（不看排行榜），该店 150 单里有 29 单差评，
+      正常差评率 12%。规则：该店正常时差评数达到该值的概率低于 5% 即启动整改。问是否启动，以及至少多少单才启动。
+    solution: 事先指定的一家店不涉及挑选，直接看单店概率：29 单的概率约 0.6% 低于 5%，启动；至少 26 单即启动。
+    answer:
+      parts:
+        - {type: label, value: ACT=YES}
+        - {type: label, value: MIN_COUNT=26}
+    why_surface_similar: 同一连锁、同样单量、差评率与规则措辞。
+    why_structurally_different: lure 的门店是事先指定的，目标的门店是从 30 家中挑出的榜首。
+    wrong_schema_id: single-unit-tail-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: ACT=YES}
+        - {type: label, value: MIN_COUNT=26}
+    derivation: 只算榜首这一家在正常时达到 29 单的概率约 0.6%，低于 5% 就启动，没有折算“从 30 家里挑最差”。
+  hints:
+    schema_name: 许多相似单位中的极值本身不是证据
+    oracle_mindset:
+      insight: 先问榜首是从多少个单位里挑出来的，再算“全部正常时至少一个达到该值”的概率。
+      when_to_use: 对排行榜首位、最差或最好的那个单位做判断时。
+    false_mindset:
+      insight: 这家店的差评数在正常时极不可能出现，所以它有问题。
+      when_to_use: 把榜首当作事先指定的一家看时。
+  verification:
+    entrypoint: mindsetbench.verification.far_selection_extreme:verify_far_extreme_l0_01
+    method: exact-binomial-family-wise-tail
+  provenance: original synthetic case
+  verified: 单店概率 0.64%，30 家中至少一家概率 17.6%；折算后至少 32 单。
+
+- id: FAR-EXTREME-L1-01
+  version: "1.0"
+  split: calibration
+  paradigm: P1
+  thread: E-信噪判别
+  schema_id: far-selection-extreme-v1
+  schema_name: 许多相似单位中的极值本身不是证据
+  chain: far-selection-extreme-v1
+  level: 1
+  source: *far_extreme_source
+  target:
+    domain: 呼叫中心的坐席投诉问责
+    problem: >-
+      某呼叫中心有 40 名坐席，上月每人各接约 120 通电话，正常情况下每通电话被投诉的概率为 8%。
+      投诉榜首的坐席被投诉 18 通。主管规则：只有当所有坐席都正常时至少一人投诉数达到该值的概率低于 5%，
+      才对榜首坐席启动辅导。问：是否启动？投诉数至少多少通才应启动？
+    answer_format: "ACT=<YES|NO>;MIN_COUNT=<整数>"
+    answer:
+      parts:
+        - {type: label, value: ACT=NO}
+        - {type: label, value: MIN_COUNT=21}
+  mapping:
+    objects: {门店: 坐席, 订单: 电话, 差评: 投诉, 榜首门店: 榜首坐席}
+    shared_relations: [榜首是从多个单位中挑出的极值, 判断标准是全部正常时至少一个单位达到该值的概率, 单个单位的罕见概率要按单位数折算]
+    varied: [从门店换成坐席，单位数与基准率更换]
+  lure:
+    problem: >-
+      同一呼叫中心，主管事先指定抽查一名坐席，该坐席 120 通电话被投诉 18 通，正常投诉率 8%。
+      规则：该坐席正常时投诉数达到该值的概率低于 5% 即启动辅导。问是否启动，以及至少多少通才启动。
+    solution: 事先指定的一人不涉及挑选，单人概率约 0.7% 低于 5%，启动；至少 16 通即启动。
+    answer:
+      parts:
+        - {type: label, value: ACT=YES}
+        - {type: label, value: MIN_COUNT=16}
+    why_surface_similar: 同一呼叫中心、同样通话量与投诉率。
+    why_structurally_different: lure 的坐席事先指定，目标的坐席是 40 人中的榜首。
+    wrong_schema_id: single-unit-tail-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: ACT=YES}
+        - {type: label, value: MIN_COUNT=16}
+    derivation: 只看榜首坐席自己的概率约 0.7%，没有折算从 40 人中挑最差。
+  hints:
+    schema_name: 许多相似单位中的极值本身不是证据
+    oracle_mindset:
+      insight: 榜首是 40 人里最差的那个；要算 40 人都正常时至少一人达到该值的概率。
+      when_to_use: 对排行榜的极端者做处置时。
+    false_mindset:
+      insight: 这名坐席的投诉数正常时几乎不可能出现。
+      when_to_use: 忽略挑选过程时。
+  verification:
+    entrypoint: mindsetbench.verification.far_selection_extreme:verify_far_extreme_l1_01
+    method: exact-binomial-family-wise-tail
+  provenance: original synthetic case
+  verified: 单人概率 0.72%，40 人中至少一人概率 25.0%；折算后至少 21 通。
+
+- id: FAR-EXTREME-L2-01
+  version: "1.0"
+  split: calibration
+  paradigm: P1
+  thread: E-信噪判别
+  schema_id: far-selection-extreme-v1
+  schema_name: 许多相似单位中的极值本身不是证据
+  chain: far-selection-extreme-v1
+  level: 2
+  source: *far_extreme_source
+  target:
+    domain: 区教育局的统考质量通报
+    problem: >-
+      区教育局本学期统考质量通报摘要。全区 32 所学校参加，每校约 120 名学生。依据往年数据，学生个体未达标的
+      概率为 10%，各校之间不存在系统性差异。本次统考中，未达标人数最多的一所学校有 21 名未达标。
+      《质量通报办法》第 9 条写明约谈的触发条件：假定全区各校都处于往年水平，如果“至少有一所学校的未达标人数
+      不低于本次最高值”这件事发生的概率不到 5%，教育局才约谈该校校长。
+      请判断教育局应否约谈，并给出按该办法计算的约谈线，即未达标人数至少多少名才会触发约谈。
+    answer_format: "ACT=<YES|NO>;MIN_COUNT=<整数>"
+    answer:
+      parts:
+        - {type: label, value: ACT=NO}
+        - {type: label, value: MIN_COUNT=24}
+  mapping:
+    objects: {门店: 学校, 订单: 学生, 差评: 未达标, 差评榜首: 未达标人数最多的学校, 总部整改: 教育局约谈}
+    shared_relations: [榜首是从多个单位中挑出的极值, 判断标准是全部正常时至少一个单位达到该值的概率, 单个单位的罕见概率要按单位数折算, 门槛按单位数重新计算]
+    varied: [从餐饮运营跨到教育评估, 文体从题面改为质量通报, 单位数与基准率更换]
+  lure:
+    problem: >-
+      同一区教育局对事先确定的一所重点督导校单独复核：该校 120 名学生中 21 名未达标，往年个体未达标概率 10%。
+      规则：该校处于往年水平时未达标人数达到该值的概率低于 5% 即约谈。问是否约谈，以及至少多少名才约谈。
+    solution: 事先确定的一校不涉及挑选，单校概率约 0.8% 低于 5%，约谈；至少 19 名即约谈。
+    answer:
+      parts:
+        - {type: label, value: ACT=YES}
+        - {type: label, value: MIN_COUNT=19}
+    why_surface_similar: 同一教育局、同样人数、比例与规则措辞。
+    why_structurally_different: lure 的学校事先确定，目标的学校是 32 校中的极值。
+    wrong_schema_id: single-unit-tail-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: ACT=YES}
+        - {type: label, value: MIN_COUNT=19}
+    derivation: 只算这所学校在往年水平下出现 21 名未达标的概率约 0.8%，没有折算从 32 校中挑最差。
+  hints:
+    schema_name: 许多相似单位中的极值本身不是证据
+    oracle_mindset:
+      insight: 通报里的“最多”意味着它是 32 校中被挑出的极值；先算 32 校都正常时至少一校达到该值的概率。
+      when_to_use: 对通报、排行榜中最差或最好的单位做处置时。
+    false_mindset:
+      insight: 这所学校的未达标人数在往年水平下几乎不可能出现。
+      when_to_use: 忽略它是从许多学校中挑出来的时。
+  verification:
+    entrypoint: mindsetbench.verification.far_selection_extreme:verify_far_extreme_l2_01
+    method: exact-binomial-family-wise-tail
+  provenance: original synthetic case; district and schools are fictional
+  verified: 单校概率 0.79%，32 校中至少一校概率 22.5%；折算后至少 24 名。
+
+- id: FAR-EXTREME-L3-01
+  version: "1.0"
+  split: calibration
+  paradigm: P1
+  thread: E-信噪判别
+  schema_id: far-selection-extreme-v1
+  schema_name: 许多相似单位中的极值本身不是证据
+  chain: far-selection-extreme-v1
+  level: 3
+  source: *far_extreme_source
+  target:
+    domain: 规模不等学校的未达标率排名
+    problem: >-
+      另一区有 20 所学校参加统考：5 所 40 人的村小、10 所 120 人的镇中心校、5 所 300 人的城区校。
+      按往年水平，学生个体未达标概率为 10%，各校无系统差异。教育局按“未达标率”排名，榜首是一所 40 人的村小，
+      有 10 名未达标。约谈规则：只有当全区各校都处于往年水平时，仍至少有一校的未达标率不低于该比例的概率低于 5%，
+      才约谈榜首学校。问：是否约谈？若榜首换成另一所 40 人的学校，它至少要有多少名未达标才应被约谈？
+    answer_format: "ACT=<YES|NO>;MIN40=<整数>"
+    answer:
+      parts:
+        - {type: label, value: ACT=YES}
+        - {type: label, value: MIN40=10}
+  mapping:
+    objects: {门店: 学校, 订单: 学生, 差评: 未达标, 差评榜首: 未达标率最高的学校, 单位数: 三种规模共 20 校}
+    shared_relations: [榜首是从多个单位中挑出的极值, 判断标准是全部正常时至少一个单位达到该值的概率, 单个单位的罕见概率要按单位数折算, 门槛按单位数重新计算]
+    removed_relations: [各单位规模相同因而同一比例对应同一概率]
+    added_relations: [单位规模不同：同一比例在大校几乎不可能而在小校较易出现, 每所学校要按自己的人数算达到该比例的概率再合并]
+    adaptation_required: [不能把 20 所学校都按榜首的 40 人计算, 对三种规模分别求达到该比例所需人数与概率再合并, 大校对合并概率几乎没有贡献这一点决定了结论方向]
+    varied: [从等规模单位改为三种规模, 排名指标从人数改为比例, 门槛问题限定为 40 人学校]
+  lure:
+    problem: >-
+      同一区的另一次统考中，参加的 20 所学校规模都是 40 人，往年未达标概率 10%。未达标率榜首学校有 10 名未达标。
+      规则相同。问是否约谈，以及一所 40 人的学校至少多少名未达标才应被约谈。
+    solution: 各校规模相同，20 校都正常时至少一校达到 10 名的概率约 8%，不约谈；至少 11 名才约谈。
+    answer:
+      parts:
+        - {type: label, value: ACT=NO}
+        - {type: label, value: MIN40=11}
+    why_surface_similar: 同样 20 所学校、同一比例与规则措辞。
+    why_structurally_different: lure 各校规模相同，目标中 15 所大校几乎不可能达到 25%，合并概率反而更小。
+    wrong_schema_id: equal-size-family-tail-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: label, value: ACT=NO}
+        - {type: label, value: MIN40=11}
+    derivation: 照搬源题的等规模公式，把 20 所学校都按榜首的 40 人计算，得到约 8% 不约谈、至少 11 名。
+  hints:
+    schema_name: 许多相似单位中的极值本身不是证据
+    oracle_mindset:
+      insight: 折算“从多少个里挑”时，每个单位要按自己的规模算达到该比例的概率；大校几乎贡献不了这个比例，合并概率主要来自 5 所小校。
+      when_to_use: 用比例排名且单位规模差异很大时。
+    false_mindset:
+      insight: 有 20 所学校就按 20 个同样的单位折算。
+      when_to_use: 忽略规模差异时。
+  verification:
+    entrypoint: mindsetbench.verification.far_selection_extreme:verify_far_extreme_l3_01
+    method: heterogeneous-size-family-wise-tail
+  provenance: original synthetic case; district and schools are fictional
+  verified: 按各校规模合并的概率 2.5% 低于 5%；全按 40 人计算为 9.7%；40 人学校门槛分别为 10 与 11 名。
+
+- id: FAR-EXTREME-L4-01
+  version: "1.0"
+  split: calibration
+  paradigm: P1
+  thread: E-信噪判别
+  schema_id: far-selection-extreme-v1
+  schema_name: 许多相似单位中的极值本身不是证据
+  chain: far-selection-extreme-v1
+  level: 4
+  source: *far_extreme_source
+  target:
+    domain: 校园招聘的笔试录用预测
+    problem: >-
+      某公司校园招聘让 15 名候选人做同一份 20 题笔试，录用最高分者。最高分候选人答对 19 题。
+      以往几年的数据表明，候选人的真实答对率只有五种水平：0.5、0.6、0.7、0.8、0.9，每种各占五分之一，
+      每题答对与否相互独立。请预测这位录用者入职后再做一份难度相同、同样 20 题的测试，期望答对多少题（保留一位小数）。
+    answer_format: "<期望答对题数，一位小数>"
+    answer:
+      parts:
+        - {type: number, value: "17.6", abs_tolerance: "0.05"}
+  mapping:
+    objects: {门店: 候选人, 差评数: 答对题数, 差评榜首: 最高分者, 正常差评率: 五种真实答对率, 是否启动整改: 入职后的期望成绩}
+    shared_relations: [被挑出的极值包含运气成分, 极值的表面数值高估该单位的真实水平, 判断要回到全部单位共同的基准分布, 单位越多极值越偏离真实水平]
+    removed_relations: [离散的启动或不启动决策, 全部正常这一单一基准]
+    added_relations: [真实水平有五种可能且事先等可能, 观测分数由真实水平加随机波动构成, 预测应按观测分数对五种水平的相对可能性加权]
+    adaptation_required: [把“至少一个达到该值的概率”改为“该分数在各真实水平下的相对可能性”, 用加权后的真实水平预测未来成绩而不是直接用 19]
+    varied: [从问责决策跨到人才评估, 模型从家族概率变为分数对真实水平的加权, 输出从是否与门槛变为期望题数]
+  lure:
+    problem: >-
+      同一公司改用一种无噪声的实操考核：15 名候选人的考核成绩精确等于其真实答对率乘以 20，最高者得 19 分，
+      录用该候选人。问该候选人入职后再做难度相同的同样 20 题测试，期望答对多少题（保留一位小数）。
+    solution: 考核无噪声，19 分就是真实水平 0.95 的精确反映，入职后期望仍是 19.0 题。
+    answer:
+      parts:
+        - {type: number, value: "19.0", abs_tolerance: "0.05"}
+    why_surface_similar: 同样的招聘、人数、满分与最高分。
+    why_structurally_different: lure 的分数无噪声，目标的分数含运气且最高分是 15 人中挑出的。
+    wrong_schema_id: score-equals-ability-01
+  copy_probe:
+    answer:
+      parts:
+        - {type: number, value: "19.0", abs_tolerance: "0.05"}
+    derivation: 把 19 题当作真实水平的精确度量，预测入职后仍答对 19 题。
+  hints:
+    schema_name: 许多相似单位中的极值本身不是证据
+    oracle_mindset:
+      insight: 最高分包含向上的运气；把 19 分在五种真实水平下的可能性算出来做加权，真实水平的期望约 0.88，对应约 17.6 题。
+      when_to_use: 依据一次带噪声的测量挑出最好者并预测其未来表现时。
+    false_mindset:
+      insight: 分数就是水平，他答对 19 题以后也会答对 19 题。
+      when_to_use: 忽略测量噪声与挑选过程时。
+  verification:
+    entrypoint: mindsetbench.verification.far_selection_extreme:verify_far_extreme_l4_01
+    method: posterior-mean-ability-under-discrete-prior
+  provenance: original synthetic case
+  verified: 19 分下五种水平的相对可能性加权得真实答对率约 0.878，乘 20 得 17.6。
