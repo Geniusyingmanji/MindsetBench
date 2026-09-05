@@ -197,4 +197,5 @@ X 卷的第一步没那么整齐，却有一个分支能立即结束，另两个
 
 本页案例满足“跨域、可核验和诱饵明确”，但尚未满足第一条。最新模型审计见
 [`far50-calibration-report.md`](far50-calibration-report.md)，下一代交互式构造规范见
-[`FAR_TRANSFER_PROTOCOL.md`](FAR_TRANSFER_PROTOCOL.md)。
+[`FAR_TRANSFER_PROTOCOL.md`](FAR_TRANSFER_PROTOCOL.md)。单题如何被渲染为四种评测输入，见
+[`test_example.md`](test_example.md)。

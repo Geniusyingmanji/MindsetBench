@@ -203,5 +203,6 @@ artifacts/runs/       本地 SQLite 实验库，默认不提交
 - [`docs/METHODS.md`](docs/METHODS.md)：题目构造方法；
 - [`docs/PARADIGMS.md`](docs/PARADIGMS.md)：P1–P9 范式；
 - [`docs/cases.md`](docs/cases.md)：12 个 far case 的通俗说明；
+- [`docs/test_example.md`](docs/test_example.md)：单个 far case 的四条件输入与判分示例；
 - [`docs/far50-calibration-report.md`](docs/far50-calibration-report.md)：最新模型校准与失败审计；
 - [`data/CASE_STATUS.md`](data/CASE_STATUS.md)：题目分层与降级历史。
