@@ -86,6 +86,8 @@ MindsetBench 评测 LLM/agent 能否把一个任务中的认知图式（mindset�
 **相关公开行动：共源告警 → 历史建筑真伪评议。** 两位研究员共享一份目录线索、各有私人证言，再公开表态。
 公开行动既不是独立原始证据，也不是共同线索的直接复制；需要对共享潜变量联合边缘化后再更新第三位专家的行动似然。
 
+十个 far50 mindset 与两个后续 seed 的通俗拆解见 [`docs/cases.md`](docs/cases.md)。
+
 ## 已有模型结论
 
 以下均为 GPT-5.6-sol、温度 0 的小样本预筛：
@@ -200,5 +202,6 @@ artifacts/runs/       本地 SQLite 实验库，默认不提交
 - [`docs/SPEC.md`](docs/SPEC.md)：难度定义、数据字段和评测协议；
 - [`docs/METHODS.md`](docs/METHODS.md)：题目构造方法；
 - [`docs/PARADIGMS.md`](docs/PARADIGMS.md)：P1–P9 范式；
+- [`docs/cases.md`](docs/cases.md)：12 个 far case 的通俗说明；
 - [`docs/far50-calibration-report.md`](docs/far50-calibration-report.md)：最新模型校准与失败审计；
 - [`data/CASE_STATUS.md`](data/CASE_STATUS.md)：题目分层与降级历史。

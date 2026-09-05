@@ -82,44 +82,12 @@ L0-A-01、L1-A-01、L1-B-01、L1-E-01、L1-F-01、L2-A-01——保留为 dev spl
 仍为 `calibration` 的类型化资产只剩 P5 潜在操作 L4、latent certificates/staged/seeds 与 certificate outages/policy-joint
 共 19 题；它们是算力型 challenge，用于定位搜索失败，不作为迁移距离证据。
 
-新批次 `far20`（[`docs/far20-report.md`](../docs/far20-report.md)）：四个框架型 mindset 家族各一条 L0–L4 链，
-L2–L4 跨学科、跨文体、跨表征且通过 `mb audit --surface` 闸门，20/20 有可执行 verifier；`far20-hard.json`
-为其中 12 道 L2–L4。状态为 calibration，尚未做模型校准；晋级门见协议第 7 节。
+## 2026-09-03 至 2026-09-04：far50 构造
 
-| 状态 | 类型化题数 |
-| --- | ---: |
-| calibration（far20） | 20 |
-| calibration（P5 算力型 challenge） | 19 |
-| sanity | 82 |
-| dev（hard seeds） | 9 |
-
-## 2026-09-04 第二批远域家族（far35）
-
-新增三个家族、15 题，全部 calibration：`far-delayed-feedback-v1`（P3，时滞下的过度修正）、`far-selection-extreme-v1`
-（P1，极值选择效应）、`far-threshold-cascade-v1`（P3，门槛分布的缺口决定扩散终点）。`far35.json` 汇总七个家族 35 题，
-`far35-hard.json` 为其中 21 道 L2–L4；三道 L2 的第一稿被 `mb audit --surface` 拦下并改写。报告见
-[`docs/far35-report.md`](../docs/far35-report.md)。尚未做模型校准。
-
-| 状态 | 类型化题数 |
-| --- | ---: |
-| calibration（far35） | 35 |
-| calibration（P5 算力型 challenge） | 19 |
-| sanity | 82 |
-| dev（hard seeds） | 9 |
-
-## 2026-09-04 第三批超远域家族（far50）
-
-新增三个家族、15 题，全部 calibration：`far-invariant-reachability-v1`（P2，黑板消数 → 翻杯 → 象棋马步 → 舞蹈队形 → 记账）、
-`far-selection-association-v1`（P3，住院 → 体检 → 校招 → 课程评论 → 星表）、`far-scaling-law-v1`（P1，动物食量 → 鸟卵 → 晾汤 →
-桥梁模型 → 冷库造价）。`far50.json` 汇总十个家族 50 题，`far50-hard.json` 为其中 30 道 L2–L4。报告见
-[`docs/far50-report.md`](../docs/far50-report.md)。尚未做模型校准。
-
-| 状态 | 类型化题数 |
-| --- | ---: |
-| calibration（far50） | 50 |
-| calibration（P5 算力型 challenge） | 19 |
-| sanity | 82 |
-| dev（hard seeds） | 9 |
+远域资产分三批从 20 题扩展到 50 题，最终形成十个 mindset 家族，每个家族都有一条 L0–L4 链。
+全部 50 题通过严格 schema、schema card、表面距离审计和可执行 verifier；其中 30 道 L2–L4 汇总在
+`far50-hard.json`。早期 `far20`、`far35`、`far50` 的阶段性构造报告已经合并清理；当前家族和案例说明见
+[`docs/cases.md`](../docs/cases.md)，模型校准结论见下一节。
 
 ## 2026-09-04 模型校准后的权威口径
 
